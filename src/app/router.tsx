@@ -1,11 +1,9 @@
 import type { ReactNode } from "react";
 import {
-  Activity,
   Bell,
   FileText,
   LayoutDashboard,
   LineChart,
-  Settings as SettingsIcon,
   Shield,
   Target,
   TrendingUp,
@@ -20,8 +18,6 @@ import { Notifications } from "@/features/notifications/pages/notifications-page
 import { PestAnalysis } from "@/features/pest-monitoring/pages/pest-analysis-page";
 import { ThresholdActions } from "@/features/pest-monitoring/pages/threshold-actions-page";
 import { ProfileSettings } from "@/features/system/pages/profile-settings-page";
-import { Settings } from "@/features/system/pages/settings-page";
-import { SystemStatus } from "@/features/system/pages/system-status-page";
 import { AdminApprovalsPage } from "@/features/system/pages/admin-approvals-page";
 import type { AppUser, UserRole } from "@/shared/types/user";
 
@@ -33,8 +29,6 @@ export type AppSection =
   | "forecast"
   | "notifications"
   | "reports"
-  | "status"
-  | "settings"
   | "profile"
   | "admin-approvals";
 
@@ -97,22 +91,6 @@ export const navigationConfig: NavigationItem[] = [
     roles: ["Administrator", "Researcher", "Demo User"],
   },
   {
-    title: "System Status",
-    icon: Activity,
-    id: "status",
-    description: "Monitoring system health",
-    group: "system",
-    roles: ["Administrator"],
-  },
-  {
-    title: "Settings",
-    icon: SettingsIcon,
-    id: "settings",
-    description: "Configuration and preferences",
-    group: "system",
-    roles: ["Administrator", "Researcher"],
-  },
-  {
     title: "Profile Settings",
     icon: User,
     id: "profile",
@@ -155,10 +133,6 @@ export function renderSection(section: AppSection, { user, onUpdateUser }: Rende
       return <ForecastEarlyWarning />;
     case "reports":
       return <Reports />;
-    case "status":
-      return <SystemStatus />;
-    case "settings":
-      return <Settings />;
     case "notifications":
       return <Notifications />;
     case "profile":

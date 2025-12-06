@@ -15,7 +15,7 @@ interface SettingsContextType {
 }
 
 const defaultSettings: AppSettings = {
-  theme: 'system',
+  theme: 'light',
   density: 'comfortable',
   language: 'en',
   dateFormat: 'MM/DD/YYYY',
