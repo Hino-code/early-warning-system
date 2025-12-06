@@ -32,16 +32,25 @@ interface SharedFiltersProps {
   primaryOnly?: boolean;
 }
 
-export function SharedFilters({ filters, onFilterChange, showAdvanced = true, compact = false, primaryOnly = false }: SharedFiltersProps) {
+export function SharedFilters({
+  filters,
+  onFilterChange,
+  showAdvanced = true,
+  compact = false,
+  primaryOnly = false,
+}: SharedFiltersProps) {
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [dateRangeStart, setDateRangeStart] = useState<Date | undefined>(
-    filters.dateRange?.start,
+    filters.dateRange?.start
   );
   const [dateRangeEnd, setDateRangeEnd] = useState<Date | undefined>(
-    filters.dateRange?.end,
+    filters.dateRange?.end
   );
 
-  const updateFilter = <K extends keyof FilterValues>(key: K, value: FilterValues[K]) => {
+  const updateFilter = <K extends keyof FilterValues>(
+    key: K,
+    value: FilterValues[K]
+  ) => {
     onFilterChange({ ...filters, [key]: value });
   };
 
@@ -54,22 +63,22 @@ export function SharedFilters({ filters, onFilterChange, showAdvanced = true, co
 
   const applyDateRange = () => {
     if (dateRangeStart && dateRangeEnd) {
-      updateFilter('dateRange', { start: dateRangeStart, end: dateRangeEnd });
+      updateFilter("dateRange", { start: dateRangeStart, end: dateRangeEnd });
     }
   };
 
   const clearDateRange = () => {
     setDateRangeStart(undefined);
     setDateRangeEnd(undefined);
-    updateFilter('dateRange', null);
+    updateFilter("dateRange", null);
   };
 
-  const hasActiveFilters = 
-    filters.season !== 'All' || 
-    filters.fieldStage !== 'All' || 
-    filters.pestType !== 'All' ||
-    filters.thresholdStatus !== 'All' ||
-    filters.actionStatus !== 'All';
+  const hasActiveFilters =
+    filters.season !== "All" ||
+    filters.fieldStage !== "All" ||
+    filters.pestType !== "All" ||
+    filters.thresholdStatus !== "All" ||
+    filters.actionStatus !== "All";
 
   return (
     <Card className={compact ? "p-3" : "p-4 mb-6"}>
@@ -82,7 +91,12 @@ export function SharedFilters({ filters, onFilterChange, showAdvanced = true, co
               <h3 className="font-medium">Filters</h3>
             </div>
             {hasActiveFilters && (
-              <Button variant="ghost" size="sm" onClick={resetFilters} className="h-8">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={resetFilters}
+                className="h-8"
+              >
                 <X className="h-3 w-3 mr-1" />
                 Reset
               </Button>
@@ -90,17 +104,33 @@ export function SharedFilters({ filters, onFilterChange, showAdvanced = true, co
           </div>
         )}
 
-        <div className={`flex items-center ${compact ? 'gap-2 flex-wrap' : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4'}`}>
+        <div
+          className={`flex items-center ${
+            compact
+              ? "gap-2 flex-wrap"
+              : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4"
+          }`}
+        >
           {compact && hasActiveFilters && (
-            <Button variant="ghost" size="sm" onClick={resetFilters} className="h-8 ml-auto">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={resetFilters}
+              className="h-8 ml-auto"
+            >
               <X className="h-3 w-3 mr-1" />
               Reset
             </Button>
           )}
           {/* Year */}
           <div className={compact ? "" : "space-y-2"}>
-            {!compact && <label className="text-sm text-muted-foreground">Year</label>}
-            <Select value={filters.year.toString()} onValueChange={(val) => updateFilter('year', parseInt(val))}>
+            {!compact && (
+              <label className="text-sm text-muted-foreground">Year</label>
+            )}
+            <Select
+              value={filters.year.toString()}
+              onValueChange={(val) => updateFilter("year", parseInt(val))}
+            >
               <SelectTrigger className={compact ? "h-9 w-[120px]" : ""}>
                 <SelectValue />
               </SelectTrigger>
@@ -113,8 +143,13 @@ export function SharedFilters({ filters, onFilterChange, showAdvanced = true, co
 
           {/* Pest Type */}
           <div className={compact ? "" : "space-y-2"}>
-            {!compact && <label className="text-sm text-muted-foreground">Pest Type</label>}
-            <Select value={filters.pestType} onValueChange={(val) => updateFilter('pestType', val as any)}>
+            {!compact && (
+              <label className="text-sm text-muted-foreground">Pest Type</label>
+            )}
+            <Select
+              value={filters.pestType}
+              onValueChange={(val) => updateFilter("pestType", val as any)}
+            >
               <SelectTrigger className={compact ? "h-9 w-[180px]" : ""}>
                 <SelectValue />
               </SelectTrigger>
@@ -127,14 +162,26 @@ export function SharedFilters({ filters, onFilterChange, showAdvanced = true, co
 
           {/* Date Range */}
           <div className={compact ? "" : "space-y-2"}>
-            {!compact && <label className="text-sm text-muted-foreground">Date Range</label>}
+            {!compact && (
+              <label className="text-sm text-muted-foreground">
+                Date Range
+              </label>
+            )}
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="outline" className={compact ? "h-9 w-[200px] justify-start text-left" : "w-full justify-start text-left"}>
+                <Button
+                  variant="outline"
+                  className={
+                    compact
+                      ? "h-9 w-[200px] justify-start text-left"
+                      : "w-full justify-start text-left"
+                  }
+                >
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   {filters.dateRange ? (
                     <span className="truncate">
-                      {format(filters.dateRange.start, 'MMM d')} - {format(filters.dateRange.end, 'MMM d, yyyy')}
+                      {format(filters.dateRange.start, "MMM d")} -{" "}
+                      {format(filters.dateRange.end, "MMM d, yyyy")}
                     </span>
                   ) : (
                     <span className="text-muted-foreground">Select range</span>
@@ -158,14 +205,25 @@ export function SharedFilters({ filters, onFilterChange, showAdvanced = true, co
                       mode="single"
                       selected={dateRangeEnd}
                       onSelect={setDateRangeEnd}
-                      disabled={(date) => dateRangeStart ? date < dateRangeStart : false}
+                      disabled={(date) =>
+                        dateRangeStart ? date < dateRangeStart : false
+                      }
                     />
                   </div>
                   <div className="flex gap-2">
-                    <Button size="sm" onClick={applyDateRange} className="flex-1">
+                    <Button
+                      size="sm"
+                      onClick={applyDateRange}
+                      className="flex-1"
+                    >
                       Apply
                     </Button>
-                    <Button size="sm" variant="outline" onClick={clearDateRange} className="flex-1">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={clearDateRange}
+                      className="flex-1"
+                    >
                       Clear
                     </Button>
                   </div>
@@ -179,9 +237,17 @@ export function SharedFilters({ filters, onFilterChange, showAdvanced = true, co
         {showAdvanced && (
           <Collapsible open={advancedOpen} onOpenChange={setAdvancedOpen}>
             <CollapsibleTrigger asChild>
-              <Button variant="ghost" size="sm" className="w-full justify-between mt-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full justify-between mt-2"
+              >
                 <span className="text-sm">Advanced Filters</span>
-                <ChevronDown className={`h-4 w-4 transition-transform ${advancedOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown
+                  className={`h-4 w-4 transition-transform ${
+                    advancedOpen ? "rotate-180" : ""
+                  }`}
+                />
               </Button>
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-4">
@@ -189,8 +255,15 @@ export function SharedFilters({ filters, onFilterChange, showAdvanced = true, co
                 {/* Season */}
                 {primaryOnly && (
                   <div className="space-y-2">
-                    <label className="text-sm text-muted-foreground">Season</label>
-                    <Select value={filters.season} onValueChange={(val) => updateFilter('season', val as any)}>
+                    <label className="text-sm text-muted-foreground">
+                      Season
+                    </label>
+                    <Select
+                      value={filters.season}
+                      onValueChange={(val) =>
+                        updateFilter("season", val as any)
+                      }
+                    >
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -206,8 +279,13 @@ export function SharedFilters({ filters, onFilterChange, showAdvanced = true, co
                 {/* Field Stage */}
                 {primaryOnly && (
                   <div className="space-y-2">
-                    <label className="text-sm text-muted-foreground">Field Stage</label>
-                    <Select value={filters.fieldStage} onValueChange={(val) => updateFilter('fieldStage', val)}>
+                    <label className="text-sm text-muted-foreground">
+                      Field Stage
+                    </label>
+                    <Select
+                      value={filters.fieldStage}
+                      onValueChange={(val) => updateFilter("fieldStage", val)}
+                    >
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -215,7 +293,9 @@ export function SharedFilters({ filters, onFilterChange, showAdvanced = true, co
                         <SelectItem value="All">All Stages</SelectItem>
                         <SelectItem value="Seedling">Seedling</SelectItem>
                         <SelectItem value="Vegetative">Vegetative</SelectItem>
-                        <SelectItem value="Reproductive">Reproductive</SelectItem>
+                        <SelectItem value="Reproductive">
+                          Reproductive
+                        </SelectItem>
                         <SelectItem value="Ripening">Ripening</SelectItem>
                       </SelectContent>
                     </Select>
@@ -224,8 +304,15 @@ export function SharedFilters({ filters, onFilterChange, showAdvanced = true, co
 
                 {/* Threshold Status */}
                 <div className="space-y-2">
-                  <label className="text-sm text-muted-foreground">Threshold Status</label>
-                  <Select value={filters.thresholdStatus} onValueChange={(val) => updateFilter('thresholdStatus', val as any)}>
+                  <label className="text-sm text-muted-foreground">
+                    Threshold Status
+                  </label>
+                  <Select
+                    value={filters.thresholdStatus}
+                    onValueChange={(val) =>
+                      updateFilter("thresholdStatus", val as any)
+                    }
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -239,8 +326,15 @@ export function SharedFilters({ filters, onFilterChange, showAdvanced = true, co
 
                 {/* Action Status */}
                 <div className="space-y-2">
-                  <label className="text-sm text-muted-foreground">Action Status</label>
-                  <Select value={filters.actionStatus} onValueChange={(val) => updateFilter('actionStatus', val as any)}>
+                  <label className="text-sm text-muted-foreground">
+                    Action Status
+                  </label>
+                  <Select
+                    value={filters.actionStatus}
+                    onValueChange={(val) =>
+                      updateFilter("actionStatus", val as any)
+                    }
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>

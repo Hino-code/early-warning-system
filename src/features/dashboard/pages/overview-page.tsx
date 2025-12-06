@@ -19,6 +19,7 @@ import {
   Bar,
   ComposedChart,
   Area,
+  Legend,
 } from "recharts";
 import type { TooltipProps } from "recharts";
 import { KpiCards } from "../components/kpi-cards";
@@ -189,12 +190,12 @@ export function Overview() {
 
     return [
       {
-        name: "Above Threshold",
+        name: "Critical",
         value: above,
         color: "hsl(var(--destructive))",
       },
       {
-        name: "Below Threshold",
+        name: "Normal",
         value: below,
         color: "hsl(var(--success))",
       },
@@ -393,20 +394,34 @@ export function Overview() {
           <Badge variant="outline">Mock data</Badge>
         </div>
         {peakForecast && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
-            <Card className="p-3 shadow-none border bg-muted/40">
-              <p className="text-xs text-muted-foreground">Peak expected (next 14d)</p>
-              <p className="text-xl font-semibold text-foreground">{peakForecast.peak}</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <Card className="p-4 shadow-sm border-l-4 border-l-primary bg-gradient-to-br from-primary/5 to-transparent">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Peak Expected (14 days)</p>
+              <p className="text-3xl font-bold text-foreground">{peakForecast.peak}</p>
+              <p className="text-xs text-muted-foreground mt-1">pest count</p>
             </Card>
-            <Card className="p-3 shadow-none border bg-muted/40">
-              <p className="text-xs text-muted-foreground">Risk level</p>
-              <p className={`text-xl font-semibold ${peakForecast.risk === "Critical" ? "text-destructive" : peakForecast.risk === "Elevated" ? "text-warning" : "text-foreground"}`}>
-                {peakForecast.risk}
-              </p>
+            <Card className={`p-4 shadow-sm border-l-4 ${
+              peakForecast.risk === "Critical" 
+                ? "border-l-destructive bg-gradient-to-br from-destructive/5 to-transparent" 
+                : peakForecast.risk === "Elevated"
+                ? "border-l-warning bg-gradient-to-br from-warning/5 to-transparent"
+                : "border-l-success bg-gradient-to-br from-success/5 to-transparent"
+            }`}>
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Risk Level</p>
+              <div className="flex items-center gap-2">
+                <Badge variant={
+                  peakForecast.risk === "Critical" ? "destructive" : 
+                  peakForecast.risk === "Elevated" ? "outline" : "outline"
+                } className={
+                  peakForecast.risk === "Elevated" ? "bg-warning text-warning-foreground border-warning" : ""
+                }>
+                  {peakForecast.risk}
+                </Badge>
+              </div>
             </Card>
-            <Card className="p-3 shadow-none border bg-muted/40">
-              <p className="text-xs text-muted-foreground">Recommended action</p>
-              <p className="text-sm text-foreground">{peakForecast.action}</p>
+            <Card className="p-4 shadow-sm border-l-4 border-l-chart-4 bg-gradient-to-br from-chart-4/5 to-transparent">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Recommended Action</p>
+              <p className="text-sm font-medium text-foreground leading-tight">{peakForecast.action}</p>
             </Card>
           </div>
         )}
@@ -416,30 +431,51 @@ export function Overview() {
           </p>
         ) : (
           <ResponsiveContainer width="100%" height={520}>
-            <ComposedChart data={forecastSeries}>
+            <ComposedChart data={forecastSeries} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
               <CartesianGrid
                 strokeDasharray="3 3"
                 stroke="hsl(var(--border))"
-                opacity={0.3}
+                opacity={0.5}
+                vertical={false}
               />
               <XAxis
                 dataKey="dateLabel"
                 tick={{
-                  fontSize: 11,
-                  fill: "hsl(var(--muted-foreground))",
+                  fontSize: 12,
+                  fill: "hsl(var(--foreground))",
                 }}
                 stroke="hsl(var(--border))"
+                strokeWidth={1.5}
                 interval="preserveStartEnd"
-                minTickGap={10}
+                minTickGap={20}
+                label={{
+                  value: "Date",
+                  position: "insideBottom",
+                  offset: -5,
+                  style: { fontSize: 12, fill: "hsl(var(--muted-foreground))" },
+                }}
               />
               <YAxis
                 tick={{
-                  fontSize: 11,
-                  fill: "hsl(var(--muted-foreground))",
+                  fontSize: 12,
+                  fill: "hsl(var(--foreground))",
                 }}
                 stroke="hsl(var(--border))"
+                strokeWidth={1.5}
+                label={{
+                  value: "Pest Count",
+                  angle: -90,
+                  position: "insideLeft",
+                  style: { fontSize: 12, fill: "hsl(var(--muted-foreground))" },
+                }}
               />
               <Tooltip content={renderForecastTooltip} />
+              <Legend 
+                verticalAlign="top" 
+                height={36}
+                iconType="line"
+                wrapperStyle={{ fontSize: 13 }}
+              />
               <Area
                 dataKey="bandBase"
                 stackId="confidence"
@@ -452,16 +488,17 @@ export function Overview() {
                 stackId="confidence"
                 stroke="transparent"
                 fill="hsl(var(--chart-4))"
-                fillOpacity={0.12}
+                fillOpacity={0.15}
                 isAnimationActive={false}
+                name="Confidence Band"
               />
               <Line
                 type="monotone"
                 dataKey="actual"
                 name="Observed"
-                stroke="hsl(var(--foreground))"
-                strokeWidth={2}
-                dot={false}
+                stroke="hsl(var(--primary))"
+                strokeWidth={3}
+                dot={{ r: 3, fill: "hsl(var(--primary))" }}
                 connectNulls={false}
               />
               <Line
@@ -469,9 +506,9 @@ export function Overview() {
                 dataKey="predicted"
                 name="Forecast"
                 stroke="hsl(var(--chart-4))"
-                strokeWidth={2}
+                strokeWidth={3}
                 strokeDasharray="5 5"
-                dot={false}
+                dot={{ r: 3, fill: "hsl(var(--chart-4))" }}
                 connectNulls={false}
               />
             </ComposedChart>
@@ -482,55 +519,62 @@ export function Overview() {
       {/* Mini Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Pest Count Trend */}
-        <Card className="p-4">
+        <Card className="p-4 hover:shadow-md transition-shadow">
           <div className="mb-4">
-            <h3 className="font-medium">Pest Count Trend</h3>
+            <h3 className="font-semibold text-foreground">Pest Count Trend</h3>
             <p className="text-sm text-muted-foreground">
-              Average daily pest count
+              Last 30 days average
             </p>
           </div>
-          <ResponsiveContainer width="100%" height={200}>
+          <ResponsiveContainer width="100%" height={220}>
             <LineChart data={trendData}>
               <CartesianGrid
                 strokeDasharray="3 3"
                 stroke="hsl(var(--border))"
-                opacity={0.3}
+                opacity={0.5}
+                vertical={false}
               />
               <XAxis
                 dataKey="date"
-                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+                tick={{ fontSize: 11, fill: 'hsl(var(--foreground))' }}
                 stroke="hsl(var(--border))"
+                strokeWidth={1.5}
                 interval="preserveStartEnd"
               />
-              <YAxis tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} stroke="hsl(var(--border))" />
+              <YAxis 
+                tick={{ fontSize: 11, fill: 'hsl(var(--foreground))' }} 
+                stroke="hsl(var(--border))" 
+                strokeWidth={1.5}
+              />
               <Tooltip
                 contentStyle={{
                   backgroundColor: "hsl(var(--popover))",
                   border: "1px solid hsl(var(--border))",
-                  borderRadius: "6px",
+                  borderRadius: "8px",
                   color: "hsl(var(--popover-foreground))",
+                  padding: "8px 12px",
                 }}
               />
               <Line
                 type="monotone"
                 dataKey="avgCount"
                 stroke="hsl(var(--primary))"
-                strokeWidth={2}
-                dot={false}
+                strokeWidth={3}
+                dot={{ r: 2, fill: "hsl(var(--primary))" }}
               />
             </LineChart>
           </ResponsiveContainer>
         </Card>
 
         {/* Threshold Status */}
-        <Card className="p-4">
+        <Card className="p-4 hover:shadow-md transition-shadow">
           <div className="mb-4">
-            <h3 className="font-medium">Threshold Status</h3>
+            <h3 className="font-semibold text-foreground">Threshold Status</h3>
             <p className="text-sm text-muted-foreground">
               Distribution of observations
             </p>
           </div>
-          <ResponsiveContainer width="100%" height={200}>
+          <ResponsiveContainer width="100%" height={220}>
             <PieChart>
               <Pie
                 data={thresholdStatusData}
@@ -538,60 +582,89 @@ export function Overview() {
                 cy="50%"
                 labelLine={false}
                 label={({ name, percent }) =>
-                  `${name}: ${(percent * 100).toFixed(0)}%`
+                  `${(percent * 100).toFixed(0)}%`
                 }
-                outerRadius={80}
+                outerRadius={85}
+                innerRadius={50}
                 fill="#8884d8"
                 dataKey="value"
+                paddingAngle={2}
               >
                 {thresholdStatusData.map((entry, index) => (
                   <Cell
                     key={`cell-${index}`}
                     fill={entry.color}
+                    stroke="hsl(var(--background))"
+                    strokeWidth={2}
                   />
                 ))}
               </Pie>
               <Tooltip
                 contentStyle={{
-                  backgroundColor: "hsl(var(--card))",
+                  backgroundColor: "hsl(var(--popover))",
                   border: "1px solid hsl(var(--border))",
-                  borderRadius: "6px",
+                  borderRadius: "8px",
+                  padding: "8px 12px",
                 }}
+              />
+              <Legend 
+                verticalAlign="bottom" 
+                height={36}
+                iconType="circle"
+                wrapperStyle={{ fontSize: 12 }}
               />
             </PieChart>
           </ResponsiveContainer>
         </Card>
 
         {/* Action Status */}
-        <Card className="p-4">
+        <Card className="p-4 hover:shadow-md transition-shadow">
           <div className="mb-4">
-            <h3 className="font-medium">Action Status</h3>
+            <h3 className="font-semibold text-foreground">Action Status</h3>
             <p className="text-sm text-muted-foreground">
               Response tracking
             </p>
           </div>
-          <ResponsiveContainer width="100%" height={200}>
+          <ResponsiveContainer width="100%" height={220}>
             <BarChart data={actionStatusData}>
               <CartesianGrid
                 strokeDasharray="3 3"
                 stroke="hsl(var(--border))"
-                opacity={0.3}
+                opacity={0.5}
+                vertical={false}
               />
-              <XAxis dataKey="name" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} stroke="hsl(var(--border))" />
-              <YAxis tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} stroke="hsl(var(--border))" />
+              <XAxis 
+                dataKey="name" 
+                tick={{ fontSize: 11, fill: 'hsl(var(--foreground))' }} 
+                stroke="hsl(var(--border))" 
+                strokeWidth={1.5}
+              />
+              <YAxis 
+                tick={{ fontSize: 11, fill: 'hsl(var(--foreground))' }} 
+                stroke="hsl(var(--border))" 
+                strokeWidth={1.5}
+              />
               <Tooltip
                 contentStyle={{
                   backgroundColor: "hsl(var(--popover))",
                   border: "1px solid hsl(var(--border))",
-                  borderRadius: "6px",
+                  borderRadius: "8px",
                   color: "hsl(var(--popover-foreground))",
+                  padding: "8px 12px",
                 }}
               />
               <Bar
                 dataKey="value"
                 fill="hsl(var(--primary))"
-                radius={[6, 6, 0, 0]}
-              />
+                radius={[8, 8, 0, 0]}
+              >
+                {actionStatusData.map((entry, index) => (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={entry.name === "Action Taken" ? "hsl(var(--success))" : "hsl(var(--muted))"}
+                  />
+                ))}
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </Card>
