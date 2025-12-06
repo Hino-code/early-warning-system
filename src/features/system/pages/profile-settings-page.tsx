@@ -1,27 +1,44 @@
 import type { AppUser } from "@/shared/types/user";
-import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import { useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { Textarea } from "@/shared/components/ui/textarea";
 import { Switch } from "@/shared/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/components/ui/select";
 import { Separator } from "@/shared/components/ui/separator";
 import { Badge } from "@/shared/components/ui/badge";
 import { Alert, AlertDescription } from "@/shared/components/ui/alert";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/components/ui/tabs";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/shared/components/ui/tabs";
 import { Avatar, AvatarFallback } from "@/shared/components/ui/avatar";
-import { 
-  User, 
-  Mail, 
-  Phone, 
-  MapPin, 
-  Building, 
-  Bell, 
-  Shield, 
-  Key, 
-  Palette, 
+import {
+  User,
+  Mail,
+  Phone,
+  MapPin,
+  Building,
+  Bell,
+  Shield,
+  Key,
+  Palette,
   Monitor,
   Sun,
   Moon,
@@ -30,8 +47,8 @@ import {
   CheckCircle,
   AlertCircle,
   Eye,
-  EyeOff
-} from 'lucide-react';
+  EyeOff,
+} from "lucide-react";
 
 interface ProfileSettingsProps {
   user: AppUser;
@@ -48,22 +65,22 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
   // Profile data state
   const [profileData, setProfileData] = useState({
     displayName: user.username,
-    email: 'user@agriculture.gov',
-    phone: '+1 (555) 123-4567',
-    department: 'Agricultural Research Division',
-    location: 'Regional Office - North',
-    bio: 'Agricultural researcher specializing in integrated pest management and sustainable farming practices.',
-    jobTitle: 'Senior Agricultural Researcher'
+    email: "user@agriculture.gov",
+    phone: "+1 (555) 123-4567",
+    department: "Agricultural Research Division",
+    location: "Regional Office - North",
+    bio: "Agricultural researcher specializing in integrated pest management and sustainable farming practices.",
+    jobTitle: "Senior Agricultural Researcher",
   });
 
   // Security settings
   const [securityData, setSecurityData] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: '',
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
     twoFactorEnabled: true,
-    sessionTimeout: '8',
-    loginNotifications: true
+    sessionTimeout: "8",
+    loginNotifications: true,
   });
 
   // Notification preferences
@@ -74,24 +91,24 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
     systemUpdates: false,
     weeklyReports: true,
     criticalAlertsOnly: false,
-    alertThreshold: 'medium'
+    alertThreshold: "medium",
   });
 
   // Appearance settings
   const [appearanceData, setAppearanceData] = useState({
-    theme: 'system',
-    language: 'en',
-    dateFormat: 'MM/DD/YYYY',
-    timeFormat: '12',
-    density: 'comfortable'
+    theme: "system",
+    language: "en",
+    dateFormat: "MM/DD/YYYY",
+    timeFormat: "12",
+    density: "comfortable",
   });
 
   const handleSaveProfile = async () => {
     setIsLoading(true);
-    
+
     // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+
     // Update user data if display name changed
     if (profileData.displayName !== user.username) {
       onUpdateUser({
@@ -99,7 +116,7 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
         username: profileData.displayName,
       });
     }
-    
+
     setIsLoading(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
@@ -107,17 +124,17 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
 
   const handleInputChange = (section: string, field: string, value: any) => {
     switch (section) {
-      case 'profile':
-        setProfileData(prev => ({ ...prev, [field]: value }));
+      case "profile":
+        setProfileData((prev) => ({ ...prev, [field]: value }));
         break;
-      case 'security':
-        setSecurityData(prev => ({ ...prev, [field]: value }));
+      case "security":
+        setSecurityData((prev) => ({ ...prev, [field]: value }));
         break;
-      case 'notifications':
-        setNotificationData(prev => ({ ...prev, [field]: value }));
+      case "notifications":
+        setNotificationData((prev) => ({ ...prev, [field]: value }));
         break;
-      case 'appearance':
-        setAppearanceData(prev => ({ ...prev, [field]: value }));
+      case "appearance":
+        setAppearanceData((prev) => ({ ...prev, [field]: value }));
         break;
     }
   };
@@ -131,7 +148,7 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
             Manage your account settings and preferences
           </p>
         </div>
-        
+
         {saved && (
           <Alert className="w-auto border-green-200 bg-green-50">
             <CheckCircle className="h-4 w-4 text-green-600" />
@@ -167,14 +184,22 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
               <div className="flex items-center space-x-4">
                 <Avatar className="h-20 w-20">
                   <AvatarFallback className="text-lg">
-                    {profileData.displayName.split(' ').map(n => n[0]).join('').toUpperCase()}
+                    {profileData.displayName
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")
+                      .toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <div className="space-y-2">
                   <p className="text-sm font-medium">Profile Picture</p>
                   <div className="flex space-x-2">
-                    <Button variant="outline" size="sm">Upload Photo</Button>
-                    <Button variant="ghost" size="sm">Remove</Button>
+                    <Button variant="outline" size="sm">
+                      Upload Photo
+                    </Button>
+                    <Button variant="ghost" size="sm">
+                      Remove
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -188,16 +213,24 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
                   <Input
                     id="displayName"
                     value={profileData.displayName}
-                    onChange={(e) => handleInputChange('profile', 'displayName', e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "profile",
+                        "displayName",
+                        e.target.value
+                      )
+                    }
                   />
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="jobTitle">Job Title</Label>
                   <Input
                     id="jobTitle"
                     value={profileData.jobTitle}
-                    onChange={(e) => handleInputChange('profile', 'jobTitle', e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("profile", "jobTitle", e.target.value)
+                    }
                   />
                 </div>
 
@@ -210,7 +243,9 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
                       type="email"
                       className="pl-10"
                       value={profileData.email}
-                      onChange={(e) => handleInputChange('profile', 'email', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("profile", "email", e.target.value)
+                      }
                     />
                   </div>
                 </div>
@@ -223,7 +258,9 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
                       id="phone"
                       className="pl-10"
                       value={profileData.phone}
-                      onChange={(e) => handleInputChange('profile', 'phone', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("profile", "phone", e.target.value)
+                      }
                     />
                   </div>
                 </div>
@@ -236,7 +273,13 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
                       id="department"
                       className="pl-10"
                       value={profileData.department}
-                      onChange={(e) => handleInputChange('profile', 'department', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "profile",
+                          "department",
+                          e.target.value
+                        )
+                      }
                     />
                   </div>
                 </div>
@@ -249,7 +292,9 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
                       id="location"
                       className="pl-10"
                       value={profileData.location}
-                      onChange={(e) => handleInputChange('profile', 'location', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("profile", "location", e.target.value)
+                      }
                     />
                   </div>
                 </div>
@@ -262,7 +307,9 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
                   rows={3}
                   placeholder="Tell us about yourself..."
                   value={profileData.bio}
-                  onChange={(e) => handleInputChange('profile', 'bio', e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("profile", "bio", e.target.value)
+                  }
                 />
               </div>
 
@@ -271,12 +318,18 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
                 <h4 className="font-medium mb-2">Account Information</h4>
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground">Current Role</p>
+                    <p className="text-sm text-muted-foreground">
+                      Current Role
+                    </p>
                     <Badge variant="outline">{user.role}</Badge>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Account Status</p>
-                    <Badge className="bg-green-100 text-green-800">Active</Badge>
+                    <p className="text-sm text-muted-foreground">
+                      Account Status
+                    </p>
+                    <Badge className="bg-green-100 text-green-800">
+                      Active
+                    </Badge>
                   </div>
                 </div>
               </div>
@@ -310,16 +363,28 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
                         type={showCurrentPassword ? "text" : "password"}
                         className="pl-10 pr-10"
                         value={securityData.currentPassword}
-                        onChange={(e) => handleInputChange('security', 'currentPassword', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange(
+                            "security",
+                            "currentPassword",
+                            e.target.value
+                          )
+                        }
                       />
                       <Button
                         type="button"
                         variant="ghost"
                         size="sm"
                         className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
-                        onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                        onClick={() =>
+                          setShowCurrentPassword(!showCurrentPassword)
+                        }
                       >
-                        {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        {showCurrentPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
                       </Button>
                     </div>
                   </div>
@@ -333,7 +398,13 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
                         type={showNewPassword ? "text" : "password"}
                         className="pl-10 pr-10"
                         value={securityData.newPassword}
-                        onChange={(e) => handleInputChange('security', 'newPassword', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange(
+                            "security",
+                            "newPassword",
+                            e.target.value
+                          )
+                        }
                       />
                       <Button
                         type="button"
@@ -342,7 +413,11 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
                         className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
                         onClick={() => setShowNewPassword(!showNewPassword)}
                       >
-                        {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        {showNewPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
                       </Button>
                     </div>
                   </div>
@@ -356,21 +431,35 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
                         type={showConfirmPassword ? "text" : "password"}
                         className="pl-10 pr-10"
                         value={securityData.confirmPassword}
-                        onChange={(e) => handleInputChange('security', 'confirmPassword', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange(
+                            "security",
+                            "confirmPassword",
+                            e.target.value
+                          )
+                        }
                       />
                       <Button
                         type="button"
                         variant="ghost"
                         size="sm"
                         className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        onClick={() =>
+                          setShowConfirmPassword(!showConfirmPassword)
+                        }
                       >
-                        {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        {showConfirmPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
                       </Button>
                     </div>
                   </div>
                 </div>
-                <Button variant="outline" size="sm">Update Password</Button>
+                <Button variant="outline" size="sm">
+                  Update Password
+                </Button>
               </div>
 
               <Separator />
@@ -378,7 +467,7 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
               {/* Security Preferences */}
               <div className="space-y-4">
                 <h4 className="font-medium">Security Preferences</h4>
-                
+
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
                     <Label>Two-Factor Authentication</Label>
@@ -388,7 +477,9 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
                   </div>
                   <Switch
                     checked={securityData.twoFactorEnabled}
-                    onCheckedChange={(checked: boolean) => handleInputChange('security', 'twoFactorEnabled', checked)}
+                    onCheckedChange={(checked: boolean) =>
+                      handleInputChange("security", "twoFactorEnabled", checked)
+                    }
                   />
                 </div>
 
@@ -401,16 +492,26 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
                   </div>
                   <Switch
                     checked={securityData.loginNotifications}
-                    onCheckedChange={(checked: boolean) => handleInputChange('security', 'loginNotifications', checked)}
+                    onCheckedChange={(checked: boolean) =>
+                      handleInputChange(
+                        "security",
+                        "loginNotifications",
+                        checked
+                      )
+                    }
                   />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="sessionTimeout">Session Timeout (hours)</Label>
+                    <Label htmlFor="sessionTimeout">
+                      Session Timeout (hours)
+                    </Label>
                     <Select
                       value={securityData.sessionTimeout}
-                      onValueChange={(value: string) => handleInputChange('security', 'sessionTimeout', value)}
+                      onValueChange={(value: string) =>
+                        handleInputChange("security", "sessionTimeout", value)
+                      }
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -452,7 +553,13 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
                   </div>
                   <Switch
                     checked={notificationData.emailNotifications}
-                    onCheckedChange={(checked: boolean) => handleInputChange('notifications', 'emailNotifications', checked)}
+                    onCheckedChange={(checked: boolean) =>
+                      handleInputChange(
+                        "notifications",
+                        "emailNotifications",
+                        checked
+                      )
+                    }
                   />
                 </div>
 
@@ -465,7 +572,13 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
                   </div>
                   <Switch
                     checked={notificationData.pushNotifications}
-                    onCheckedChange={(checked: boolean) => handleInputChange('notifications', 'pushNotifications', checked)}
+                    onCheckedChange={(checked: boolean) =>
+                      handleInputChange(
+                        "notifications",
+                        "pushNotifications",
+                        checked
+                      )
+                    }
                   />
                 </div>
 
@@ -482,7 +595,9 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
                   </div>
                   <Switch
                     checked={notificationData.pestAlerts}
-                    onCheckedChange={(checked: boolean) => handleInputChange('notifications', 'pestAlerts', checked)}
+                    onCheckedChange={(checked: boolean) =>
+                      handleInputChange("notifications", "pestAlerts", checked)
+                    }
                   />
                 </div>
 
@@ -495,7 +610,13 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
                   </div>
                   <Switch
                     checked={notificationData.systemUpdates}
-                    onCheckedChange={(checked: boolean) => handleInputChange('notifications', 'systemUpdates', checked)}
+                    onCheckedChange={(checked: boolean) =>
+                      handleInputChange(
+                        "notifications",
+                        "systemUpdates",
+                        checked
+                      )
+                    }
                   />
                 </div>
 
@@ -508,7 +629,13 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
                   </div>
                   <Switch
                     checked={notificationData.weeklyReports}
-                    onCheckedChange={(checked: boolean) => handleInputChange('notifications', 'weeklyReports', checked)}
+                    onCheckedChange={(checked: boolean) =>
+                      handleInputChange(
+                        "notifications",
+                        "weeklyReports",
+                        checked
+                      )
+                    }
                   />
                 </div>
 
@@ -521,7 +648,13 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
                   </div>
                   <Switch
                     checked={notificationData.criticalAlertsOnly}
-                    onCheckedChange={(checked: boolean) => handleInputChange('notifications', 'criticalAlertsOnly', checked)}
+                    onCheckedChange={(checked: boolean) =>
+                      handleInputChange(
+                        "notifications",
+                        "criticalAlertsOnly",
+                        checked
+                      )
+                    }
                   />
                 </div>
 
@@ -529,15 +662,25 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
                   <Label htmlFor="alertThreshold">Alert Threshold</Label>
                   <Select
                     value={notificationData.alertThreshold}
-                    onValueChange={(value: string) => handleInputChange('notifications', 'alertThreshold', value)}
+                    onValueChange={(value: string) =>
+                      handleInputChange(
+                        "notifications",
+                        "alertThreshold",
+                        value
+                      )
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="low">Low - All alerts</SelectItem>
-                      <SelectItem value="medium">Medium - Important alerts</SelectItem>
-                      <SelectItem value="high">High - Critical alerts only</SelectItem>
+                      <SelectItem value="medium">
+                        Medium - Important alerts
+                      </SelectItem>
+                      <SelectItem value="high">
+                        High - Critical alerts only
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -564,24 +707,38 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
                   <Label>Theme</Label>
                   <div className="grid grid-cols-3 gap-2">
                     <Button
-                      variant={appearanceData.theme === 'light' ? 'default' : 'outline'}
-                      onClick={() => handleInputChange('appearance', 'theme', 'light')}
+                      variant={
+                        appearanceData.theme === "light" ? "default" : "outline"
+                      }
+                      onClick={() =>
+                        handleInputChange("appearance", "theme", "light")
+                      }
                       className="justify-start"
                     >
                       <Sun className="h-4 w-4 mr-2" />
                       Light
                     </Button>
                     <Button
-                      variant={appearanceData.theme === 'dark' ? 'default' : 'outline'}
-                      onClick={() => handleInputChange('appearance', 'theme', 'dark')}
+                      variant={
+                        appearanceData.theme === "dark" ? "default" : "outline"
+                      }
+                      onClick={() =>
+                        handleInputChange("appearance", "theme", "dark")
+                      }
                       className="justify-start"
                     >
                       <Moon className="h-4 w-4 mr-2" />
                       Dark
                     </Button>
                     <Button
-                      variant={appearanceData.theme === 'system' ? 'default' : 'outline'}
-                      onClick={() => handleInputChange('appearance', 'theme', 'system')}
+                      variant={
+                        appearanceData.theme === "system"
+                          ? "default"
+                          : "outline"
+                      }
+                      onClick={() =>
+                        handleInputChange("appearance", "theme", "system")
+                      }
                       className="justify-start"
                     >
                       <Monitor className="h-4 w-4 mr-2" />
@@ -595,7 +752,9 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
                     <Label htmlFor="language">Language</Label>
                     <Select
                       value={appearanceData.language}
-                      onValueChange={(value: string) => handleInputChange('appearance', 'language', value)}
+                      onValueChange={(value: string) =>
+                        handleInputChange("appearance", "language", value)
+                      }
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -613,7 +772,9 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
                     <Label htmlFor="density">Interface Density</Label>
                     <Select
                       value={appearanceData.density}
-                      onValueChange={(value: string) => handleInputChange('appearance', 'density', value)}
+                      onValueChange={(value: string) =>
+                        handleInputChange("appearance", "density", value)
+                      }
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -630,7 +791,9 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
                     <Label htmlFor="dateFormat">Date Format</Label>
                     <Select
                       value={appearanceData.dateFormat}
-                      onValueChange={(value: string) => handleInputChange('appearance', 'dateFormat', value)}
+                      onValueChange={(value: string) =>
+                        handleInputChange("appearance", "dateFormat", value)
+                      }
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -647,7 +810,9 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
                     <Label htmlFor="timeFormat">Time Format</Label>
                     <Select
                       value={appearanceData.timeFormat}
-                      onValueChange={(value: string) => handleInputChange('appearance', 'timeFormat', value)}
+                      onValueChange={(value: string) =>
+                        handleInputChange("appearance", "timeFormat", value)
+                      }
                     >
                       <SelectTrigger>
                         <SelectValue />

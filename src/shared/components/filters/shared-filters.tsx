@@ -129,7 +129,9 @@ export function SharedFilters({
             )}
             <Select
               value={filters.year.toString()}
-              onValueChange={(val: string) => updateFilter("year", parseInt(val))}
+              onValueChange={(val: string) =>
+                updateFilter("year", parseInt(val))
+              }
             >
               <SelectTrigger className={compact ? "h-9 w-[120px]" : ""}>
                 <SelectValue />
@@ -148,7 +150,9 @@ export function SharedFilters({
             )}
             <Select
               value={filters.pestType}
-              onValueChange={(val: string) => updateFilter("pestType", val as any)}
+              onValueChange={(val: string) =>
+                updateFilter("pestType", val as any)
+              }
             >
               <SelectTrigger className={compact ? "h-9 w-[180px]" : ""}>
                 <SelectValue />
@@ -284,7 +288,9 @@ export function SharedFilters({
                     </label>
                     <Select
                       value={filters.fieldStage}
-                      onValueChange={(val: string) => updateFilter("fieldStage", val)}
+                      onValueChange={(val: string) =>
+                        updateFilter("fieldStage", val)
+                      }
                     >
                       <SelectTrigger>
                         <SelectValue />
