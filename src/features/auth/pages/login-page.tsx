@@ -8,15 +8,42 @@ import { Label } from "@/shared/components/ui/label";
 import { Separator } from "@/shared/components/ui/separator";
 import {
   AlertCircle,
-  Bug,
   CheckCircle,
   Eye,
   EyeOff,
   Lock,
   Mail,
-  Shield,
 } from "lucide-react";
 import pestIconLogo from "@/assets/pest-logo-icon.png";
+
+// Inline CSS for the sign-in button to override any conflicting styles
+const signInButtonStyles = `
+  .login-submit-button {
+    width: 100% !important;
+    background-color: #15803d !important;
+    color: #ffffff !important;
+    padding: 12px 16px !important;
+    border-radius: 0.375rem !important;
+    font-weight: 600 !important;
+    font-size: 14px !important;
+    border: none !important;
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-height: 44px !important;
+    transition: background-color 0.2s !important;
+  }
+  
+  .login-submit-button:hover:not(:disabled) {
+    background-color: #166534 !important;
+  }
+  
+  .login-submit-button:disabled {
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
+  }
+`;
 
 interface LoginProps {
   loading?: boolean;
@@ -40,12 +67,6 @@ export function Login({
     password: "",
   });
 
-  const demoAccounts = [
-    { username: "admin@ews.local", password: "admin123", label: "Administrator" },
-    { username: "field@ews.local", password: "field123", label: "Field Manager" },
-    { username: "demo@ews.local", password: "demo123", label: "Demo User" },
-  ] as const;
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -66,48 +87,42 @@ export function Login({
     }
   };
 
-  const handleDemoLogin = (account: (typeof demoAccounts)[number]) => {
-    setFormData({
-      username: account.username,
-      password: account.password,
-    });
-    setSuccess("Demo credentials filled. Click Sign In to continue.");
-  };
-
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 via-blue-50 to-indigo-50 p-6">
-      <div className="w-full max-w-lg space-y-6">
-        <div className="text-center space-y-4">
+    <>
+      <style>{signInButtonStyles}</style>
+      <div className="min-h-screen flex flex-col items-center justify-start bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 p-4 pt-12 pb-8">
+        <div className="w-full max-w-md space-y-4">
+        <div className="text-center space-y-3">
           <div className="flex items-center justify-center">
-            <img src={pestIconLogo} alt="Pest.i Logo" className="h-24 w-24" />
+            <img src={pestIconLogo} alt="Pest.i Logo" className="h-16 w-16" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold">Pest.i</h1>
-            <p className="text-muted-foreground">Early Warning System</p>
-            <p className="text-sm text-muted-foreground mt-2">
+            <h1 className="text-2xl font-bold text-green-800">Pest.i</h1>
+            <p className="text-xs text-muted-foreground font-medium">Early Warning System</p>
+            <p className="text-xs text-muted-foreground mt-1">
               Advanced rice pest monitoring and forecasting platform
             </p>
           </div>
         </div>
 
-        <Card className="p-6 space-y-6">
-          <div className="space-y-2 text-center">
-            <h2 className="text-xl 목font-semibold">Welcome Back</h2>
-            <p className="text-sm text-muted-foreground">
+        <Card className="p-6 space-y-4 shadow-xl overflow-visible">
+          <div className="space-y-1 text-center">
+            <h2 className="text-xl font-semibold">Welcome Back</h2>
+            <p className="text-xs text-muted-foreground">
               Sign in to access your pest monitoring dashboard
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="username">Email</Label>
+          <form onSubmit={handleSubmit} className="space-y-3 overflow-visible">
+            <div className="space-y-1.5">
+              <Label htmlFor="username" className="text-sm font-medium">Username</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="username"
                   name="username"
-                  type="email"
-                  placeholder="name@agency.gov"
+                  type="text"
+                  placeholder="Enter your username"
                   value={formData.username}
                   onChange={handleInputChange}
                   className="pl-10"
@@ -116,7 +131,7 @@ export function Login({
               </div>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <Label htmlFor="password">Password</Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -172,63 +187,64 @@ export function Login({
               </Alert>
             )}
 
-            <Button type="submit" className="w-full" disabled={loading}>
+            <button 
+              type="submit" 
+              disabled={loading}
+              className="login-submit-button"
+            >
               {loading ? (
-                <div className="flex items-center space-x-2">
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <>
+                  <div style={{
+                    width: '16px',
+                    height: '16px',
+                    border: '2px solid white',
+                    borderTopColor: 'transparent',
+                    borderRadius: '50%',
+                    animation: 'spin 1s linear infinite',
+                    marginRight: '8px'
+                  }} />
                   <span>Signing in...</span>
-                </div>
+                </>
               ) : (
                 "Sign In"
               )}
-            </Button>
+            </button>
           </form>
+
+          <Separator className="my-3" />
+
+          <div className="text-center">
+            <p className="text-xs text-muted-foreground mb-1.5">
+              Don't have an account?
+            </p>
+            <Button 
+              variant="link" 
+              onClick={onShowRegistration}
+              className="text-xs h-auto py-0"
+            >
+              Request Access
+            </Button>
+          </div>
         </Card>
 
-        <Card className="p-6 space-y-4">
-          <div className="flex items-center space-x-2">
-            <Shield className="h-4 w-4 text-blue-600" />
-            <h3 className="font-medium">Demo Accounts</h3>
-          </div>
-          <p className="text-sm text-muted-foreground">
-            Use these credentials to explore the dashboard quickly:
+        <div className="text-center space-y-2">
+          <p className="text-xs text-muted-foreground">
+            Capstone Project - Agricultural Pest Monitoring System
           </p>
-
-          <div className="space-y-2">
-            {demoAccounts.map((account) => (
-              <div
-                key={account.username}
-                className="flex items-center justify-between p-2 rounded-lg border hover:bg-accent/50 transition-colors"
-              >
-                <div>
-                  <div className="text-sm font-medium">{account.label}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {account.username} / {account.password}
-                  </div>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleDemoLogin(account)}
-                  className="text-xs"
-                >
-                  Autofill
-                </Button>
-              </div>
-            ))}
-          </div>
-        </Card>
-
-        <div className="text-center space-y-3">
-          <Button variant="link" size="sm" onClick={onShowRegistration}>
-            Need access? Request approval
-          </Button>
-          <Separator />
-          <div className="text-xs text-muted-foreground">
-            © {new Date().getFullYear()} Pest.i – Forecasting-Based Early Warning System
+          <div className="flex items-center justify-center gap-3 text-xs text-muted-foreground">
+            <span>© {new Date().getFullYear()} Pest.i</span>
+            <span>•</span>
+            <Button variant="link" className="h-auto p-0 text-xs">
+              Privacy Policy
+            </Button>
+            <span>•</span>
+            <Button variant="link" className="h-auto p-0 text-xs">
+              Terms of Service
+            </Button>
           </div>
         </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

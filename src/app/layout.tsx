@@ -8,9 +8,11 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarProvider,
   SidebarTrigger,
 } from "@/shared/components/ui/sidebar";
 import { Button } from "@/shared/components/ui/button";
+import { Card } from "@/shared/components/ui/card";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/popover";
 import { Avatar, AvatarFallback } from "@/shared/components/ui/avatar";
 import { Separator } from "@/shared/components/ui/separator";
@@ -171,7 +173,7 @@ export function AppLayout() {
   }
 
   return (
-    <>
+    <SidebarProvider>
       <Toaster position="top-right" richColors />
       <div className="flex h-screen w-full">
         <Sidebar className="border-r">
@@ -297,7 +299,7 @@ export function AppLayout() {
 
         {showWelcome && <WelcomeNotification user={user} onDismiss={() => setShowWelcome(false)} />}
       </div>
-    </>
+    </SidebarProvider>
   );
 }
 

@@ -40,12 +40,14 @@ export function SharedFilters({
   primaryOnly = false,
 }: SharedFiltersProps) {
   const [advancedOpen, setAdvancedOpen] = useState(false);
-  const [dateRangeStart, setDateRangeStart] = useState<Date | undefined>(
-    filters.dateRange?.start
-  );
-  const [dateRangeEnd, setDateRangeEnd] = useState<Date | undefined>(
-    filters.dateRange?.end
-  );
+  const [tempDateRange, setTempDateRange] = useState<{
+    from: Date | undefined;
+    to: Date | undefined;
+  }>({
+    from: filters.dateRange?.start,
+    to: filters.dateRange?.end,
+  });
+  const [datePopoverOpen, setDatePopoverOpen] = useState(false);
 
   const updateFilter = <K extends keyof FilterValues>(
     key: K,
@@ -57,20 +59,26 @@ export function SharedFilters({
   const resetFilters = () => {
     const defaults = createDefaultFilters();
     onFilterChange(defaults);
-    setDateRangeStart(defaults.dateRange?.start);
-    setDateRangeEnd(defaults.dateRange?.end);
+    setTempDateRange({
+      from: defaults.dateRange?.start,
+      to: defaults.dateRange?.end,
+    });
   };
 
   const applyDateRange = () => {
-    if (dateRangeStart && dateRangeEnd) {
-      updateFilter("dateRange", { start: dateRangeStart, end: dateRangeEnd });
+    if (tempDateRange.from && tempDateRange.to) {
+      updateFilter("dateRange", {
+        start: tempDateRange.from,
+        end: tempDateRange.to,
+      });
+      setDatePopoverOpen(false);
     }
   };
 
   const clearDateRange = () => {
-    setDateRangeStart(undefined);
-    setDateRangeEnd(undefined);
+    setTempDateRange({ from: undefined, to: undefined });
     updateFilter("dateRange", null);
+    setDatePopoverOpen(false);
   };
 
   const hasActiveFilters =
@@ -81,281 +89,227 @@ export function SharedFilters({
     filters.actionStatus !== "All";
 
   return (
-    <Card className={compact ? "p-3" : "p-4 mb-6"}>
-      <div className={compact ? "space-y-3" : "space-y-4"}>
-        {/* Primary Filters */}
-        {!compact && (
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2">
-              <Filter className="h-4 w-4 text-muted-foreground" />
-              <h3 className="font-medium">Filters</h3>
-            </div>
-            {hasActiveFilters && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={resetFilters}
-                className="h-8"
-              >
-                <X className="h-3 w-3 mr-1" />
-                Reset
-              </Button>
-            )}
-          </div>
-        )}
+    <div className={compact ? "mb-4" : "mb-6"}>
+      {/* Primary Filter Row - Compact, Professional Layout */}
+      <div className="flex items-center gap-3 flex-wrap">
+        {/* Group 1: Primary Filters */}
+        <div className="flex items-center gap-2">
+          <Select
+            value={filters.year.toString()}
+            onValueChange={(val: string) => updateFilter("year", parseInt(val))}
+          >
+            <SelectTrigger className="h-9 w-[110px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="2024">2024</SelectItem>
+              <SelectItem value="2025">2025</SelectItem>
+            </SelectContent>
+          </Select>
 
-        <div
-          className={`flex items-center ${
-            compact
-              ? "gap-2 flex-wrap"
-              : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4"
-          }`}
-        >
-          {compact && hasActiveFilters && (
+          <Select
+            value={filters.pestType}
+            onValueChange={(val: string) =>
+              updateFilter("pestType", val as any)
+            }
+          >
+            <SelectTrigger className="h-9 w-[170px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="All">All Pests</SelectItem>
+              <SelectItem value="Black Rice Bug">Black Rice Bug</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {primaryOnly && (
+            <Select
+              value={filters.fieldStage}
+              onValueChange={(val: string) => updateFilter("fieldStage", val)}
+            >
+              <SelectTrigger className="h-9 w-[140px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="All">All Stages</SelectItem>
+                <SelectItem value="Seedling">Seedling</SelectItem>
+                <SelectItem value="Vegetative">Vegetative</SelectItem>
+                <SelectItem value="Reproductive">Reproductive</SelectItem>
+                <SelectItem value="Ripening">Ripening</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+        </div>
+
+        {/* Divider */}
+        <div className="h-6 w-px bg-border" />
+
+        {/* Group 2: Date Range */}
+        <Popover open={datePopoverOpen} onOpenChange={setDatePopoverOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className="h-9 w-[220px] justify-start text-left font-normal"
+            >
+              <CalendarIcon className="mr-2 h-4 w-4 opacity-50" />
+              {filters.dateRange ? (
+                <span className="truncate">
+                  {format(filters.dateRange.start, "MMM d")} -{" "}
+                  {format(filters.dateRange.end, "MMM d, yyyy")}
+                </span>
+              ) : (
+                <span className="text-muted-foreground">Pick date range</span>
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent
+            className="w-auto p-0"
+            align="start"
+            side="bottom"
+            sideOffset={4}
+          >
+            <div className="p-3">
+              <Calendar
+                mode="range"
+                selected={tempDateRange}
+                onSelect={(range: any) =>
+                  setTempDateRange(range || { from: undefined, to: undefined })
+                }
+                numberOfMonths={1}
+                initialFocus
+              />
+              <div className="flex gap-2 pt-3 mt-3 border-t">
+                <Button
+                  size="sm"
+                  onClick={applyDateRange}
+                  disabled={!tempDateRange.from || !tempDateRange.to}
+                  className="flex-1"
+                >
+                  Apply Range
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={clearDateRange}
+                  className="flex-1"
+                >
+                  Clear
+                </Button>
+              </div>
+            </div>
+          </PopoverContent>
+        </Popover>
+
+        {/* Spacer */}
+        <div className="flex-1" />
+
+        {/* Group 3: Advanced Filters & Reset */}
+        <div className="flex items-center gap-2">
+          {showAdvanced && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setAdvancedOpen(!advancedOpen)}
+              className="h-9 gap-1"
+            >
+              <Filter className="h-3.5 w-3.5" />
+              Advanced
+              <ChevronDown
+                className={`h-3.5 w-3.5 transition-transform ${
+                  advancedOpen ? "rotate-180" : ""
+                }`}
+              />
+            </Button>
+          )}
+
+          {hasActiveFilters && (
             <Button
               variant="ghost"
               size="sm"
               onClick={resetFilters}
-              className="h-8 ml-auto"
+              className="h-9"
             >
-              <X className="h-3 w-3 mr-1" />
+              <X className="h-3.5 w-3.5 mr-1" />
               Reset
             </Button>
           )}
-          {/* Year */}
-          <div className={compact ? "" : "space-y-2"}>
-            {!compact && (
-              <label className="text-sm text-muted-foreground">Year</label>
-            )}
-            <Select
-              value={filters.year.toString()}
-              onValueChange={(val: string) =>
-                updateFilter("year", parseInt(val))
-              }
-            >
-              <SelectTrigger className={compact ? "h-9 w-[120px]" : ""}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="2024">2024</SelectItem>
-                <SelectItem value="2025">2025</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+        </div>
+      </div>
 
-          {/* Pest Type */}
-          <div className={compact ? "" : "space-y-2"}>
-            {!compact && (
-              <label className="text-sm text-muted-foreground">Pest Type</label>
-            )}
-            <Select
-              value={filters.pestType}
-              onValueChange={(val: string) =>
-                updateFilter("pestType", val as any)
-              }
-            >
-              <SelectTrigger className={compact ? "h-9 w-[180px]" : ""}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="All">All (Black Rice Bug)</SelectItem>
-                <SelectItem value="Black Rice Bug">Black Rice Bug</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Date Range */}
-          <div className={compact ? "" : "space-y-2"}>
-            {!compact && (
-              <label className="text-sm text-muted-foreground">
-                Date Range
-              </label>
-            )}
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={
-                    compact
-                      ? "h-9 w-[200px] justify-start text-left"
-                      : "w-full justify-start text-left"
+      {/* Advanced Filters Panel */}
+      {showAdvanced && advancedOpen && (
+        <Card className="mt-3 p-4 bg-muted/30">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Season */}
+            {primaryOnly && (
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                  Season
+                </label>
+                <Select
+                  value={filters.season}
+                  onValueChange={(val: string) =>
+                    updateFilter("season", val as any)
                   }
                 >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {filters.dateRange ? (
-                    <span className="truncate">
-                      {format(filters.dateRange.start, "MMM d")} -{" "}
-                      {format(filters.dateRange.end, "MMM d, yyyy")}
-                    </span>
-                  ) : (
-                    <span className="text-muted-foreground">Select range</span>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <div className="p-3 space-y-3">
-                  <div className="space-y-2">
-                    <label className="text-sm">Start Date</label>
-                    <Calendar
-                      mode="single"
-                      selected={dateRangeStart}
-                      onSelect={setDateRangeStart}
-                      initialFocus
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm">End Date</label>
-                    <Calendar
-                      mode="single"
-                      selected={dateRangeEnd}
-                      onSelect={setDateRangeEnd}
-                      disabled={(date: Date) =>
-                        dateRangeStart ? date < dateRangeStart : false
-                      }
-                    />
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      onClick={applyDateRange}
-                      className="flex-1"
-                    >
-                      Apply
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={clearDateRange}
-                      className="flex-1"
-                    >
-                      Clear
-                    </Button>
-                  </div>
-                </div>
-              </PopoverContent>
-            </Popover>
-          </div>
-        </div>
-
-        {/* Advanced Filters */}
-        {showAdvanced && (
-          <Collapsible open={advancedOpen} onOpenChange={setAdvancedOpen}>
-            <CollapsibleTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="w-full justify-between mt-2"
-              >
-                <span className="text-sm">Advanced Filters</span>
-                <ChevronDown
-                  className={`h-4 w-4 transition-transform ${
-                    advancedOpen ? "rotate-180" : ""
-                  }`}
-                />
-              </Button>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="mt-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2 border-t">
-                {/* Season */}
-                {primaryOnly && (
-                  <div className="space-y-2">
-                    <label className="text-sm text-muted-foreground">
-                      Season
-                    </label>
-                    <Select
-                      value={filters.season}
-                      onValueChange={(val: string) =>
-                        updateFilter("season", val as any)
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="All">All Seasons</SelectItem>
-                        <SelectItem value="Dry">Dry Season</SelectItem>
-                        <SelectItem value="Wet">Wet Season</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-
-                {/* Field Stage */}
-                {primaryOnly && (
-                  <div className="space-y-2">
-                    <label className="text-sm text-muted-foreground">
-                      Field Stage
-                    </label>
-                    <Select
-                      value={filters.fieldStage}
-                      onValueChange={(val: string) =>
-                        updateFilter("fieldStage", val)
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="All">All Stages</SelectItem>
-                        <SelectItem value="Seedling">Seedling</SelectItem>
-                        <SelectItem value="Vegetative">Vegetative</SelectItem>
-                        <SelectItem value="Reproductive">
-                          Reproductive
-                        </SelectItem>
-                        <SelectItem value="Ripening">Ripening</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-
-                {/* Threshold Status */}
-                <div className="space-y-2">
-                  <label className="text-sm text-muted-foreground">
-                    Threshold Status
-                  </label>
-                  <Select
-                    value={filters.thresholdStatus}
-                    onValueChange={(val: string) =>
-                      updateFilter("thresholdStatus", val as any)
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="All">All Status</SelectItem>
-                      <SelectItem value="Below">Below Threshold</SelectItem>
-                      <SelectItem value="Above">Above Threshold</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Action Status */}
-                <div className="space-y-2">
-                  <label className="text-sm text-muted-foreground">
-                    Action Status
-                  </label>
-                  <Select
-                    value={filters.actionStatus}
-                    onValueChange={(val: string) =>
-                      updateFilter("actionStatus", val as any)
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="All">All Actions</SelectItem>
-                      <SelectItem value="Taken">Action Taken</SelectItem>
-                      <SelectItem value="Not Taken">No Action</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                  <SelectTrigger className="h-9">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="All">All Seasons</SelectItem>
+                    <SelectItem value="Dry">Dry Season</SelectItem>
+                    <SelectItem value="Wet">Wet Season</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-            </CollapsibleContent>
-          </Collapsible>
-        )}
-      </div>
-    </Card>
+            )}
+
+            {/* Threshold Status */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                Threshold Status
+              </label>
+              <Select
+                value={filters.thresholdStatus}
+                onValueChange={(val: string) =>
+                  updateFilter("thresholdStatus", val as any)
+                }
+              >
+                <SelectTrigger className="h-9">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="All">All Status</SelectItem>
+                  <SelectItem value="Below">Below Threshold</SelectItem>
+                  <SelectItem value="Above">Above Threshold</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Action Status */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                Action Status
+              </label>
+              <Select
+                value={filters.actionStatus}
+                onValueChange={(val: string) =>
+                  updateFilter("actionStatus", val as any)
+                }
+              >
+                <SelectTrigger className="h-9">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="All">All Actions</SelectItem>
+                  <SelectItem value="Taken">Action Taken</SelectItem>
+                  <SelectItem value="Not Taken">No Action</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </Card>
+      )}
+    </div>
   );
 }

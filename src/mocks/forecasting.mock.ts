@@ -5,7 +5,8 @@ export const generateForecastData = (): ForecastData[] => {
   const pestTypes: Array<'Black Rice Bug'> = ['Black Rice Bug'];
   const today = new Date();
 
-  for (let i = 1; i <= 14; i++) {
+  // Generate 30 days of forecast data
+  for (let i = 1; i <= 30; i++) {
     const forecastDate = new Date(today);
     forecastDate.setDate(today.getDate() + i);
 
@@ -14,7 +15,10 @@ export const generateForecastData = (): ForecastData[] => {
         ? Math.floor(Math.random() * 40) + 30
         : Math.floor(Math.random() * 30) + 20;
 
+      // Add seasonal variation and trend
       const predicted = basePrediction + Math.sin(i / 2) * 10;
+      
+      // Confidence decreases over time (95% at day 1, ~80% at day 30)
       const confidence = 95 - (i * 0.5);
       const margin = predicted * (1 - confidence / 100) * 2;
 

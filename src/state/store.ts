@@ -42,6 +42,7 @@ export const DEFAULT_KPIS: KPIMetrics = {
 
 interface DashboardState {
   filters: FilterValues;
+  forecastHorizon: 7 | 14 | 30;
   observations: PestObservation[];
   filteredObservations: PestObservation[];
   forecasts: ForecastData[];
@@ -56,6 +57,7 @@ interface DashboardState {
   markAlertRead: (id: string) => void;
   markAllAlertsRead: () => void;
   setFilters: (filters: FilterValues) => void;
+  setForecastHorizon: (horizon: 7 | 14 | 30) => void;
 }
 
 type DataProvider = {
@@ -85,6 +87,7 @@ const applyFilters = (
 
 export const useDashboardStore = create<DashboardState>((set, get) => ({
   filters: createDefaultFilters(),
+  forecastHorizon: 14,
   observations: [],
   filteredObservations: [],
   forecasts: [],
@@ -175,6 +178,9 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
       filteredObservations: filtered,
       kpis,
     });
+  },
+  setForecastHorizon: (horizon: 7 | 14 | 30) => {
+    set({ forecastHorizon: horizon });
   },
 }));
 

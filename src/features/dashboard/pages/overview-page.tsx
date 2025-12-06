@@ -41,6 +41,8 @@ type ForecastPoint = {
 export function Overview() {
   const filters = useDashboardStore((state) => state.filters);
   const setFilters = useDashboardStore((state) => state.setFilters);
+  const forecastHorizon = useDashboardStore((state) => state.forecastHorizon);
+  const setForecastHorizon = useDashboardStore((state) => state.setForecastHorizon);
   const initialize = useDashboardStore((state) => state.initialize);
   const filteredData = useDashboardStore(
     (state) => state.filteredObservations,
@@ -48,7 +50,7 @@ export function Overview() {
   const kpis = useDashboardStore((state) => state.kpis);
   const loading = useDashboardStore((state) => state.loading);
   const error = useDashboardStore((state) => state.error);
-  const forecasts = useDashboardStore((state) => state.forecasts);
+  const allForecasts = useDashboardStore((state) => state.forecasts);
 
   useEffect(() => {
     initialize();
@@ -57,6 +59,18 @@ export function Overview() {
   const handleFilterChange = (nextFilters: FilterValues) => {
     setFilters(nextFilters);
   };
+
+  // Filter forecasts based on selected horizon
+  const forecasts = useMemo(() => {
+    const today = new Date();
+    const cutoffDate = new Date(today);
+    cutoffDate.setDate(today.getDate() + forecastHorizon);
+    
+    return allForecasts.filter((f) => {
+      const forecastDate = new Date(f.date);
+      return forecastDate <= cutoffDate;
+    });
+  }, [allForecasts, forecastHorizon]);
 
   // Calculate week-over-week changes
   const weeklyChanges = useMemo(() => {
@@ -385,45 +399,63 @@ export function Overview() {
       <KpiCards kpis={kpis} activeCount={filteredData.length} trends={weeklyChanges} />
 
       <Card className="p-4">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-start justify-between mb-3">
           <div>
-            <h3 className="font-medium">14-day Forecast</h3>
-            <p className="text-sm text-muted-foreground">
-              Observed counts vs. projected trend (mock data)
+            <h3 className="font-semibold text-base">{forecastHorizon}-Day Forecast</h3>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Observed counts vs. projected trend with confidence intervals
             </p>
           </div>
-          <Badge variant="outline">Mock data</Badge>
+          <div className="flex gap-1 bg-muted/50 rounded-md p-1">
+            {[7, 14, 30].map((days) => (
+              <button
+                key={days}
+                onClick={() => setForecastHorizon(days as 7 | 14 | 30)}
+                className={`px-3 py-1 text-xs font-medium rounded transition-all ${
+                  forecastHorizon === days
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground hover:bg-background"
+                }`}
+              >
+                {days}d
+              </button>
+            ))}
+          </div>
         </div>
         {peakForecast && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <Card className="p-4 shadow-sm border-l-4 border-l-primary bg-gradient-to-br from-primary/5 to-transparent">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Peak Expected (14 days)</p>
-              <p className="text-3xl font-bold text-foreground">{peakForecast.peak}</p>
-              <p className="text-xs text-muted-foreground mt-1">pest count</p>
-            </Card>
-            <Card className={`p-4 shadow-sm border-l-4 ${
+          <div className="flex items-stretch gap-3 mb-4">
+            <div className="flex-1 rounded-lg border border-l-4 border-l-primary bg-gradient-to-br from-primary/5 to-transparent p-3">
+              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">
+                Peak Expected
+              </p>
+              <p className="text-2xl font-bold text-foreground leading-none">{peakForecast.peak}</p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">in {forecastHorizon} days</p>
+            </div>
+            <div className={`flex-1 rounded-lg border border-l-4 p-3 ${
               peakForecast.risk === "Critical" 
                 ? "border-l-destructive bg-gradient-to-br from-destructive/5 to-transparent" 
                 : peakForecast.risk === "Elevated"
                 ? "border-l-warning bg-gradient-to-br from-warning/5 to-transparent"
                 : "border-l-success bg-gradient-to-br from-success/5 to-transparent"
             }`}>
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Risk Level</p>
-              <div className="flex items-center gap-2">
-                <Badge variant={
-                  peakForecast.risk === "Critical" ? "destructive" : 
-                  peakForecast.risk === "Elevated" ? "outline" : "outline"
-                } className={
-                  peakForecast.risk === "Elevated" ? "bg-warning text-warning-foreground border-warning" : ""
-                }>
-                  {peakForecast.risk}
-                </Badge>
-              </div>
-            </Card>
-            <Card className="p-4 shadow-sm border-l-4 border-l-chart-4 bg-gradient-to-br from-chart-4/5 to-transparent">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Recommended Action</p>
-              <p className="text-sm font-medium text-foreground leading-tight">{peakForecast.action}</p>
-            </Card>
+              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">
+                Risk Level
+              </p>
+              <Badge variant={
+                peakForecast.risk === "Critical" ? "destructive" : 
+                peakForecast.risk === "Elevated" ? "outline" : "outline"
+              } className={
+                peakForecast.risk === "Elevated" ? "bg-warning text-warning-foreground border-warning" : ""
+              }>
+                {peakForecast.risk}
+              </Badge>
+            </div>
+            <div className="flex-[1.5] rounded-lg border border-l-4 border-l-chart-4 bg-gradient-to-br from-chart-4/5 to-transparent p-3">
+              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">
+                Recommended Action
+              </p>
+              <p className="text-xs font-medium text-foreground leading-snug">{peakForecast.action}</p>
+            </div>
           </div>
         )}
         {forecastSeries.length === 0 ? (
