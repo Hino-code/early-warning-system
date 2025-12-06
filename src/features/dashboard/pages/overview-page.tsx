@@ -344,9 +344,32 @@ export function Overview() {
 
   const contentReady = !loading && filteredData.length > 0;
 
+  const peakForecast = useMemo(() => {
+    const predicted = forecasts
+      .filter((f) => filters.pestType === "All" || f.pestType === filters.pestType)
+      .map((f) => f.predicted);
+    if (predicted.length === 0) return null;
+    const peak = Math.max(...predicted);
+    const risk =
+      peak >= 70 ? "Critical" : peak >= 50 ? "Elevated" : "Normal";
+    const action =
+      risk === "Critical"
+        ? "Deploy chemical control within 48 hours"
+        : risk === "Elevated"
+          ? "Increase scouting and prep interventions"
+          : "Maintain routine monitoring";
+    return { peak, risk, action };
+  }, [forecasts, filters.pestType]);
+
   return (
     <div className="p-6 space-y-6">
-      <SharedFilters filters={filters} onFilterChange={handleFilterChange} compact />
+      <SharedFilters
+        filters={filters}
+        onFilterChange={handleFilterChange}
+        compact
+        primaryOnly
+        showAdvanced
+      />
       {error && (
         <Card className="p-4 border-destructive/50 bg-destructive/5 text-destructive">
           <p>{error}</p>
@@ -369,12 +392,30 @@ export function Overview() {
           </div>
           <Badge variant="outline">Mock data</Badge>
         </div>
+        {peakForecast && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+            <Card className="p-3 shadow-none border bg-muted/40">
+              <p className="text-xs text-muted-foreground">Peak expected (next 14d)</p>
+              <p className="text-xl font-semibold text-foreground">{peakForecast.peak}</p>
+            </Card>
+            <Card className="p-3 shadow-none border bg-muted/40">
+              <p className="text-xs text-muted-foreground">Risk level</p>
+              <p className={`text-xl font-semibold ${peakForecast.risk === "Critical" ? "text-destructive" : peakForecast.risk === "Elevated" ? "text-warning" : "text-foreground"}`}>
+                {peakForecast.risk}
+              </p>
+            </Card>
+            <Card className="p-3 shadow-none border bg-muted/40">
+              <p className="text-xs text-muted-foreground">Recommended action</p>
+              <p className="text-sm text-foreground">{peakForecast.action}</p>
+            </Card>
+          </div>
+        )}
         {forecastSeries.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             No forecast data available for the current filters.
           </p>
         ) : (
-          <ResponsiveContainer width="100%" height={320}>
+          <ResponsiveContainer width="100%" height={520}>
             <ComposedChart data={forecastSeries}>
               <CartesianGrid
                 strokeDasharray="3 3"

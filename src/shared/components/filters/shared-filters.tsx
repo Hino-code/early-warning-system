@@ -29,9 +29,10 @@ interface SharedFiltersProps {
   onFilterChange: (filters: FilterValues) => void;
   showAdvanced?: boolean;
   compact?: boolean;
+  primaryOnly?: boolean;
 }
 
-export function SharedFilters({ filters, onFilterChange, showAdvanced = true, compact = false }: SharedFiltersProps) {
+export function SharedFilters({ filters, onFilterChange, showAdvanced = true, compact = false, primaryOnly = false }: SharedFiltersProps) {
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [dateRangeStart, setDateRangeStart] = useState<Date | undefined>(
     filters.dateRange?.start,
@@ -106,38 +107,6 @@ export function SharedFilters({ filters, onFilterChange, showAdvanced = true, co
               <SelectContent>
                 <SelectItem value="2024">2024</SelectItem>
                 <SelectItem value="2025">2025</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Season */}
-          <div className={compact ? "" : "space-y-2"}>
-            {!compact && <label className="text-sm text-muted-foreground">Season</label>}
-            <Select value={filters.season} onValueChange={(val) => updateFilter('season', val as any)}>
-              <SelectTrigger className={compact ? "h-9 w-[140px]" : ""}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="All">All Seasons</SelectItem>
-                <SelectItem value="Dry">Dry Season</SelectItem>
-                <SelectItem value="Wet">Wet Season</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Field Stage */}
-          <div className={compact ? "" : "space-y-2"}>
-            {!compact && <label className="text-sm text-muted-foreground">Field Stage</label>}
-            <Select value={filters.fieldStage} onValueChange={(val) => updateFilter('fieldStage', val)}>
-              <SelectTrigger className={compact ? "h-9 w-[160px]" : ""}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="All">All Stages</SelectItem>
-                <SelectItem value="Seedling">Seedling</SelectItem>
-                <SelectItem value="Vegetative">Vegetative</SelectItem>
-                <SelectItem value="Reproductive">Reproductive</SelectItem>
-                <SelectItem value="Ripening">Ripening</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -217,6 +186,42 @@ export function SharedFilters({ filters, onFilterChange, showAdvanced = true, co
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2 border-t">
+                {/* Season */}
+                {primaryOnly && (
+                  <div className="space-y-2">
+                    <label className="text-sm text-muted-foreground">Season</label>
+                    <Select value={filters.season} onValueChange={(val) => updateFilter('season', val as any)}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="All">All Seasons</SelectItem>
+                        <SelectItem value="Dry">Dry Season</SelectItem>
+                        <SelectItem value="Wet">Wet Season</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                {/* Field Stage */}
+                {primaryOnly && (
+                  <div className="space-y-2">
+                    <label className="text-sm text-muted-foreground">Field Stage</label>
+                    <Select value={filters.fieldStage} onValueChange={(val) => updateFilter('fieldStage', val)}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="All">All Stages</SelectItem>
+                        <SelectItem value="Seedling">Seedling</SelectItem>
+                        <SelectItem value="Vegetative">Vegetative</SelectItem>
+                        <SelectItem value="Reproductive">Reproductive</SelectItem>
+                        <SelectItem value="Ripening">Ripening</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
                 {/* Threshold Status */}
                 <div className="space-y-2">
                   <label className="text-sm text-muted-foreground">Threshold Status</label>
