@@ -1,10 +1,10 @@
 export const monthlyTrends = [
-  { month: 'Jan 2024', blackRiceBug: 45, whiteStemBorer: 23, totalDamage: 8.5, fieldsAffected: 3 },
-  { month: 'Feb 2024', blackRiceBug: 52, whiteStemBorer: 28, totalDamage: 12.3, fieldsAffected: 4 },
-  { month: 'Mar 2024', blackRiceBug: 68, whiteStemBorer: 35, totalDamage: 15.7, fieldsAffected: 5 },
-  { month: 'Apr 2024', blackRiceBug: 89, whiteStemBorer: 42, totalDamage: 22.1, fieldsAffected: 6 },
-  { month: 'May 2024', blackRiceBug: 76, whiteStemBorer: 38, totalDamage: 18.9, fieldsAffected: 5 },
-  { month: 'Jun 2024', blackRiceBug: 63, whiteStemBorer: 31, totalDamage: 14.2, fieldsAffected: 4 },
+  { month: 'Jan 2024', blackRiceBug: 45, totalDamage: 8.5, fieldsAffected: 3 },
+  { month: 'Feb 2024', blackRiceBug: 52, totalDamage: 12.3, fieldsAffected: 4 },
+  { month: 'Mar 2024', blackRiceBug: 68, totalDamage: 15.7, fieldsAffected: 5 },
+  { month: 'Apr 2024', blackRiceBug: 89, totalDamage: 22.1, fieldsAffected: 6 },
+  { month: 'May 2024', blackRiceBug: 76, totalDamage: 18.9, fieldsAffected: 5 },
+  { month: 'Jun 2024', blackRiceBug: 63, totalDamage: 14.2, fieldsAffected: 4 },
 ];
 
 export const weeklyReports = [
@@ -24,6 +24,5 @@ export const fieldPerformance = [
 ];
 
 export const pestDistribution = [
-  { name: 'Black Rice Bug', value: 65, color: '#ef4444' },
-  { name: 'White Stem Borer', value: 35, color: '#f59e0b' },
+  { name: 'Black Rice Bug', value: 100, color: '#ef4444' },
 ];

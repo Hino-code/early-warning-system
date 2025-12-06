@@ -45,7 +45,7 @@ const mockNotifications: Notification[] = [
     priority: 'high',
     category: 'forecast',
     metadata: {
-      pestType: 'White Stem Borer'
+      pestType: 'Black Rice Bug'
     }
   },
   {
@@ -114,7 +114,7 @@ const mockNotifications: Notification[] = [
     priority: 'medium',
     category: 'pest-alert',
     metadata: {
-      pestType: 'White Stem Borer',
+      pestType: 'Black Rice Bug',
       location: 'Southern Sector'
     }
   }

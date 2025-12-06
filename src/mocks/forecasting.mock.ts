@@ -2,7 +2,7 @@ import type { ForecastData } from "@/shared/lib/data-service";
 
 export const generateForecastData = (): ForecastData[] => {
   const forecasts: ForecastData[] = [];
-  const pestTypes: Array<'Black Rice Bug' | 'White Stem Borer'> = ['Black Rice Bug', 'White Stem Borer'];
+  const pestTypes: Array<'Black Rice Bug'> = ['Black Rice Bug'];
   const today = new Date();
 
   for (let i = 1; i <= 14; i++) {

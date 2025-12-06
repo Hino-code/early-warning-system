@@ -18,7 +18,7 @@ const sampleObservations: PestObservation[] = [
   {
     id: "2",
     date: "2024-02-10",
-    pestType: "White Stem Borer",
+    pestType: "Black Rice Bug",
     count: 25,
     threshold: 40,
     aboveThreshold: false,

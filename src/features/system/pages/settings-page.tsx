@@ -36,7 +36,6 @@ export function Settings() {
   
   // Alert thresholds
   const [blackRiceBugThreshold, setBlackRiceBugThreshold] = useState([75]);
-  const [whiteStemBorerThreshold, setWhiteStemBorerThreshold] = useState([30]);
   const [damageThreshold, setDamageThreshold] = useState([15]);
   const [temperatureThreshold, setTemperatureThreshold] = useState([32]);
   
@@ -117,30 +116,6 @@ export function Settings() {
                 </div>
                 <p className="text-sm text-muted-foreground">
                   Alert when black rice bug population exceeds this threshold per monitoring area
-                </p>
-              </div>
-
-              <Separator />
-
-              <div className="space-y-3">
-                <Label>White Stem Borer Population Threshold</Label>
-                <div className="px-3">
-                  <Slider
-                    value={whiteStemBorerThreshold}
-                    onValueChange={setWhiteStemBorerThreshold}
-                    max={50}
-                    min={5}
-                    step={2}
-                    className="w-full"
-                  />
-                  <div className="flex justify-between text-sm text-muted-foreground mt-1">
-                    <span>5</span>
-                    <span className="font-medium">Current: {whiteStemBorerThreshold[0]}</span>
-                    <span>50</span>
-                  </div>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Alert when white stem borer population exceeds this threshold per monitoring area
                 </p>
               </div>
 

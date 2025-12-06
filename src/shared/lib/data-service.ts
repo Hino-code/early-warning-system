@@ -45,7 +45,7 @@ const baseAlerts: AlertRecord[] = [
   },
   {
     id: "alert-2",
-    title: "Forecast: elevated White Stem Borer risk",
+    title: "Forecast: elevated Black Rice Bug risk",
     message: "Model projects rising counts over the next 7 days. Prepare interventions.",
     type: "warning",
     timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
@@ -53,7 +53,7 @@ const baseAlerts: AlertRecord[] = [
     priority: "high",
     category: "forecast",
     metadata: {
-      pestType: "White Stem Borer",
+      pestType: "Black Rice Bug",
       location: "Southern sector",
     },
   },
@@ -93,7 +93,7 @@ export const filterObservations = (
     year?: number;
     season?: "Dry" | "Wet" | "All";
     fieldStage?: string;
-    pestType?: "Black Rice Bug" | "White Stem Borer" | "All";
+    pestType?: "Black Rice Bug" | "All";
     dateRange?: { start: Date; end: Date };
     thresholdStatus?: "Below" | "Above" | "All";
     actionStatus?: "Taken" | "Not Taken" | "All";

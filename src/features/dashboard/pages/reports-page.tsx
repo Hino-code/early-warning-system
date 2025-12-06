@@ -119,7 +119,6 @@ export function Reports() {
                   <YAxis />
                   <Tooltip />
                   <Line type="monotone" dataKey="blackRiceBug" stroke="#ef4444" strokeWidth={2} name="Black Rice Bug" />
-                  <Line type="monotone" dataKey="whiteStemBorer" stroke="#f59e0b" strokeWidth={2} name="White Stem Borer" />
                 </LineChart>
               </ResponsiveContainer>
             </Card>
@@ -145,7 +144,6 @@ export function Reports() {
                 <TableRow>
                   <TableHead>Month</TableHead>
                   <TableHead>Black Rice Bug</TableHead>
-                  <TableHead>White Stem Borer</TableHead>
                   <TableHead>Total Damage (%)</TableHead>
                   <TableHead>Fields Affected</TableHead>
                   <TableHead>Trend</TableHead>
@@ -156,7 +154,6 @@ export function Reports() {
                   <TableRow key={month.month}>
                     <TableCell className="font-medium">{month.month}</TableCell>
                     <TableCell>{month.blackRiceBug}</TableCell>
-                    <TableCell>{month.whiteStemBorer}</TableCell>
                     <TableCell>
                       <span className={month.totalDamage > 20 ? 'text-red-600' : month.totalDamage > 10 ? 'text-yellow-600' : 'text-green-600'}>
                         {month.totalDamage}%
@@ -351,8 +348,7 @@ export function Reports() {
                   <XAxis dataKey="month" angle={-45} textAnchor="end" height={80} />
                   <YAxis />
                   <Tooltip />
-                  <Bar dataKey="blackRiceBug" fill="#ef4444" name="Black Rice Bug" />
-                  <Bar dataKey="whiteStemBorer" fill="#f59e0b" name="White Stem Borer" />
+              <Bar dataKey="blackRiceBug" fill="#ef4444" name="Black Rice Bug" />
                 </BarChart>
               </ResponsiveContainer>
             </Card>
@@ -375,23 +371,6 @@ export function Reports() {
                   <div className="flex justify-between items-center">
                     <span className="text-sm">Population Reduction</span>
                     <span className="font-medium text-green-600">-23%</span>
-                  </div>
-                </div>
-              </div>
-              <div>
-                <h4 className="font-medium mb-3">White Stem Borer Control</h4>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm">Early Detection Rate</span>
-                    <span className="font-medium">92%</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm">Treatment Success Rate</span>
-                    <span className="font-medium">84%</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm">Population Reduction</span>
-                    <span className="font-medium text-green-600">-31%</span>
                   </div>
                 </div>
               </div>

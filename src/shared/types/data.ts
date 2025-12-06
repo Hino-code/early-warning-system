@@ -1,4 +1,4 @@
-export type PestType = "Black Rice Bug" | "White Stem Borer";
+export type PestType = "Black Rice Bug";
 export type Season = "Dry" | "Wet";
 export type FieldStage =
   | "Seedling"

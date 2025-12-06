@@ -150,9 +150,8 @@ export function SharedFilters({ filters, onFilterChange, showAdvanced = true, co
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="All">All Pests</SelectItem>
+                <SelectItem value="All">All (Black Rice Bug)</SelectItem>
                 <SelectItem value="Black Rice Bug">Black Rice Bug</SelectItem>
-                <SelectItem value="White Stem Borer">White Stem Borer</SelectItem>
               </SelectContent>
             </Select>
           </div>

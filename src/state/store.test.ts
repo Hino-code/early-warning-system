@@ -23,9 +23,9 @@ const mockObservations = [
   {
     id: "2",
     date: "2024-01-05",
-    pestType: "White Stem Borer" as const,
+    pestType: "Black Rice Bug" as const,
     count: 20,
-    threshold: 40,
+    threshold: 50,
     aboveThreshold: false,
     season: "Dry" as const,
     fieldStage: "Vegetative",

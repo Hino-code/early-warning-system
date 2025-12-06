@@ -27,19 +27,15 @@ export function PestAnalysis() {
   const allObservations = useMemo(() => getObservations(), []);
   const filteredData = useMemo(() => filterObservations(allObservations, filters), [allObservations, filters]);
 
-  // Time-Series Data with Moving Average
+  // Time-Series Data with Moving Average (Black Rice Bug only)
   const timeSeriesData = useMemo(() => {
-    const grouped: Record<string, { date: string; rbb: number; wsb: number; count: number }> = {};
+    const grouped: Record<string, { date: string; rbb: number; count: number }> = {};
     
     filteredData.forEach(obs => {
       if (!grouped[obs.date]) {
-        grouped[obs.date] = { date: obs.date, rbb: 0, wsb: 0, count: 0 };
+        grouped[obs.date] = { date: obs.date, rbb: 0, count: 0 };
       }
-      if (obs.pestType === 'Black Rice Bug') {
-        grouped[obs.date].rbb += obs.count;
-      } else {
-        grouped[obs.date].wsb += obs.count;
-      }
+      grouped[obs.date].rbb += obs.count;
       grouped[obs.date].count += 1;
     });
 
@@ -48,19 +44,15 @@ export function PestAnalysis() {
         date: new Date(g.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
         fullDate: g.date,
         rbb: Math.round(g.rbb / g.count),
-        wsb: Math.round(g.wsb / g.count),
         threshold: 50
       }))
       .sort((a, b) => new Date(a.fullDate).getTime() - new Date(b.fullDate).getTime());
 
-    // Calculate 7-day moving average
     const withMA = sorted.map((item, index) => {
       const start = Math.max(0, index - 6);
       const slice = sorted.slice(start, index + 1);
       const rbbMA = Math.round(slice.reduce((sum, s) => sum + s.rbb, 0) / slice.length);
-      const wsbMA = Math.round(slice.reduce((sum, s) => sum + s.wsb, 0) / slice.length);
-      
-      return { ...item, rbbMA, wsbMA };
+      return { ...item, rbbMA };
     });
 
     return withMA.slice(-60); // Last 60 days
@@ -68,87 +60,41 @@ export function PestAnalysis() {
 
   // Seasonal Analysis
   const seasonalData = useMemo(() => {
-    const seasonal: Record<string, { season: string; rbb: number; wsb: number; count: number }> = {
-      'Dry': { season: 'Dry Season', rbb: 0, wsb: 0, count: 0 },
-      'Wet': { season: 'Wet Season', rbb: 0, wsb: 0, count: 0 }
+    const seasonal: Record<string, { season: string; rbb: number; count: number }> = {
+      'Dry': { season: 'Dry Season', rbb: 0, count: 0 },
+      'Wet': { season: 'Wet Season', rbb: 0, count: 0 }
     };
 
     filteredData.forEach(obs => {
       seasonal[obs.season].count += 1;
-      if (obs.pestType === 'Black Rice Bug') {
-        seasonal[obs.season].rbb += obs.count;
-      } else {
-        seasonal[obs.season].wsb += obs.count;
-      }
+      seasonal[obs.season].rbb += obs.count;
     });
 
     return Object.values(seasonal).map(s => ({
       season: s.season,
-      'Black Rice Bug': s.count > 0 ? Math.round(s.rbb / s.count) : 0,
-      'White Stem Borer': s.count > 0 ? Math.round(s.wsb / s.count) : 0
+      'Black Rice Bug': s.count > 0 ? Math.round(s.rbb / s.count) : 0
     }));
   }, [filteredData]);
 
   // Field Stage Analysis
   const stageData = useMemo(() => {
-    const stages: Record<string, { stage: string; rbb: number; wsb: number; count: number }> = {
-      'Seedling': { stage: 'Seedling', rbb: 0, wsb: 0, count: 0 },
-      'Vegetative': { stage: 'Vegetative', rbb: 0, wsb: 0, count: 0 },
-      'Reproductive': { stage: 'Reproductive', rbb: 0, wsb: 0, count: 0 },
-      'Ripening': { stage: 'Ripening', rbb: 0, wsb: 0, count: 0 }
+    const stages: Record<string, { stage: string; rbb: number; count: number }> = {
+      'Seedling': { stage: 'Seedling', rbb: 0, count: 0 },
+      'Vegetative': { stage: 'Vegetative', rbb: 0, count: 0 },
+      'Reproductive': { stage: 'Reproductive', rbb: 0, count: 0 },
+      'Ripening': { stage: 'Ripening', rbb: 0, count: 0 }
     };
 
     filteredData.forEach(obs => {
       stages[obs.fieldStage].count += 1;
-      if (obs.pestType === 'Black Rice Bug') {
-        stages[obs.fieldStage].rbb += obs.count;
-      } else {
-        stages[obs.fieldStage].wsb += obs.count;
-      }
+      stages[obs.fieldStage].rbb += obs.count;
     });
 
     return Object.values(stages).map(s => ({
       stage: s.stage,
       'Black Rice Bug': s.count > 0 ? Math.round(s.rbb / s.count) : 0,
-      'White Stem Borer': s.count > 0 ? Math.round(s.wsb / s.count) : 0,
       observations: s.count
     }));
-  }, [filteredData]);
-
-  // Heatmap Data: Season × Field Stage
-  const heatmapData = useMemo(() => {
-    const matrix: Record<string, Record<string, { count: number; sum: number }>> = {};
-    const seasons = ['Dry', 'Wet'];
-    const stages = ['Seedling', 'Vegetative', 'Reproductive', 'Ripening'];
-
-    seasons.forEach(season => {
-      matrix[season] = {};
-      stages.forEach(stage => {
-        matrix[season][stage] = { count: 0, sum: 0 };
-      });
-    });
-
-    filteredData.forEach(obs => {
-      matrix[obs.season][obs.fieldStage].count += 1;
-      matrix[obs.season][obs.fieldStage].sum += obs.count;
-    });
-
-    const result: Array<{ season: string; stage: string; avgCount: number; intensity: number }> = [];
-    
-    seasons.forEach(season => {
-      stages.forEach(stage => {
-        const data = matrix[season][stage];
-        const avgCount = data.count > 0 ? Math.round(data.sum / data.count) : 0;
-        result.push({
-          season,
-          stage,
-          avgCount,
-          intensity: avgCount
-        });
-      });
-    });
-
-    return result;
   }, [filteredData]);
 
   // Distribution Data
@@ -189,13 +135,6 @@ export function PestAnalysis() {
       .map(([month, count]) => ({ month, count }))
       .sort((a, b) => new Date(a.month).getTime() - new Date(b.month).getTime());
   }, [filteredData]);
-
-  const getHeatmapColor = (intensity: number) => {
-    if (intensity >= 70) return '#ba1a1a';
-    if (intensity >= 50) return '#f9ab00';
-    if (intensity >= 30) return '#fdd663';
-    return '#4cda81';
-  };
 
   return (
     <div className="p-6 space-y-6">
@@ -292,14 +231,6 @@ export function PestAnalysis() {
               fillOpacity={0.1}
               name="Black Rice Bug"
             />
-            <Area 
-              type="monotone" 
-              dataKey="wsb" 
-              fill="hsl(var(--chart-2))" 
-              stroke="hsl(var(--chart-2))"
-              fillOpacity={0.1}
-              name="White Stem Borer"
-            />
             <Line 
               type="monotone" 
               dataKey="rbbMA" 
@@ -307,14 +238,6 @@ export function PestAnalysis() {
               strokeWidth={2}
               dot={false}
               name="RBB 7-Day MA"
-            />
-            <Line 
-              type="monotone" 
-              dataKey="wsbMA" 
-              stroke="hsl(var(--chart-2))" 
-              strokeWidth={2}
-              dot={false}
-              name="WSB 7-Day MA"
             />
           </ComposedChart>
         </ResponsiveContainer>
@@ -336,7 +259,6 @@ export function PestAnalysis() {
               <Tooltip {...chartTooltipStyle} />
               <Legend />
               <Bar dataKey="Black Rice Bug" fill="hsl(var(--chart-1))" radius={[6, 6, 0, 0]} />
-              <Bar dataKey="White Stem Borer" fill="hsl(var(--chart-2))" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </Card>
@@ -355,58 +277,10 @@ export function PestAnalysis() {
               <Tooltip {...chartTooltipStyle} />
               <Legend />
               <Bar dataKey="Black Rice Bug" fill="hsl(var(--chart-1))" radius={[6, 6, 0, 0]} />
-              <Bar dataKey="White Stem Borer" fill="hsl(var(--chart-2))" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </Card>
       </div>
-
-      {/* Heatmap: Season × Stage */}
-      <Card className="p-6">
-        <div className="mb-4">
-          <h3 className="font-medium">Season × Field Stage Heatmap</h3>
-          <p className="text-sm text-muted-foreground">Average pest count intensity matrix</p>
-        </div>
-        <div className="grid grid-cols-4 gap-2">
-          <div></div>
-          <div className="text-center text-sm font-medium">Seedling</div>
-          <div className="text-center text-sm font-medium">Vegetative</div>
-          <div className="text-center text-sm font-medium">Reproductive</div>
-          <div className="text-center text-sm font-medium">Ripening</div>
-          
-          {['Dry', 'Wet'].map(season => (
-            <React.Fragment key={season}>
-              <div className="flex items-center text-sm font-medium">{season} Season</div>
-              {['Seedling', 'Vegetative', 'Reproductive', 'Ripening'].map(stage => {
-                const data = heatmapData.find(h => h.season === season && h.stage === stage);
-                return (
-                  <div 
-                    key={`${season}-${stage}`}
-                    className="aspect-square rounded-lg flex flex-col items-center justify-center text-white"
-                    style={{ backgroundColor: getHeatmapColor(data?.avgCount || 0) }}
-                  >
-                    <span className="text-lg font-semibold">{data?.avgCount || 0}</span>
-                    <span className="text-xs opacity-90">avg</span>
-                  </div>
-                );
-              })}
-            </React.Fragment>
-          ))}
-        </div>
-        <div className="flex items-center justify-center gap-4 mt-6">
-          <span className="text-xs text-muted-foreground">Low</span>
-          <div className="flex gap-1">
-            {[30, 50, 70].map(val => (
-              <div 
-                key={val}
-                className="h-4 w-12 rounded"
-                style={{ backgroundColor: getHeatmapColor(val) }}
-              />
-            ))}
-          </div>
-          <span className="text-xs text-muted-foreground">High</span>
-        </div>
-      </Card>
 
       {/* Distribution & Threshold Crossings */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

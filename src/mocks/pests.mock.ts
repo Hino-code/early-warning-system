@@ -5,7 +5,7 @@ export const generateObservations = (): PestObservation[] => {
   const locations = ['Bual Norte', 'Poblacion', 'Bual Sur', 'Upper Glad', 'San Isidro', 'Lower Glad', 'Kiwanan'];
   const seasons: Array<'Dry' | 'Wet'> = ['Dry', 'Wet'];
   const stages: Array<'Seedling' | 'Vegetative' | 'Reproductive' | 'Ripening'> = ['Seedling', 'Vegetative', 'Reproductive', 'Ripening'];
-  const pestTypes: Array<'Black Rice Bug' | 'White Stem Borer'> = ['Black Rice Bug', 'White Stem Borer'];
+  const pestTypes: Array<'Black Rice Bug'> = ['Black Rice Bug'];
 
   let id = 1;
 
@@ -27,10 +27,10 @@ export const generateObservations = (): PestObservation[] => {
           if (season === 'Wet') baseCount *= 1.5;
           if (fieldStage === 'Reproductive') baseCount *= 1.4;
           else if (fieldStage === 'Vegetative') baseCount *= 1.2;
-          if (pestType === 'Black Rice Bug') baseCount *= 1.3;
+          baseCount *= 1.3;
 
           const count = Math.floor(baseCount);
-          const threshold = pestType === 'Black Rice Bug' ? 50 : 40;
+          const threshold = 50;
           const aboveThreshold = count > threshold;
           const actionTaken = aboveThreshold ? Math.random() > 0.3 : false;
 
@@ -71,10 +71,10 @@ export const generateObservations = (): PestObservation[] => {
 
           let baseCount = Math.floor(Math.random() * 50) + 10;
           if (fieldStage === 'Reproductive') baseCount *= 1.3;
-          if (pestType === 'Black Rice Bug') baseCount *= 1.2;
+          baseCount *= 1.2;
 
           const count = Math.floor(baseCount);
-          const threshold = pestType === 'Black Rice Bug' ? 50 : 40;
+          const threshold = 50;
           const aboveThreshold = count > threshold;
           const actionTaken = aboveThreshold ? Math.random() > 0.3 : false;
 

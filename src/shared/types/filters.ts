@@ -7,7 +7,7 @@ export interface FilterValues {
   year: number;
   season: "Dry" | "Wet" | "All";
   fieldStage: string;
-  pestType: "Black Rice Bug" | "White Stem Borer" | "All";
+  pestType: "Black Rice Bug" | "All";
   dateRange: DateRange | null;
   thresholdStatus: "Below" | "Above" | "All";
   actionStatus: "Taken" | "Not Taken" | "All";

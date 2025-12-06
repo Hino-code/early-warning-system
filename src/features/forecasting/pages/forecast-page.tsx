@@ -13,7 +13,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/shared/components/ui/aler
 import { chartAxisStyle, chartGridStyle, chartTooltipStyle, chartColors } from '@/shared/components/charting/chart-styles';
 
 export function ForecastEarlyWarning() {
-  const [selectedPest, setSelectedPest] = useState<'Black Rice Bug' | 'White Stem Borer'>('Black Rice Bug');
+  const [selectedPest, setSelectedPest] = useState<'Black Rice Bug'>('Black Rice Bug');
   const [forecastDays, setForecastDays] = useState(7);
 
   const forecasts = useMemo(() => getForecastData(), []);
@@ -215,7 +215,6 @@ export function ForecastEarlyWarning() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="Black Rice Bug">Black Rice Bug</SelectItem>
-                <SelectItem value="White Stem Borer">White Stem Borer</SelectItem>
               </SelectContent>
             </Select>
           </div>
