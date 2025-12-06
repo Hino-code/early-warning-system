@@ -147,7 +147,7 @@ export function Notifications() {
             <Filter className="h-4 w-4 text-muted-foreground" />
             <span className="text-sm font-medium">Filters:</span>
           </div>
-          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+          <Select value={localCategoryFilter} onValueChange={setLocalCategoryFilter}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Category" />
             </SelectTrigger>
@@ -160,7 +160,7 @@ export function Notifications() {
               <SelectItem value="system">System</SelectItem>
             </SelectContent>
           </Select>
-          <Select value={typeFilter} onValueChange={setTypeFilter}>
+          <Select value={localTypeFilter} onValueChange={setLocalTypeFilter}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Type" />
             </SelectTrigger>

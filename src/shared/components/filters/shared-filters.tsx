@@ -129,7 +129,7 @@ export function SharedFilters({
             )}
             <Select
               value={filters.year.toString()}
-              onValueChange={(val) => updateFilter("year", parseInt(val))}
+              onValueChange={(val: string) => updateFilter("year", parseInt(val))}
             >
               <SelectTrigger className={compact ? "h-9 w-[120px]" : ""}>
                 <SelectValue />
@@ -148,7 +148,7 @@ export function SharedFilters({
             )}
             <Select
               value={filters.pestType}
-              onValueChange={(val) => updateFilter("pestType", val as any)}
+              onValueChange={(val: string) => updateFilter("pestType", val as any)}
             >
               <SelectTrigger className={compact ? "h-9 w-[180px]" : ""}>
                 <SelectValue />
@@ -205,7 +205,7 @@ export function SharedFilters({
                       mode="single"
                       selected={dateRangeEnd}
                       onSelect={setDateRangeEnd}
-                      disabled={(date) =>
+                      disabled={(date: Date) =>
                         dateRangeStart ? date < dateRangeStart : false
                       }
                     />
@@ -260,7 +260,7 @@ export function SharedFilters({
                     </label>
                     <Select
                       value={filters.season}
-                      onValueChange={(val) =>
+                      onValueChange={(val: string) =>
                         updateFilter("season", val as any)
                       }
                     >
@@ -284,7 +284,7 @@ export function SharedFilters({
                     </label>
                     <Select
                       value={filters.fieldStage}
-                      onValueChange={(val) => updateFilter("fieldStage", val)}
+                      onValueChange={(val: string) => updateFilter("fieldStage", val)}
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -309,7 +309,7 @@ export function SharedFilters({
                   </label>
                   <Select
                     value={filters.thresholdStatus}
-                    onValueChange={(val) =>
+                    onValueChange={(val: string) =>
                       updateFilter("thresholdStatus", val as any)
                     }
                   >
@@ -331,7 +331,7 @@ export function SharedFilters({
                   </label>
                   <Select
                     value={filters.actionStatus}
-                    onValueChange={(val) =>
+                    onValueChange={(val: string) =>
                       updateFilter("actionStatus", val as any)
                     }
                   >

@@ -95,8 +95,8 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
     // Update user data if display name changed
     if (profileData.displayName !== user.username) {
       onUpdateUser({
+        ...user,
         username: profileData.displayName,
-        role: user.role
       });
     }
     
@@ -388,7 +388,7 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
                   </div>
                   <Switch
                     checked={securityData.twoFactorEnabled}
-                    onCheckedChange={(checked) => handleInputChange('security', 'twoFactorEnabled', checked)}
+                    onCheckedChange={(checked: boolean) => handleInputChange('security', 'twoFactorEnabled', checked)}
                   />
                 </div>
 
@@ -401,7 +401,7 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
                   </div>
                   <Switch
                     checked={securityData.loginNotifications}
-                    onCheckedChange={(checked) => handleInputChange('security', 'loginNotifications', checked)}
+                    onCheckedChange={(checked: boolean) => handleInputChange('security', 'loginNotifications', checked)}
                   />
                 </div>
 
@@ -410,7 +410,7 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
                     <Label htmlFor="sessionTimeout">Session Timeout (hours)</Label>
                     <Select
                       value={securityData.sessionTimeout}
-                      onValueChange={(value) => handleInputChange('security', 'sessionTimeout', value)}
+                      onValueChange={(value: string) => handleInputChange('security', 'sessionTimeout', value)}
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -452,7 +452,7 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
                   </div>
                   <Switch
                     checked={notificationData.emailNotifications}
-                    onCheckedChange={(checked) => handleInputChange('notifications', 'emailNotifications', checked)}
+                    onCheckedChange={(checked: boolean) => handleInputChange('notifications', 'emailNotifications', checked)}
                   />
                 </div>
 
@@ -465,7 +465,7 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
                   </div>
                   <Switch
                     checked={notificationData.pushNotifications}
-                    onCheckedChange={(checked) => handleInputChange('notifications', 'pushNotifications', checked)}
+                    onCheckedChange={(checked: boolean) => handleInputChange('notifications', 'pushNotifications', checked)}
                   />
                 </div>
 
@@ -482,7 +482,7 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
                   </div>
                   <Switch
                     checked={notificationData.pestAlerts}
-                    onCheckedChange={(checked) => handleInputChange('notifications', 'pestAlerts', checked)}
+                    onCheckedChange={(checked: boolean) => handleInputChange('notifications', 'pestAlerts', checked)}
                   />
                 </div>
 
@@ -495,7 +495,7 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
                   </div>
                   <Switch
                     checked={notificationData.systemUpdates}
-                    onCheckedChange={(checked) => handleInputChange('notifications', 'systemUpdates', checked)}
+                    onCheckedChange={(checked: boolean) => handleInputChange('notifications', 'systemUpdates', checked)}
                   />
                 </div>
 
@@ -508,7 +508,7 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
                   </div>
                   <Switch
                     checked={notificationData.weeklyReports}
-                    onCheckedChange={(checked) => handleInputChange('notifications', 'weeklyReports', checked)}
+                    onCheckedChange={(checked: boolean) => handleInputChange('notifications', 'weeklyReports', checked)}
                   />
                 </div>
 
@@ -521,7 +521,7 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
                   </div>
                   <Switch
                     checked={notificationData.criticalAlertsOnly}
-                    onCheckedChange={(checked) => handleInputChange('notifications', 'criticalAlertsOnly', checked)}
+                    onCheckedChange={(checked: boolean) => handleInputChange('notifications', 'criticalAlertsOnly', checked)}
                   />
                 </div>
 
@@ -529,7 +529,7 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
                   <Label htmlFor="alertThreshold">Alert Threshold</Label>
                   <Select
                     value={notificationData.alertThreshold}
-                    onValueChange={(value) => handleInputChange('notifications', 'alertThreshold', value)}
+                    onValueChange={(value: string) => handleInputChange('notifications', 'alertThreshold', value)}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -595,7 +595,7 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
                     <Label htmlFor="language">Language</Label>
                     <Select
                       value={appearanceData.language}
-                      onValueChange={(value) => handleInputChange('appearance', 'language', value)}
+                      onValueChange={(value: string) => handleInputChange('appearance', 'language', value)}
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -613,7 +613,7 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
                     <Label htmlFor="density">Interface Density</Label>
                     <Select
                       value={appearanceData.density}
-                      onValueChange={(value) => handleInputChange('appearance', 'density', value)}
+                      onValueChange={(value: string) => handleInputChange('appearance', 'density', value)}
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -630,7 +630,7 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
                     <Label htmlFor="dateFormat">Date Format</Label>
                     <Select
                       value={appearanceData.dateFormat}
-                      onValueChange={(value) => handleInputChange('appearance', 'dateFormat', value)}
+                      onValueChange={(value: string) => handleInputChange('appearance', 'dateFormat', value)}
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -647,7 +647,7 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
                     <Label htmlFor="timeFormat">Time Format</Label>
                     <Select
                       value={appearanceData.timeFormat}
-                      onValueChange={(value) => handleInputChange('appearance', 'timeFormat', value)}
+                      onValueChange={(value: string) => handleInputChange('appearance', 'timeFormat', value)}
                     >
                       <SelectTrigger>
                         <SelectValue />
