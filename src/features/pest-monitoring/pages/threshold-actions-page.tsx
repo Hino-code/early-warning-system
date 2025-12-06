@@ -276,8 +276,8 @@ export function ThresholdActions() {
               <YAxis {...chartAxisStyle} tick={{ fontSize: 11 }} />
               <Tooltip {...chartTooltipStyle} />
               <Legend />
-              <Bar dataKey="taken" fill="hsl(var(--success))" name="Action Taken" radius={[6, 6, 0, 0]} />
-              <Bar dataKey="notTaken" fill="hsl(var(--muted))" name="No Action" radius={[6, 6, 0, 0]} />
+              <Bar dataKey="taken" fill={chartColors.success} name="Action Taken" radius={[8, 8, 0, 0]} />
+              <Bar dataKey="notTaken" fill={chartColors.muted} name="No Action" radius={[8, 8, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </Card>
@@ -295,9 +295,9 @@ export function ThresholdActions() {
               <YAxis yAxisId="right" orientation="right" {...chartAxisStyle} tick={{ fontSize: 11 }} />
               <Tooltip {...chartTooltipStyle} />
               <Legend />
-              <Bar yAxisId="left" dataKey="taken" fill="hsl(var(--success))" name="Actions Taken" radius={[6, 6, 0, 0]} />
-              <Bar yAxisId="left" dataKey="notTaken" fill="hsl(var(--muted))" name="No Action" radius={[6, 6, 0, 0]} />
-              <Line yAxisId="right" type="monotone" dataKey="actionRate" stroke="hsl(var(--primary))" strokeWidth={2} name="Action Rate %" />
+              <Bar yAxisId="left" dataKey="taken" fill={chartColors.success} name="Actions Taken" radius={[8, 8, 0, 0]} />
+              <Bar yAxisId="left" dataKey="notTaken" fill={chartColors.muted} name="No Action" radius={[8, 8, 0, 0]} />
+              <Line yAxisId="right" type="monotone" dataKey="actionRate" stroke={chartColors.primary} strokeWidth={3} name="Action Rate %" dot={{ r: 3, fill: chartColors.primary }} />
             </ComposedChart>
           </ResponsiveContainer>
         </Card>
@@ -343,8 +343,8 @@ export function ThresholdActions() {
               <YAxis dataKey="status" type="category" width={120} {...chartAxisStyle} />
               <Tooltip {...chartTooltipStyle} />
               <Legend />
-              <Bar dataKey="Action Taken" fill="hsl(var(--success))" radius={[0, 6, 6, 0]} />
-              <Bar dataKey="No Action" fill="hsl(var(--destructive))" radius={[0, 6, 6, 0]} />
+              <Bar dataKey="Action Taken" fill={chartColors.success} radius={[0, 8, 8, 0]} />
+              <Bar dataKey="No Action" fill={chartColors.destructive} radius={[0, 8, 8, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </Card>
@@ -364,8 +364,8 @@ export function ThresholdActions() {
             <YAxis yAxisId="right" orientation="right" {...chartAxisStyle} tick={{ fontSize: 11 }} />
             <Tooltip {...chartTooltipStyle} />
             <Legend />
-            <Bar yAxisId="left" dataKey="actions" fill="hsl(var(--primary))" name="Actions Taken" radius={[6, 6, 0, 0]} />
-            <Line yAxisId="right" type="monotone" dataKey="rate" stroke="hsl(var(--chart-2))" strokeWidth={2} name="Action Rate %" />
+            <Bar yAxisId="left" dataKey="actions" fill={chartColors.primary} name="Actions Taken" radius={[8, 8, 0, 0]} />
+            <Line yAxisId="right" type="monotone" dataKey="rate" stroke={chartColors.chart2} strokeWidth={3} name="Action Rate %" dot={{ r: 3, fill: chartColors.chart2 }} />
           </ComposedChart>
         </ResponsiveContainer>
       </Card>

@@ -3,6 +3,7 @@ import { Card } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { SharedFilters } from "@/shared/components/filters/shared-filters";
 import { useDashboardStore } from "@/state/store";
+import { chartColors } from "@/shared/lib/chart-colors";
 import type { FilterValues } from "@/shared/types/filters";
 import {
   LineChart,
@@ -192,12 +193,12 @@ export function Overview() {
       {
         name: "Critical",
         value: above,
-        color: "hsl(var(--destructive))",
+        color: chartColors.destructive,
       },
       {
         name: "Normal",
         value: below,
-        color: "hsl(var(--success))",
+        color: chartColors.success,
       },
     ];
   }, [filteredData]);
@@ -434,7 +435,7 @@ export function Overview() {
             <ComposedChart data={forecastSeries} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
               <CartesianGrid
                 strokeDasharray="3 3"
-                stroke="hsl(var(--border))"
+                stroke={chartColors.border}
                 opacity={0.5}
                 vertical={false}
               />
@@ -442,9 +443,9 @@ export function Overview() {
                 dataKey="dateLabel"
                 tick={{
                   fontSize: 12,
-                  fill: "hsl(var(--foreground))",
+                  fill: chartColors.foreground,
                 }}
-                stroke="hsl(var(--border))"
+                stroke={chartColors.border}
                 strokeWidth={1.5}
                 interval="preserveStartEnd"
                 minTickGap={20}
@@ -452,21 +453,21 @@ export function Overview() {
                   value: "Date",
                   position: "insideBottom",
                   offset: -5,
-                  style: { fontSize: 12, fill: "hsl(var(--muted-foreground))" },
+                  style: { fontSize: 12, fill: chartColors.muted },
                 }}
               />
               <YAxis
                 tick={{
                   fontSize: 12,
-                  fill: "hsl(var(--foreground))",
+                  fill: chartColors.foreground,
                 }}
-                stroke="hsl(var(--border))"
+                stroke={chartColors.border}
                 strokeWidth={1.5}
                 label={{
                   value: "Pest Count",
                   angle: -90,
                   position: "insideLeft",
-                  style: { fontSize: 12, fill: "hsl(var(--muted-foreground))" },
+                  style: { fontSize: 12, fill: chartColors.muted },
                 }}
               />
               <Tooltip content={renderForecastTooltip} />
@@ -487,7 +488,7 @@ export function Overview() {
                 dataKey="bandSize"
                 stackId="confidence"
                 stroke="transparent"
-                fill="hsl(var(--chart-4))"
+                fill={chartColors.chart4}
                 fillOpacity={0.15}
                 isAnimationActive={false}
                 name="Confidence Band"
@@ -496,19 +497,19 @@ export function Overview() {
                 type="monotone"
                 dataKey="actual"
                 name="Observed"
-                stroke="hsl(var(--primary))"
+                stroke={chartColors.primary}
                 strokeWidth={3}
-                dot={{ r: 3, fill: "hsl(var(--primary))" }}
+                dot={{ r: 3, fill: chartColors.primary }}
                 connectNulls={false}
               />
               <Line
                 type="monotone"
                 dataKey="predicted"
                 name="Forecast"
-                stroke="hsl(var(--chart-4))"
+                stroke={chartColors.chart4}
                 strokeWidth={3}
                 strokeDasharray="5 5"
-                dot={{ r: 3, fill: "hsl(var(--chart-4))" }}
+                dot={{ r: 3, fill: chartColors.chart4 }}
                 connectNulls={false}
               />
             </ComposedChart>
@@ -530,37 +531,38 @@ export function Overview() {
             <LineChart data={trendData}>
               <CartesianGrid
                 strokeDasharray="3 3"
-                stroke="hsl(var(--border))"
+                stroke={chartColors.border}
                 opacity={0.5}
                 vertical={false}
               />
               <XAxis
                 dataKey="date"
-                tick={{ fontSize: 11, fill: 'hsl(var(--foreground))' }}
-                stroke="hsl(var(--border))"
+                tick={{ fontSize: 11, fill: chartColors.foreground }}
+                stroke={chartColors.border}
                 strokeWidth={1.5}
                 interval="preserveStartEnd"
               />
               <YAxis 
-                tick={{ fontSize: 11, fill: 'hsl(var(--foreground))' }} 
-                stroke="hsl(var(--border))" 
+                tick={{ fontSize: 11, fill: chartColors.foreground }} 
+                stroke={chartColors.border} 
                 strokeWidth={1.5}
               />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: "hsl(var(--popover))",
-                  border: "1px solid hsl(var(--border))",
+                  backgroundColor: chartColors.card,
+                  border: `1px solid ${chartColors.border}`,
                   borderRadius: "8px",
-                  color: "hsl(var(--popover-foreground))",
+                  color: chartColors.foreground,
                   padding: "8px 12px",
                 }}
               />
               <Line
                 type="monotone"
                 dataKey="avgCount"
-                stroke="hsl(var(--primary))"
+                stroke={chartColors.primary}
                 strokeWidth={3}
-                dot={{ r: 2, fill: "hsl(var(--primary))" }}
+                dot={{ r: 2, fill: chartColors.primary }}
+                name="Avg Count"
               />
             </LineChart>
           </ResponsiveContainer>
@@ -586,7 +588,7 @@ export function Overview() {
                 }
                 outerRadius={85}
                 innerRadius={50}
-                fill="#8884d8"
+                fill={chartColors.primary}
                 dataKey="value"
                 paddingAngle={2}
               >
@@ -594,17 +596,18 @@ export function Overview() {
                   <Cell
                     key={`cell-${index}`}
                     fill={entry.color}
-                    stroke="hsl(var(--background))"
+                    stroke={chartColors.background}
                     strokeWidth={2}
                   />
                 ))}
               </Pie>
               <Tooltip
                 contentStyle={{
-                  backgroundColor: "hsl(var(--popover))",
-                  border: "1px solid hsl(var(--border))",
+                  backgroundColor: chartColors.card,
+                  border: `1px solid ${chartColors.border}`,
                   borderRadius: "8px",
                   padding: "8px 12px",
+                  color: chartColors.foreground,
                 }}
               />
               <Legend 
@@ -629,39 +632,39 @@ export function Overview() {
             <BarChart data={actionStatusData}>
               <CartesianGrid
                 strokeDasharray="3 3"
-                stroke="hsl(var(--border))"
+                stroke={chartColors.border}
                 opacity={0.5}
                 vertical={false}
               />
               <XAxis 
                 dataKey="name" 
-                tick={{ fontSize: 11, fill: 'hsl(var(--foreground))' }} 
-                stroke="hsl(var(--border))" 
+                tick={{ fontSize: 11, fill: chartColors.foreground }} 
+                stroke={chartColors.border} 
                 strokeWidth={1.5}
               />
               <YAxis 
-                tick={{ fontSize: 11, fill: 'hsl(var(--foreground))' }} 
-                stroke="hsl(var(--border))" 
+                tick={{ fontSize: 11, fill: chartColors.foreground }} 
+                stroke={chartColors.border} 
                 strokeWidth={1.5}
               />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: "hsl(var(--popover))",
-                  border: "1px solid hsl(var(--border))",
+                  backgroundColor: chartColors.card,
+                  border: `1px solid ${chartColors.border}`,
                   borderRadius: "8px",
-                  color: "hsl(var(--popover-foreground))",
+                  color: chartColors.foreground,
                   padding: "8px 12px",
                 }}
               />
               <Bar
                 dataKey="value"
-                fill="hsl(var(--primary))"
+                fill={chartColors.primary}
                 radius={[8, 8, 0, 0]}
               >
                 {actionStatusData.map((entry, index) => (
                   <Cell
                     key={`cell-${index}`}
-                    fill={entry.name === "Action Taken" ? "hsl(var(--success))" : "hsl(var(--muted))"}
+                    fill={entry.name === "Action Taken" ? chartColors.success : chartColors.muted}
                   />
                 ))}
               </Bar>

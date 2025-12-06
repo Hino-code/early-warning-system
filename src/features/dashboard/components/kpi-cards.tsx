@@ -32,7 +32,7 @@ interface KpiCardsProps {
 }
 
 const trendColor = (value: number) =>
-  value > 0 ? "#ba1a1a" : "hsl(var(--success))";
+  value > 0 ? "#ba1a1a" : "#10b981";
 
 export function KpiCards({ kpis, activeCount, trends }: KpiCardsProps) {
   return (

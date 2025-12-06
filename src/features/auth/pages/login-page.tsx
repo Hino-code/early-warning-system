@@ -75,8 +75,8 @@ export function Login({
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50 p-4">
-      <div className="w-full max-w-md space-y-6">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 via-blue-50 to-indigo-50 p-6">
+      <div className="w-full max-w-lg space-y-6">
         <div className="text-center space-y-4">
           <div className="flex items-center justify-center">
             <img src={pestIconLogo} alt="Pest.i Logo" className="h-24 w-24" />

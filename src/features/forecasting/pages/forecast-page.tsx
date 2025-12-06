@@ -197,10 +197,10 @@ export function ForecastEarlyWarning() {
 
   const forecastLineColor =
     riskMetrics.riskLevel === 'High'
-      ? 'hsl(var(--destructive))'
+      ? chartColors.destructive
       : riskMetrics.riskLevel === 'Moderate'
-        ? 'hsl(var(--warning))'
-        : 'hsl(var(--chart-2))';
+        ? chartColors.warning
+        : chartColors.chart2;
 
   return (
     <div className="p-6 space-y-6">
@@ -353,33 +353,48 @@ export function ForecastEarlyWarning() {
             Historical data (last 30 days) + {forecastDays}-day prediction with upper/lower bounds
           </p>
         </div>
-        <ResponsiveContainer width="100%" height={400}>
-          <ComposedChart data={combinedData}>
+        <ResponsiveContainer width="100%" height={450}>
+          <ComposedChart data={combinedData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
             <CartesianGrid {...chartGridStyle} />
             <XAxis 
               dataKey="date" 
-              tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
-              stroke="hsl(var(--border))"
-            />
-            <YAxis tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} stroke="hsl(var(--border))" />
-            <Tooltip 
-              contentStyle={{ 
-                backgroundColor: 'hsl(var(--popover))',
-                border: '1px solid hsl(var(--border))',
-                borderRadius: '6px',
-                color: 'hsl(var(--popover-foreground))',
+              {...chartAxisStyle}
+              label={{
+                value: "Date",
+                position: "insideBottom",
+                offset: -5,
+                style: { fontSize: 12, fill: chartColors.muted },
               }}
             />
-            <Legend />
-            <ReferenceLine y={riskMetrics.threshold} stroke="hsl(var(--destructive))" strokeDasharray="5 5" label="Threshold" />
+            <YAxis 
+              {...chartAxisStyle}
+              label={{
+                value: "Pest Count",
+                angle: -90,
+                position: "insideLeft",
+                style: { fontSize: 12, fill: chartColors.muted },
+              }}
+            />
+            <Tooltip {...chartTooltipStyle} />
+            <Legend 
+              verticalAlign="top" 
+              height={36}
+              iconType="line"
+            />
+            <ReferenceLine 
+              y={riskMetrics.threshold} 
+              stroke={chartColors.destructive} 
+              strokeDasharray="5 5" 
+              label={{ value: "Threshold", fill: chartColors.destructive, fontSize: 11 }}
+            />
             
             {/* Historical actual data */}
             <Line 
               type="monotone" 
               dataKey="actual" 
-              stroke="hsl(var(--primary))" 
-              strokeWidth={2}
-              dot={{ r: 3 }}
+              stroke={chartColors.primary} 
+              strokeWidth={3}
+              dot={{ r: 3, fill: chartColors.primary }}
               name="Historical"
               connectNulls={false}
             />
@@ -391,7 +406,7 @@ export function ForecastEarlyWarning() {
               stroke={forecastLineColor} 
               strokeWidth={3}
               strokeDasharray="5 5"
-              dot={{ r: 4 }}
+              dot={{ r: 4, fill: forecastLineColor }}
               name="Forecast"
               connectNulls={false}
             />
@@ -428,21 +443,14 @@ export function ForecastEarlyWarning() {
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={confidenceData}>
               <CartesianGrid {...chartGridStyle} />
-              <XAxis dataKey="date" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} stroke="hsl(var(--border))" />
-              <YAxis domain={[0, 100]} tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} stroke="hsl(var(--border))" />
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: 'hsl(var(--popover))',
-                  border: '1px solid hsl(var(--border))',
-                  borderRadius: '6px',
-                  color: 'hsl(var(--popover-foreground))',
-                }}
-              />
-              <Bar dataKey="confidence" fill="hsl(var(--primary))" radius={[6, 6, 0, 0]}>
+              <XAxis dataKey="date" {...chartAxisStyle} />
+              <YAxis domain={[0, 100]} {...chartAxisStyle} />
+              <Tooltip {...chartTooltipStyle} />
+              <Bar dataKey="confidence" fill={chartColors.primary} radius={[6, 6, 0, 0]}>
                 {confidenceData.map((entry, index) => (
                   <Cell 
                     key={`cell-${index}`} 
-                    fill={entry.confidence >= 90 ? 'hsl(var(--success))' : entry.confidence >= 85 ? 'hsl(var(--warning))' : 'hsl(var(--destructive))'}
+                    fill={entry.confidence >= 90 ? chartColors.success : entry.confidence >= 85 ? chartColors.warning : chartColors.destructive}
                   />
                 ))}
               </Bar>

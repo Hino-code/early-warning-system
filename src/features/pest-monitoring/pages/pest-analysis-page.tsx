@@ -211,33 +211,38 @@ export function PestAnalysis() {
           </h3>
           <p className="text-sm text-muted-foreground">Daily average pest count with 7-day moving average</p>
         </div>
-        <ResponsiveContainer width="100%" height={350}>
-          <ComposedChart data={timeSeriesData}>
+          <ResponsiveContainer width="100%" height={400}>
+          <ComposedChart data={timeSeriesData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
             <CartesianGrid {...chartGridStyle} />
             <XAxis 
               dataKey="date" 
-              tick={chartAxisStyle}
+              {...chartAxisStyle}
               interval="preserveStartEnd"
             />
-            <YAxis tick={chartAxisStyle} />
+            <YAxis {...chartAxisStyle} />
             <Tooltip {...chartTooltipStyle} />
-            <Legend />
-            <ReferenceLine y={50} stroke="hsl(var(--destructive))" strokeDasharray="5 5" label="Threshold" />
+            <Legend verticalAlign="top" height={36} />
+            <ReferenceLine 
+              y={50} 
+              stroke={chartColors.destructive} 
+              strokeDasharray="5 5" 
+              label={{ value: "Threshold", fill: chartColors.destructive, fontSize: 11 }}
+            />
             <Area 
               type="monotone" 
               dataKey="rbb" 
-              fill="hsl(var(--chart-1))" 
-              stroke="hsl(var(--chart-1))"
-              fillOpacity={0.1}
+              fill={chartColors.chart1} 
+              stroke={chartColors.chart1}
+              fillOpacity={0.15}
               name="Black Rice Bug"
             />
             <Line 
               type="monotone" 
               dataKey="rbbMA" 
-              stroke="hsl(var(--chart-1))" 
-              strokeWidth={2}
+              stroke={chartColors.chart1} 
+              strokeWidth={3}
               dot={false}
-              name="RBB 7-Day MA"
+              name="7-Day Moving Avg"
             />
           </ComposedChart>
         </ResponsiveContainer>
@@ -254,11 +259,11 @@ export function PestAnalysis() {
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={seasonalData}>
               <CartesianGrid {...chartGridStyle} />
-              <XAxis dataKey="season" tick={chartAxisStyle} />
-              <YAxis tick={chartAxisStyle} />
+              <XAxis dataKey="season" {...chartAxisStyle} />
+              <YAxis {...chartAxisStyle} />
               <Tooltip {...chartTooltipStyle} />
               <Legend />
-              <Bar dataKey="Black Rice Bug" fill="hsl(var(--chart-1))" radius={[6, 6, 0, 0]} />
+              <Bar dataKey="Black Rice Bug" fill={chartColors.chart1} radius={[8, 8, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </Card>
@@ -272,11 +277,11 @@ export function PestAnalysis() {
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={stageData}>
               <CartesianGrid {...chartGridStyle} />
-              <XAxis dataKey="stage" tick={chartAxisStyle} />
-              <YAxis tick={chartAxisStyle} />
+              <XAxis dataKey="stage" {...chartAxisStyle} />
+              <YAxis {...chartAxisStyle} />
               <Tooltip {...chartTooltipStyle} />
               <Legend />
-              <Bar dataKey="Black Rice Bug" fill="hsl(var(--chart-1))" radius={[6, 6, 0, 0]} />
+              <Bar dataKey="Black Rice Bug" fill={chartColors.chart1} radius={[8, 8, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </Card>
@@ -293,10 +298,10 @@ export function PestAnalysis() {
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={distributionData}>
               <CartesianGrid {...chartGridStyle} />
-              <XAxis dataKey="range" tick={chartAxisStyle} />
-              <YAxis tick={chartAxisStyle} />
+              <XAxis dataKey="range" {...chartAxisStyle} />
+              <YAxis {...chartAxisStyle} />
               <Tooltip {...chartTooltipStyle} />
-              <Bar dataKey="count" fill="hsl(var(--primary))" radius={[6, 6, 0, 0]} />
+              <Bar dataKey="count" fill={chartColors.primary} radius={[8, 8, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </Card>
@@ -310,15 +315,16 @@ export function PestAnalysis() {
           <ResponsiveContainer width="100%" height={250}>
             <LineChart data={thresholdByMonth}>
               <CartesianGrid {...chartGridStyle} />
-              <XAxis dataKey="month" tick={chartAxisStyle} />
-              <YAxis tick={chartAxisStyle} />
+              <XAxis dataKey="month" {...chartAxisStyle} />
+              <YAxis {...chartAxisStyle} />
               <Tooltip {...chartTooltipStyle} />
               <Line 
                 type="monotone" 
                 dataKey="count" 
-                stroke="hsl(var(--destructive))" 
-                strokeWidth={2}
-                dot={{ r: 4 }}
+                stroke={chartColors.destructive} 
+                strokeWidth={3}
+                dot={{ r: 4, fill: chartColors.destructive }}
+                name="Threshold Violations"
               />
             </LineChart>
           </ResponsiveContainer>
