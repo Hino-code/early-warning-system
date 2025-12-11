@@ -196,7 +196,10 @@ export function Overview() {
             ? { label: "Significant spike detected", sentiment: "critical" }
             : { label: "Rising trend observed", sentiment: "warning" };
         } else {
-          return { label: "Down vs last week", sentiment: "good" };
+          return {
+            label: "Improving (lower than last week)",
+            sentiment: "good",
+          };
         }
       } else if (context === "moreIsGood") {
         if (isUp) {

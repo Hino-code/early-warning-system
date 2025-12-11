@@ -92,17 +92,21 @@ export function SharedFilters({
     setDatePopoverOpen(false);
   };
 
+  const dateRangeChanged =
+    !!filters.dateRange &&
+    !!defaultFilters.dateRange &&
+    (filters.dateRange.start.getTime() !==
+      defaultFilters.dateRange.start.getTime() ||
+      filters.dateRange.end.getTime() !==
+        defaultFilters.dateRange.end.getTime());
+
   const hasActiveFilters =
     filters.season !== "All" ||
     filters.fieldStage !== "All" ||
     filters.pestType !== "All" ||
     filters.thresholdStatus !== "All" ||
     filters.actionStatus !== "All" ||
-    (filters.dateRange &&
-      (filters.dateRange.start.getTime() !==
-        defaultFilters.dateRange?.start.getTime() ||
-        filters.dateRange.end.getTime() !==
-          defaultFilters.dateRange?.end.getTime()));
+    dateRangeChanged;
 
   return (
     <div className={compact ? "mb-4" : "mb-6"}>
