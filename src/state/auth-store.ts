@@ -37,7 +37,7 @@ interface AuthState {
 }
 
 const shouldUseMocks = () =>
-  (import.meta.env.VITE_USE_MOCKS ?? "true").toLowerCase() !== "false";
+  (import.meta.env.VITE_USE_MOCKS ?? "false").toLowerCase() === "true";
 
 const persistSession = (session: AuthSession | null) => {
   if (!session) {
@@ -64,10 +64,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   error: undefined,
   initialize: async () => {
     const session = readSession();
-    // #region agent log
-    // #endregion
-    // #region agent log
-    // #endregion
     if (!session) {
       set({ user: null, token: null, status: "idle" });
       return;
@@ -75,8 +71,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ status: "loading" });
     try {
       const restored = await mockLoadSession(session.token);
-      // #region agent log
-      // #endregion
       if (!restored) {
         persistSession(null);
         set({ user: null, token: null, status: "idle" });
@@ -88,8 +82,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         token: restored.token,
         status: restored.user.status === "approved" ? "authenticated" : "pending-review",
       });
-      // #region agent log
-      // #endregion
     } catch (error) {
       persistSession(null);
       set({
@@ -104,10 +96,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ status: "loading", error: undefined });
     try {
       const usingMocks = shouldUseMocks();
-      // #region agent log
-      // #endregion
-      // #region agent log
-      // #endregion
       const session = shouldUseMocks()
         ? await mockLogin(payload)
         : await apiClient.post<AuthSession>("/auth/login", payload, {
@@ -119,20 +107,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         token: session.token,
         status: session.user.status === "approved" ? "authenticated" : "pending-review",
       });
-      // #region agent log
-      // #endregion
-      // #region agent log
-      // #endregion
     } catch (error) {
       const message = error instanceof Error ? error.message : "Login failed";
       set({
         status: "error",
         error: message,
       });
-      // #region agent log
-      // #endregion
-      // #region agent log
-      // #endregion
       throw new Error(message);
     }
   },

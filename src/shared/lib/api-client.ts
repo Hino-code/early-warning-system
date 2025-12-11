@@ -5,8 +5,7 @@ import type {
 
 const defaultConfig: ApiClientConfig = {
   baseUrl: import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000",
-  useMocks:
-    (import.meta.env.VITE_USE_MOCKS ?? "true").toLowerCase() !== "false",
+  useMocks: (import.meta.env.VITE_USE_MOCKS ?? "false").toLowerCase() === "true",
   fetchImpl: (...args) => fetch(...args),
   getToken: () => {
     try {

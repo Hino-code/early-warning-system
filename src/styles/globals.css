@@ -286,8 +286,7 @@
       font-weight: 400;
       line-height: 1.6;
       /* Relaxed reading experience */
-      color: var(--muted-foreground);
-      /* Default to muted for paragraphs to reduce visual noise */
+      color: var(--foreground);
     }
 
     label {
@@ -296,6 +295,22 @@
       font-weight: 500;
       line-height: 1.5;
       color: var(--foreground);
+    }
+  }
+}
+
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
     }
   }
 }
