@@ -196,7 +196,7 @@ export function Overview() {
             ? { label: "Significant spike detected", sentiment: "critical" }
             : { label: "Rising trend observed", sentiment: "warning" };
         } else {
-          return { label: "Improved vs last week", sentiment: "good" };
+          return { label: "Down vs last week", sentiment: "good" };
         }
       } else if (context === "moreIsGood") {
         if (isUp) {
@@ -975,7 +975,7 @@ export function Overview() {
                       background={{
                         fill: chartColors.muted,
                         opacity: 0.05,
-                        radius: [0, 4, 4, 0],
+                        radius: 4,
                       }}
                     />
                   </BarChart>
