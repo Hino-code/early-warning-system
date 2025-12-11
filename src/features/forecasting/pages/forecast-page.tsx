@@ -10,11 +10,13 @@ import {
 } from 'recharts';
 import { TrendingUp, AlertTriangle, Calendar, Target, Brain, Zap } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/shared/components/ui/alert';
-import { chartAxisStyle, chartGridStyle, chartTooltipStyle, chartColors } from '@/shared/components/charting/chart-styles';
+import { chartAxisStyle, chartGridStyle, chartTooltipStyle } from '@/shared/components/charting/chart-styles';
+import { useChartColors } from "@/shared/hooks/use-chart-colors";
 
 export function ForecastEarlyWarning() {
   const [selectedPest, setSelectedPest] = useState<'Black Rice Bug'>('Black Rice Bug');
   const [forecastDays, setForecastDays] = useState(7);
+  const chartColors = useChartColors();
 
   const forecasts = useMemo(() => getForecastData(), []);
   const observations = useMemo(() => getObservations(), []);

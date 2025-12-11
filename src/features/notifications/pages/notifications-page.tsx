@@ -32,7 +32,9 @@ export function Notifications() {
   const unreadCount = useDashboardStore((state) => state.alertUnreadCount);
   const loadAlerts = useDashboardStore((state) => state.loadAlerts);
   const markAlertRead = useDashboardStore((state) => state.markAlertRead);
-  const markAllAlertsRead = useDashboardStore((state) => state.markAllAlertsRead);
+  const markAllAlertsRead = useDashboardStore(
+    (state) => state.markAllAlertsRead
+  );
 
   const [localCategoryFilter, setLocalCategoryFilter] = useState("all");
   const [localTypeFilter, setLocalTypeFilter] = useState("all");
@@ -70,14 +72,20 @@ export function Notifications() {
   const getNotificationIcon = (type: string) => {
     switch (type) {
       case "alert":
-        return <AlertCircle className="h-5 w-5 text-[#ba1a1a]" />;
+        return (
+          <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
+        );
       case "warning":
-        return <AlertTriangle className="h-5 w-5 text-[#ff9800]" />;
+        return (
+          <AlertTriangle className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+        );
       case "success":
-        return <CheckCircle className="h-5 w-5 text-[#2e7d32]" />;
+        return (
+          <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
+        );
       case "info":
       default:
-        return <Info className="h-5 w-5 text-[#1976d2]" />;
+        return <Info className="h-5 w-5 text-blue-600 dark:text-blue-400" />;
     }
   };
 
@@ -100,12 +108,12 @@ export function Notifications() {
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case "high":
-        return "bg-[#ffe2e2] text-[#9f0712] border-[#9f0712]";
+        return "bg-red-100 text-red-800 border-red-300 dark:bg-red-950/30 dark:text-red-400 dark:border-red-800";
       case "medium":
-        return "bg-[#fff3e0] text-[#e65100] border-[#e65100]";
+        return "bg-orange-100 text-orange-800 border-orange-300 dark:bg-orange-950/30 dark:text-orange-400 dark:border-orange-800";
       case "low":
       default:
-        return "bg-[#e8f5e9] text-[#2e7d32] border-[#2e7d32]";
+        return "bg-green-100 text-green-800 border-green-300 dark:bg-green-950/30 dark:text-green-400 dark:border-green-800";
     }
   };
 
@@ -118,9 +126,7 @@ export function Notifications() {
             <Bell className="h-6 w-6 text-primary" />
             <h1 className="text-2xl font-bold">Notifications</h1>
             {unreadCount > 0 && (
-              <Badge className="bg-[#ba1a1a] text-white hover:bg-[#9f0712]">
-                {unreadCount} new
-              </Badge>
+              <Badge variant="destructive">{unreadCount} new</Badge>
             )}
           </div>
           <p className="text-sm text-muted-foreground mt-1">
@@ -147,7 +153,10 @@ export function Notifications() {
             <Filter className="h-4 w-4 text-muted-foreground" />
             <span className="text-sm font-medium">Filters:</span>
           </div>
-          <Select value={localCategoryFilter} onValueChange={setLocalCategoryFilter}>
+          <Select
+            value={localCategoryFilter}
+            onValueChange={setLocalCategoryFilter}
+          >
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Category" />
             </SelectTrigger>
@@ -311,9 +320,7 @@ export function Notifications() {
               Showing {filteredNotifications.length} of {alerts.length}{" "}
               notifications
             </span>
-            <span className="text-muted-foreground">
-              {unreadCount} unread
-            </span>
+            <span className="text-muted-foreground">{unreadCount} unread</span>
           </div>
         </Card>
       )}

@@ -28,22 +28,23 @@ export const chartColors = {
 };
 
 export const darkChartColors = {
-  primary: "#60a5fa",
+  primary: "#74a6f5",
   foreground: "#f1f5f9",
-  muted: "#94a3b8",
-  
-  chart1: "#60a5fa",
-  chart2: "#a78bfa",
-  chart3: "#f87171",
-  chart4: "#fbbf24",
-  chart5: "#34d399",
-  chart6: "#22d3ee",
-  
-  success: "#34d399",
-  warning: "#fbbf24",
-  destructive: "#f87171",
-  info: "#60a5fa",
-  
+  muted: "#b3c2d7",
+
+  // softened palette for dark mode to reduce vibrancy
+  chart1: "#8cb7ff",
+  chart2: "#c8b5ff",
+  chart3: "#f28a8a",
+  chart4: "#f7c97c",
+  chart5: "#66d8b6",
+  chart6: "#65d4e8",
+
+  success: "#3ed3a5",
+  warning: "#f6c15c",
+  destructive: "#f26d6d",
+  info: "#8cb7ff",
+
   border: "#334155",
   background: "#0f172a",
   card: "#1e293b",

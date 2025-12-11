@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Card } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
 import {
@@ -21,6 +21,7 @@ import {
 } from "@/shared/components/ui/collapsible";
 import { CalendarIcon, ChevronDown, Filter, X } from "lucide-react";
 import { format } from "date-fns";
+import type { DateRange as PickerDateRange } from "react-day-picker";
 import type { FilterValues } from "@/shared/types/filters";
 import { createDefaultFilters } from "@/shared/types/filters";
 
@@ -39,15 +40,25 @@ export function SharedFilters({
   compact = false,
   primaryOnly = false,
 }: SharedFiltersProps) {
+  const defaultFilters = useMemo(() => createDefaultFilters(), []);
+
+  const toPickerRange = (range: FilterValues["dateRange"]): PickerDateRange => {
+    if (!range) return { from: undefined, to: undefined };
+    return {
+      from: range.start ? new Date(range.start) : undefined,
+      to: range.end ? new Date(range.end) : undefined,
+    };
+  };
+
   const [advancedOpen, setAdvancedOpen] = useState(false);
-  const [tempDateRange, setTempDateRange] = useState<{
-    from: Date | undefined;
-    to: Date | undefined;
-  }>({
-    from: filters.dateRange?.start,
-    to: filters.dateRange?.end,
-  });
+  const [tempDateRange, setTempDateRange] = useState<PickerDateRange>(
+    toPickerRange(filters.dateRange)
+  );
   const [datePopoverOpen, setDatePopoverOpen] = useState(false);
+
+  useEffect(() => {
+    setTempDateRange(toPickerRange(filters.dateRange));
+  }, [filters.dateRange]);
 
   const updateFilter = <K extends keyof FilterValues>(
     key: K,
@@ -66,7 +77,7 @@ export function SharedFilters({
   };
 
   const applyDateRange = () => {
-    if (tempDateRange.from && tempDateRange.to) {
+    if (tempDateRange?.from && tempDateRange?.to) {
       updateFilter("dateRange", {
         start: tempDateRange.from,
         end: tempDateRange.to,
@@ -86,7 +97,12 @@ export function SharedFilters({
     filters.fieldStage !== "All" ||
     filters.pestType !== "All" ||
     filters.thresholdStatus !== "All" ||
-    filters.actionStatus !== "All";
+    filters.actionStatus !== "All" ||
+    (filters.dateRange &&
+      (filters.dateRange.start.getTime() !==
+        defaultFilters.dateRange?.start.getTime() ||
+        filters.dateRange.end.getTime() !==
+          defaultFilters.dateRange?.end.getTime()));
 
   return (
     <div className={compact ? "mb-4" : "mb-6"}>
@@ -172,9 +188,10 @@ export function SharedFilters({
               <Calendar
                 mode="range"
                 selected={tempDateRange}
-                onSelect={(range: any) =>
+                onSelect={(range) =>
                   setTempDateRange(range || { from: undefined, to: undefined })
                 }
+                defaultMonth={tempDateRange?.from || new Date()}
                 numberOfMonths={1}
                 initialFocus
               />

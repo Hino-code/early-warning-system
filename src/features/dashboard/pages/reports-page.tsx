@@ -1,21 +1,77 @@
-import { useState } from 'react';
-import { fieldPerformance, monthlyTrends, pestDistribution, weeklyReports } from "@/mocks/dashboard.mock";
+import { useState } from "react";
+import {
+  fieldPerformance,
+  monthlyTrends,
+  pestDistribution,
+  weeklyReports,
+} from "@/mocks/dashboard.mock";
+import { useChartColors } from "@/shared/hooks/use-chart-colors";
 import { Card } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/shared/components/ui/table";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/shared/components/ui/tabs";
 import { Calendar } from "@/shared/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/popover";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
-import { FileText, Download, Calendar as CalendarIcon, TrendingUp, Bug, Activity, FileSpreadsheet, Filter, Search } from 'lucide-react';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/shared/components/ui/popover";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+} from "recharts";
+import {
+  FileText,
+  Download,
+  Calendar as CalendarIcon,
+  TrendingUp,
+  Bug,
+  Activity,
+  FileSpreadsheet,
+  Filter,
+  Search,
+} from "lucide-react";
 import { Input } from "@/shared/components/ui/input";
+import { EmptyState } from "@/shared/components/ui/empty-state";
 
 export function Reports() {
-  const [dateRange, setDateRange] = useState('6months');
-  const [reportType, setReportType] = useState('summary');
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [dateRange, setDateRange] = useState("6months");
+  const [reportType, setReportType] = useState("summary");
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(
+
+    new Date()
+  );
+  const chartColors = useChartColors();
 
   const handleExport = (format: string) => {
     // Mock export functionality
@@ -27,14 +83,16 @@ export function Reports() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl">Pest.i Reports & Analytics</h1>
-          <p className="text-muted-foreground">Historical data analysis and performance insights</p>
+          <p className="text-muted-foreground">
+            Historical data analysis and performance insights
+          </p>
         </div>
         <div className="flex space-x-2">
-          <Button variant="outline" onClick={() => handleExport('PDF')}>
+          <Button variant="outline" onClick={() => handleExport("PDF")}>
             <FileText className="h-4 w-4 mr-2" />
             Export PDF
           </Button>
-          <Button variant="outline" onClick={() => handleExport('CSV')}>
+          <Button variant="outline" onClick={() => handleExport("CSV")}>
             <FileSpreadsheet className="h-4 w-4 mr-2" />
             Export CSV
           </Button>
@@ -115,10 +173,21 @@ export function Reports() {
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={monthlyTrends}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" angle={-45} textAnchor="end" height={80} />
+                  <XAxis
+                    dataKey="month"
+                    angle={-45}
+                    textAnchor="end"
+                    height={80}
+                  />
                   <YAxis />
                   <Tooltip />
-                  <Line type="monotone" dataKey="blackRiceBug" stroke="#ef4444" strokeWidth={2} name="Black Rice Bug" />
+                  <Line
+                    type="monotone"
+                    dataKey="blackRiceBug"
+                    stroke={chartColors.chart3}
+                    strokeWidth={2}
+                    name="Black Rice Bug"
+                  />
                 </LineChart>
               </ResponsiveContainer>
             </Card>
@@ -128,17 +197,27 @@ export function Reports() {
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={monthlyTrends}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" angle={-45} textAnchor="end" height={80} />
+                  <XAxis
+                    dataKey="month"
+                    angle={-45}
+                    textAnchor="end"
+                    height={80}
+                  />
                   <YAxis />
                   <Tooltip />
-                  <Bar dataKey="totalDamage" fill="#dc2626" name="Total Damage %" />
+                  <Bar
+                    dataKey="totalDamage"
+                    fill={chartColors.chart3}
+                    name="Total Damage %"
+                  />
                 </BarChart>
               </ResponsiveContainer>
             </Card>
           </div>
 
-          <Card className="p-6">
+            <Card className="p-6">
             <h3 className="mb-4">Monthly Summary Statistics</h3>
+            {monthlyTrends.length > 0 ? (
             <Table>
               <TableHeader>
                 <TableRow>
@@ -155,7 +234,15 @@ export function Reports() {
                     <TableCell className="font-medium">{month.month}</TableCell>
                     <TableCell>{month.blackRiceBug}</TableCell>
                     <TableCell>
-                      <span className={month.totalDamage > 20 ? 'text-red-600' : month.totalDamage > 10 ? 'text-yellow-600' : 'text-green-600'}>
+                      <span
+                        className={
+                          month.totalDamage > 20
+                            ? "text-red-600"
+                            : month.totalDamage > 10
+                            ? "text-yellow-600"
+                            : "text-green-600"
+                        }
+                      >
                         {month.totalDamage}%
                       </span>
                     </TableCell>
@@ -163,11 +250,14 @@ export function Reports() {
                     <TableCell>
                       {index > 0 && (
                         <div className="flex items-center">
-                          <TrendingUp className={`h-4 w-4 ${
-                            month.totalDamage > monthlyTrends[index - 1].totalDamage 
-                              ? 'text-red-500 rotate-0' 
-                              : 'text-green-500 rotate-180'
-                          }`} />
+                          <TrendingUp
+                            className={`h-4 w-4 ${
+                              month.totalDamage >
+                              monthlyTrends[index - 1].totalDamage
+                                ? "text-red-500 rotate-0"
+                                : "text-green-500 rotate-180"
+                            }`}
+                          />
                         </div>
                       )}
                     </TableCell>
@@ -175,6 +265,12 @@ export function Reports() {
                 ))}
               </TableBody>
             </Table>
+            ) : (
+              <EmptyState 
+                title="No Monthly Data"
+                description="There are no trend records for the selected period."
+              />
+            )}
           </Card>
         </TabsContent>
 
@@ -227,21 +323,49 @@ export function Reports() {
                     <TableCell className="font-medium">{field.field}</TableCell>
                     <TableCell>{field.totalAlerts}</TableCell>
                     <TableCell>
-                      <span className={field.avgDamage > 15 ? 'text-red-600' : field.avgDamage > 8 ? 'text-yellow-600' : 'text-green-600'}>
+                      <span
+                        className={
+                          field.avgDamage > 15
+                            ? "text-red-600"
+                            : field.avgDamage > 8
+                            ? "text-yellow-600"
+                            : "text-green-600"
+                        }
+                      >
                         {field.avgDamage}%
                       </span>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center space-x-2">
-                        <span className={field.efficiency > 90 ? 'text-green-600' : field.efficiency > 80 ? 'text-yellow-600' : 'text-red-600'}>
+                        <span
+                          className={
+                            field.efficiency > 90
+                              ? "text-green-600"
+                              : field.efficiency > 80
+                              ? "text-yellow-600"
+                              : "text-red-600"
+                          }
+                        >
                           {field.efficiency}%
                         </span>
                       </div>
                     </TableCell>
                     <TableCell>{field.lastTreatment}</TableCell>
                     <TableCell>
-                      <Badge variant={field.efficiency > 90 ? "default" : field.efficiency > 80 ? "secondary" : "destructive"}>
-                        {field.efficiency > 90 ? 'Excellent' : field.efficiency > 80 ? 'Good' : 'Needs Attention'}
+                      <Badge
+                        variant={
+                          field.efficiency > 90
+                            ? "default"
+                            : field.efficiency > 80
+                            ? "secondary"
+                            : "destructive"
+                        }
+                      >
+                        {field.efficiency > 90
+                          ? "Excellent"
+                          : field.efficiency > 80
+                          ? "Good"
+                          : "Needs Attention"}
                       </Badge>
                     </TableCell>
                   </TableRow>
@@ -274,12 +398,28 @@ export function Reports() {
                     <TableCell>{week.avgTemp}°C</TableCell>
                     <TableCell>{week.avgHumidity}%</TableCell>
                     <TableCell>
-                      <Badge variant={week.pestAlerts > 15 ? "destructive" : week.pestAlerts > 10 ? "secondary" : "default"}>
+                      <Badge
+                        variant={
+                          week.pestAlerts > 15
+                            ? "destructive"
+                            : week.pestAlerts > 10
+                            ? "secondary"
+                            : "default"
+                        }
+                      >
                         {week.pestAlerts}
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={week.damageLevel === 'High' ? "destructive" : week.damageLevel === 'Medium' ? "secondary" : "default"}>
+                      <Badge
+                        variant={
+                          week.damageLevel === "High"
+                            ? "destructive"
+                            : week.damageLevel === "Medium"
+                            ? "secondary"
+                            : "default"
+                        }
+                      >
                         {week.damageLevel}
                       </Badge>
                     </TableCell>
@@ -298,8 +438,20 @@ export function Reports() {
                 <XAxis dataKey="week" />
                 <YAxis />
                 <Tooltip />
-                <Line type="monotone" dataKey="avgTemp" stroke="#f59e0b" strokeWidth={2} name="Temperature (°C)" />
-                <Line type="monotone" dataKey="avgHumidity" stroke="#3b82f6" strokeWidth={2} name="Humidity (%)" />
+                <Line
+                  type="monotone"
+                  dataKey="avgTemp"
+                  stroke={chartColors.chart4}
+                  strokeWidth={2}
+                  name="Temperature (°C)"
+                />
+                <Line
+                  type="monotone"
+                  dataKey="avgHumidity"
+                  stroke={chartColors.chart1}
+                  strokeWidth={2}
+                  name="Humidity (%)"
+                />
               </LineChart>
             </ResponsiveContainer>
           </Card>
@@ -321,20 +473,22 @@ export function Reports() {
                     dataKey="value"
                   >
                     {pestDistribution.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
+                      <Cell key={`cell-${index}`} fill={index === 0 ? chartColors.chart3 : chartColors.chart1} />
                     ))}
                   </Pie>
                   <Tooltip />
                 </PieChart>
               </ResponsiveContainer>
               <div className="flex justify-center space-x-4 mt-4">
-                {pestDistribution.map((item) => (
+                {pestDistribution.map((item, index) => (
                   <div key={item.name} className="flex items-center space-x-2">
                     <div
                       className="w-3 h-3 rounded-full"
-                      style={{ backgroundColor: item.color }}
+                      style={{ backgroundColor: index === 0 ? chartColors.chart3 : chartColors.chart1 }}
                     />
-                    <span className="text-sm">{item.name} ({item.value}%)</span>
+                    <span className="text-sm">
+                      {item.name} ({item.value}%)
+                    </span>
                   </div>
                 ))}
               </div>
@@ -345,10 +499,19 @@ export function Reports() {
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={monthlyTrends}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" angle={-45} textAnchor="end" height={80} />
+                  <XAxis
+                    dataKey="month"
+                    angle={-45}
+                    textAnchor="end"
+                    height={80}
+                  />
                   <YAxis />
                   <Tooltip />
-              <Bar dataKey="blackRiceBug" fill="#ef4444" name="Black Rice Bug" />
+                  <Bar
+                    dataKey="blackRiceBug"
+                    fill={chartColors.chart3}
+                    name="Black Rice Bug"
+                  />
                 </BarChart>
               </ResponsiveContainer>
             </Card>

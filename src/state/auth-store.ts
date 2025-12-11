@@ -64,6 +64,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   error: undefined,
   initialize: async () => {
     const session = readSession();
+    // #region agent log
+    // #endregion
+    // #region agent log
+    // #endregion
     if (!session) {
       set({ user: null, token: null, status: "idle" });
       return;
@@ -71,6 +75,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ status: "loading" });
     try {
       const restored = await mockLoadSession(session.token);
+      // #region agent log
+      // #endregion
       if (!restored) {
         persistSession(null);
         set({ user: null, token: null, status: "idle" });
@@ -82,6 +88,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         token: restored.token,
         status: restored.user.status === "approved" ? "authenticated" : "pending-review",
       });
+      // #region agent log
+      // #endregion
     } catch (error) {
       persistSession(null);
       set({
@@ -95,23 +103,36 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   login: async (payload: LoginPayload) => {
     set({ status: "loading", error: undefined });
     try {
+      const usingMocks = shouldUseMocks();
+      // #region agent log
+      // #endregion
+      // #region agent log
+      // #endregion
       const session = shouldUseMocks()
         ? await mockLogin(payload)
         : await apiClient.post<AuthSession>("/auth/login", payload, {
-            mockResponse: () => mockLogin(payload),
-          });
+          mockResponse: () => mockLogin(payload),
+        });
       persistSession(session);
       set({
         user: session.user,
         token: session.token,
         status: session.user.status === "approved" ? "authenticated" : "pending-review",
       });
+      // #region agent log
+      // #endregion
+      // #region agent log
+      // #endregion
     } catch (error) {
       const message = error instanceof Error ? error.message : "Login failed";
       set({
         status: "error",
         error: message,
       });
+      // #region agent log
+      // #endregion
+      // #region agent log
+      // #endregion
       throw new Error(message);
     }
   },
@@ -125,8 +146,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       await (shouldUseMocks()
         ? mockRegister(payload)
         : apiClient.post("/auth/register", payload, {
-            mockResponse: () => mockRegister(payload),
-          }));
+          mockResponse: () => mockRegister(payload),
+        }));
       set({ status: "pending-review" });
     } catch (error) {
       const message =
@@ -144,8 +165,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const pending = await (shouldUseMocks()
         ? mockListPendingUsers()
         : apiClient.get<PendingUser[]>("/admin/pending-users", {
-            mockResponse: () => mockListPendingUsers(),
-          }));
+          mockResponse: () => mockListPendingUsers(),
+        }));
       set({ pendingUsers: pending });
     } catch (error) {
       set({
@@ -158,16 +179,16 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     await (shouldUseMocks()
       ? mockApproveUser(id)
       : apiClient.post(`/admin/pending-users/${id}/approve`, undefined, {
-          mockResponse: () => mockApproveUser(id),
-        }));
+        mockResponse: () => mockApproveUser(id),
+      }));
     await get().loadPendingUsers();
   },
   rejectUser: async (id: string) => {
     await (shouldUseMocks()
       ? mockRejectUser(id)
       : apiClient.post(`/admin/pending-users/${id}/reject`, undefined, {
-          mockResponse: () => mockRejectUser(id),
-        }));
+        mockResponse: () => mockRejectUser(id),
+      }));
     await get().loadPendingUsers();
   },
   updateUser: (nextUser: AppUser) => {

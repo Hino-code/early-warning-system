@@ -10,7 +10,13 @@ import { Badge } from "@/shared/components/ui/badge";
 import { Separator } from "@/shared/components/ui/separator";
 import { useDashboardStore } from "@/state/store";
 import { formatDistanceToNow } from "date-fns";
-import { AlertCircle, AlertTriangle, Info, CheckCircle, Clock } from "lucide-react";
+import {
+  AlertCircle,
+  AlertTriangle,
+  Info,
+  CheckCircle,
+  Clock,
+} from "lucide-react";
 
 interface NotificationBellProps {
   onViewAll: () => void;
@@ -33,7 +39,10 @@ export function NotificationBell({ onViewAll }: NotificationBellProps) {
     markAlertRead(notificationId);
   };
 
-  const handleKeyActivate = (event: KeyboardEvent<HTMLDivElement>, notificationId: string) => {
+  const handleKeyActivate = (
+    event: KeyboardEvent<HTMLDivElement>,
+    notificationId: string
+  ) => {
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
       handleMarkAsRead(notificationId);
@@ -48,14 +57,20 @@ export function NotificationBell({ onViewAll }: NotificationBellProps) {
   const getNotificationIcon = (type: string) => {
     switch (type) {
       case "alert":
-        return <AlertCircle className="h-4 w-4 text-[#ba1a1a]" />;
+        return (
+          <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
+        );
       case "warning":
-        return <AlertTriangle className="h-4 w-4 text-[#ff9800]" />;
+        return (
+          <AlertTriangle className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+        );
       case "success":
-        return <CheckCircle className="h-4 w-4 text-[#2e7d32]" />;
+        return (
+          <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
+        );
       case "info":
       default:
-        return <Info className="h-4 w-4 text-[#1976d2]" />;
+        return <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />;
     }
   };
 
@@ -71,8 +86,9 @@ export function NotificationBell({ onViewAll }: NotificationBellProps) {
           <Bell className="h-5 w-5" />
           {unreadCount > 0 && (
             <Badge
+              variant="destructive"
               aria-label={`${unreadCount} unread notifications`}
-              className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-[#ba1a1a] text-white hover:bg-[#9f0712] text-[10px]"
+              className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-[10px]"
             >
               {unreadCount > 9 ? "9+" : unreadCount}
             </Badge>
@@ -84,7 +100,7 @@ export function NotificationBell({ onViewAll }: NotificationBellProps) {
           <div className="flex items-center gap-2">
             <h3 className="font-semibold">Notifications</h3>
             {unreadCount > 0 && (
-              <Badge className="bg-[#ba1a1a] text-white hover:bg-[#9f0712] h-5">
+              <Badge variant="destructive" className="h-5">
                 {unreadCount}
               </Badge>
             )}
@@ -103,18 +119,22 @@ export function NotificationBell({ onViewAll }: NotificationBellProps) {
           {notifications.length === 0 ? (
             <div className="p-8 text-center">
               <Bell className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-              <p className="text-sm text-muted-foreground">
-                No notifications
-              </p>
+              <p className="text-sm text-muted-foreground">No notifications</p>
             </div>
           ) : (
-            <div className="divide-y" role="list" aria-label="Recent notifications">
+            <div
+              className="divide-y"
+              role="list"
+              aria-label="Recent notifications"
+            >
               {notifications.map((notification) => (
                 <div
                   key={notification.id}
                   role="listitem"
                   tabIndex={0}
-                  aria-label={`${notification.title}${notification.read ? "" : " (unread)"}`}
+                  aria-label={`${notification.title}${
+                    notification.read ? "" : " (unread)"
+                  }`}
                   className={`p-3 hover:bg-muted/50 focus:bg-muted/50 cursor-pointer transition-colors outline-none ${
                     !notification.read ? "bg-blue-50 dark:bg-blue-950/20" : ""
                   }`}
@@ -145,7 +165,10 @@ export function NotificationBell({ onViewAll }: NotificationBellProps) {
                           {notification.title}
                         </p>
                         {!notification.read && (
-                          <div className="h-2 w-2 rounded-full bg-primary shrink-0 mt-1" aria-label="Unread notification" />
+                          <div
+                            className="h-2 w-2 rounded-full bg-primary shrink-0 mt-1"
+                            aria-label="Unread notification"
+                          />
                         )}
                       </div>
                       <p className="text-xs text-muted-foreground line-clamp-2">

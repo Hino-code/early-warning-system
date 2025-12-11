@@ -97,6 +97,8 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
   loading: false,
   error: undefined,
   initialize: async () => {
+    // #region agent log
+    // #endregion
     if (get().observations.length === 0) {
       await get().refreshData();
     }
@@ -123,6 +125,10 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
       }
 
       const { filtered, kpis } = applyFilters(observations, get().filters);
+
+      // #region agent log
+      // #endregion
+
       set({
         observations,
         filteredObservations: filtered,
@@ -173,11 +179,18 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
   setFilters: (nextFilters: FilterValues) => {
     const { observations } = get();
     const { filtered, kpis } = applyFilters(observations, nextFilters);
+
+    // #region agent log
+    // #endregion
+
     set({
       filters: nextFilters,
       filteredObservations: filtered,
       kpis,
     });
+
+    // #region agent log
+    // #endregion
   },
   setForecastHorizon: (horizon: 7 | 14 | 30) => {
     set({ forecastHorizon: horizon });

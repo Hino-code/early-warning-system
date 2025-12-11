@@ -4,135 +4,186 @@
 
 :root {
   --font-size: 16px;
-  
-  /* Modern Color System - Light Mode */
-  --background: #f8fafc;
-  --foreground: #0f172a;
+
+  /* Premium Linear/Apple Inspired Palette - Light Mode */
+  /* Base: Porcelain & Zinc */
+  --background: #fdfdfd;
+  /* Almost white, softer than #ffffff */
+  --foreground: #18181b;
+  /* Zinc 950 - softer than pure black */
+
   --card: #ffffff;
-  --card-foreground: #0f172a;
+  --card-foreground: #18181b;
+
   --popover: #ffffff;
-  --popover-foreground: #0f172a;
-  --primary: #3b82f6;
+  --popover-foreground: #18181b;
+
+  /* Brand: Sophisticated Indigo */
+  --primary: #5e6ad2;
+  /* Linear-esque Indigo */
   --primary-foreground: #ffffff;
-  --secondary: #f1f5f9;
-  --secondary-foreground: #0f172a;
-  --muted: #f1f5f9;
-  --muted-foreground: #64748b;
-  --accent: #eff6ff;
-  --accent-foreground: #0f172a;
-  --destructive: #ef4444;
+
+  --secondary: #f4f4f5;
+  /* Zinc 100 */
+  --secondary-foreground: #18181b;
+
+  --muted: #f4f4f5;
+  /* Zinc 100 */
+  --muted-foreground: #71717a;
+  /* Zinc 500 */
+
+  --accent: #f4f4f5;
+  --accent-foreground: #18181b;
+
+  --destructive: #e11d48;
+  /* Rose 600 - richer than standard red */
   --destructive-foreground: #ffffff;
-  
-  /* Material 3 Surface & Elevation */
-  --surface: #f8fafc;
-  --surface-variant: #e2e8f0;
-  --surface-container: #f1f5f9;
-  --surface-container-high: #e2e8f0;
-  --surface-container-highest: #cbd5e1;
-  --on-surface: #0f172a;
-  --on-surface-variant: #475569;
-  --outline: #94a3b8;
-  --outline-variant: #cbd5e1;
-  
-  /* Semantic Colors */
+
+  /* Glassmorphism & Surface Tokens */
+  --glass-border: rgba(0, 0, 0, 0.08);
+  --glass-bg: rgba(255, 255, 255, 0.6);
+  --surface-1: #ffffff;
+  --surface-2: #f8fafc;
+  /* Slate 50 */
+
+  /* Semantic Colors - Softened */
   --success: #10b981;
+  /* Emerald 500 */
   --success-foreground: #ffffff;
   --warning: #f59e0b;
+  /* Amber 500 */
   --warning-foreground: #ffffff;
-  --error: #ef4444;
+  --error: #e11d48;
   --error-foreground: #ffffff;
   --info: #3b82f6;
   --info-foreground: #ffffff;
-  
-  /* Chart Colors - Modern Vibrant Palette */
-  --chart-1: #3b82f6;
-  --chart-2: #8b5cf6;
-  --chart-3: #ef4444;
-  --chart-4: #f59e0b;
-  --chart-5: #10b981;
-  --chart-6: #06b6d4;
-  
-  --border: #e2e8f0;
-  --input: transparent;
-  --input-background: #f8fafc;
-  --switch-background: #94a3b8;
-  --font-weight-medium: 500;
-  --font-weight-normal: 400;
-  --ring: #3b82f6;
-  --radius: 0.75rem;
-  
-  --sidebar: #ffffff;
-  --sidebar-foreground: #0f172a;
-  --sidebar-primary: #3b82f6;
+
+  /* Data Visualization - Curated Palette */
+  --chart-1: #5e6ad2;
+  /* Indigo */
+  --chart-2: #22c55e;
+  /* Emerald */
+  --chart-3: #f97316;
+  /* Orange */
+  --chart-4: #8b5cf6;
+  /* Violet */
+  --chart-5: #06b6d4;
+  /* Cyan */
+  --chart-6: #e11d48;
+  /* Rose */
+
+  --border: #e4e4e7;
+  /* Zinc 200 */
+  --input: #e4e4e7;
+  --input-background: #ffffff;
+  --switch-background: #e4e4e7;
+
+  --ring: #5e6ad2;
+  /* Match primary */
+  --radius: 0.5rem;
+  /* Slightly tighter radius for cleaner look */
+
+  --sidebar: #f8fafc;
+  --sidebar-foreground: #18181b;
+  --sidebar-primary: #5e6ad2;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #f1f5f9;
-  --sidebar-accent-foreground: #0f172a;
-  --sidebar-border: #e2e8f0;
-  --sidebar-ring: #3b82f6;
+  --sidebar-accent: #e2e8f0;
+  --sidebar-accent-foreground: #18181b;
+  --sidebar-border: #e4e4e7;
+  --sidebar-ring: #5e6ad2;
+}
+
+/* Global Chart Glow & Smoothness */
+.recharts-cylinder-rectangle,
+.recharts-line-curve {
+  filter: drop-shadow(0 4px 6px rgba(94, 106, 210, 0.15));
+  /* Colored shadow matching primary */
+  transition: all 0.3s ease;
+}
+
+.recharts-dot {
+  transition: r 0.3s ease;
+}
+
+.recharts-active-dot circle {
+  filter: drop-shadow(0 0 8px rgba(94, 106, 210, 0.4));
 }
 
 .dark {
-  /* Modern Color System - Dark Mode */
-  --background: #0f172a;
-  --foreground: #f1f5f9;
-  --card: #1e293b;
-  --card-foreground: #f1f5f9;
-  --popover: #1e293b;
-  --popover-foreground: #f1f5f9;
-  --primary: #60a5fa;
-  --primary-foreground: #0f172a;
-  --secondary: #1e293b;
-  --secondary-foreground: #f1f5f9;
-  --muted: #334155;
-  --muted-foreground: #94a3b8;
-  --accent: #1e3a5f;
-  --accent-foreground: #f1f5f9;
-  --destructive: #f87171;
-  --destructive-foreground: #0f172a;
-  
-  /* Material 3 Surface & Elevation - Dark */
-  --surface: #0f172a;
-  --surface-variant: #334155;
-  --surface-container: #1e293b;
-  --surface-container-high: #334155;
-  --surface-container-highest: #475569;
-  --on-surface: #f1f5f9;
-  --on-surface-variant: #cbd5e1;
-  --outline: #64748b;
-  --outline-variant: #334155;
-  
-  /* Semantic Colors - Dark */
+  /* Premium Linear/Apple Inspired Palette - Dark Mode */
+  /* Base: Deep Slate/Zinc */
+  --background: #09090b;
+  /* Zinc 950 */
+  --foreground: #fafafa;
+  /* Zinc 50 */
+
+  --card: #121215;
+  /* Slightly lighter than bg */
+  --card-foreground: #fafafa;
+
+  --popover: #121215;
+  --popover-foreground: #fafafa;
+
+  --primary: #6366f1;
+  /* Indigo 500 */
+  --primary-foreground: #ffffff;
+
+  --secondary: #27272a;
+  /* Zinc 800 */
+  --secondary-foreground: #fafafa;
+
+  --muted: #27272a;
+  --muted-foreground: #a1a1aa;
+  /* Zinc 400 */
+
+  --accent: #27272a;
+  --accent-foreground: #fafafa;
+
+  --destructive: #f43f5e;
+  /* Rose 500 */
+  --destructive-foreground: #ffffff;
+
+  /* Glassmorphism & Surface Tokens */
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-bg: rgba(24, 24, 27, 0.6);
+  --surface-1: #18181b;
+  --surface-2: #27272a;
+
+  /* Semantic Colors - Dark & Vibrant */
   --success: #34d399;
-  --success-foreground: #0f172a;
+  /* Emerald 400 */
+  --success-foreground: #09090b;
   --warning: #fbbf24;
-  --warning-foreground: #0f172a;
-  --error: #f87171;
-  --error-foreground: #0f172a;
+  /* Amber 400 */
+  --warning-foreground: #09090b;
+  --error: #f43f5e;
+  --error-foreground: #ffffff;
   --info: #60a5fa;
-  --info-foreground: #0f172a;
-  
-  /* Chart Colors - Modern Dark Palette */
-  --chart-1: #60a5fa;
-  --chart-2: #a78bfa;
-  --chart-3: #f87171;
-  --chart-4: #fbbf24;
-  --chart-5: #34d399;
-  --chart-6: #22d3ee;
-  
-  --border: #334155;
-  --input: transparent;
-  --input-background: #1e293b;
-  --switch-background: #64748b;
-  --ring: #60a5fa;
-  
-  --sidebar: #1e293b;
-  --sidebar-foreground: #f1f5f9;
-  --sidebar-primary: #60a5fa;
-  --sidebar-primary-foreground: #0f172a;
-  --sidebar-accent: #334155;
-  --sidebar-accent-foreground: #f1f5f9;
-  --sidebar-border: #334155;
-  --sidebar-ring: #60a5fa;
+  --info-foreground: #09090b;
+
+  /* Chart Colors - Neon/Glow */
+  --chart-1: #6366f1;
+  --chart-2: #34d399;
+  --chart-3: #fb923c;
+  --chart-4: #a78bfa;
+  --chart-5: #22d3ee;
+  --chart-6: #f43f5e;
+
+  --border: #27272a;
+  /* Zinc 800 */
+  --input: #27272a;
+  --input-background: #18181b;
+  --switch-background: #27272a;
+  --ring: #6366f1;
+
+  --sidebar: #18181b;
+  --sidebar-foreground: #fafafa;
+  --sidebar-primary: #6366f1;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #27272a;
+  --sidebar-accent-foreground: #fafafa;
+  --sidebar-border: #27272a;
+  --sidebar-ring: #6366f1;
 }
 
 @theme inline {
@@ -175,6 +226,11 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  /* Custom Utilities */
+  --color-glass-border: var(--glass-border);
+  --color-glass-bg: var(--glass-bg);
+  --color-surface-1: var(--surface-1);
+  --color-surface-2: var(--surface-2);
 }
 
 @layer base {
@@ -183,65 +239,63 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground tracking-tightantialiased selection:bg-primary/20 selection:text-primary;
+    font-feature-settings: "ss01", "ss02", "cv01", "cv02", "cv03";
+    /* Clean modern font features if supported */
   }
 }
 
 /**
- * Base typography. This is not applied to elements which have an ancestor with a Tailwind text class.
+ * Base typography.
  */
 @layer base {
   :where(:not(:has([class*=" text-"]), :not(:has([class^="text-"])))) {
     h1 {
       font-size: var(--text-2xl);
-      font-weight: var(--font-weight-medium);
-      line-height: 1.5;
+      font-weight: 600;
+      /* SemiBold */
+      letter-spacing: -0.025em;
+      /* Tight tracking for headings */
+      line-height: 1.2;
     }
 
     h2 {
       font-size: var(--text-xl);
-      font-weight: var(--font-weight-medium);
-      line-height: 1.5;
+      font-weight: 600;
+      letter-spacing: -0.025em;
+      line-height: 1.3;
     }
 
     h3 {
       font-size: var(--text-lg);
-      font-weight: var(--font-weight-medium);
-      line-height: 1.5;
+      font-weight: 500;
+      /* Medium */
+      letter-spacing: -0.015em;
+      line-height: 1.4;
     }
 
     h4 {
       font-size: var(--text-base);
-      font-weight: var(--font-weight-medium);
+      font-weight: 500;
+      letter-spacing: -0.01em;
       line-height: 1.5;
     }
 
     p {
       font-size: var(--text-base);
-      font-weight: var(--font-weight-normal);
-      line-height: 1.5;
+      font-weight: 400;
+      line-height: 1.6;
+      /* Relaxed reading experience */
+      color: var(--muted-foreground);
+      /* Default to muted for paragraphs to reduce visual noise */
     }
 
     label {
-      font-size: var(--text-base);
-      font-weight: var(--font-weight-medium);
+      font-size: var(--text-sm);
+      /* Smaller, tighter labels */
+      font-weight: 500;
       line-height: 1.5;
-    }
-
-    button {
-      font-size: var(--text-base);
-      font-weight: var(--font-weight-medium);
-      line-height: 1.5;
-    }
-
-    input {
-      font-size: var(--text-base);
-      font-weight: var(--font-weight-normal);
-      line-height: 1.5;
+      color: var(--foreground);
     }
   }
-}
-
-html {
-  font-size: var(--font-size);
 }

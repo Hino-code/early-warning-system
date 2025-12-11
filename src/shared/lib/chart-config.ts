@@ -18,45 +18,59 @@ export const getChartColors = () => {
 };
 
 export const chartConfig = {
-  // Grid styling
+  // Grid styling - Minimalist
   grid: {
-    strokeDasharray: '3 3',
+    strokeDasharray: '4 4', // Broader dash for cleaner look
     stroke: 'hsl(var(--border))',
-    opacity: 0.3,
+    opacity: 0.15, // Much subtler grid
   },
-  
+
   // Axis styling
   axis: {
     tick: {
       fill: 'hsl(var(--muted-foreground))',
-      fontSize: 12,
+      fontSize: 11,
+      fontWeight: 500,
     },
     line: {
-      stroke: 'hsl(var(--border))',
+      stroke: 'transparent', // Hide axis lines by default for cleaner look
     },
   },
-  
-  // Tooltip styling
+
+  // Tooltip styling - Glassmorphism Standard
   tooltip: {
     contentStyle: {
-      backgroundColor: 'hsl(var(--popover))',
-      border: '1px solid hsl(var(--border))',
-      borderRadius: '8px',
+      backgroundColor: 'hsl(var(--background) / 0.8)', // Glass effect
+      backdropFilter: 'blur(12px)',
+      border: '1px solid hsl(var(--border) / 0.5)',
+      borderRadius: '12px',
+      boxShadow: '0 4px 20px -2px rgba(0, 0, 0, 0.1)',
       color: 'hsl(var(--popover-foreground))',
+      padding: '12px',
     },
     itemStyle: {
-      color: 'hsl(var(--popover-foreground))',
+      color: 'hsl(var(--foreground))',
+      fontSize: '13px',
+      fontWeight: 500,
+      padding: '2px 0',
     },
     labelStyle: {
       color: 'hsl(var(--muted-foreground))',
-    },
+      marginBottom: '4px',
+      fontSize: '11px',
+      fontWeight: 600,
+      textTransform: 'uppercase',
+      letterSpacing: '0.05em',
+    } as React.CSSProperties, // Cast to any to satisfy ts if needed, but standard CSS props work
   },
-  
+
   // Legend styling
   legend: {
     wrapperStyle: {
-      color: 'hsl(var(--foreground))',
+      color: 'hsl(var(--muted-foreground))',
       fontSize: '12px',
+      fontWeight: 500,
+      paddingTop: '16px',
     },
   },
 };

@@ -13,7 +13,11 @@ import {
 } from "@/shared/components/ui/sidebar";
 import { Button } from "@/shared/components/ui/button";
 import { Card } from "@/shared/components/ui/card";
-import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/shared/components/ui/popover";
 import { Avatar, AvatarFallback } from "@/shared/components/ui/avatar";
 import { Separator } from "@/shared/components/ui/separator";
 import { Toaster } from "@/shared/components/ui/sonner";
@@ -25,7 +29,12 @@ import { RegistrationPage } from "@/features/auth/pages/registration-page";
 import pestFullLogo from "@/assets/pest-logo-full.png";
 import { AlertTriangle, Bug, LogOut, User as UserIcon } from "lucide-react";
 import { useAuthStore } from "@/state/auth-store";
-import { AppSection, getNavigationForRole, getSectionTitle, renderSection } from "./router";
+import {
+  AppSection,
+  getNavigationForRole,
+  getSectionTitle,
+  renderSection,
+} from "./router";
 import type { AppUser, RegistrationPayload } from "@/shared/types/user";
 
 interface UserMenuProps {
@@ -58,7 +67,12 @@ function UserMenu({ user, onLogout, onProfileClick }: UserMenuProps) {
           </div>
           <Separator />
           <div className="space-y-1">
-            <Button variant="ghost" className="w-full justify-start h-8" size="sm" onClick={onProfileClick}>
+            <Button
+              variant="ghost"
+              className="w-full justify-start h-8"
+              size="sm"
+              onClick={onProfileClick}
+            >
               <UserIcon className="h-3 w-3 mr-2" />
               Profile Settings
             </Button>
@@ -98,7 +112,10 @@ export function AppLayout() {
     initializeAuth();
   }, [initializeAuth]);
 
-  const handleLogin = async (credentials: { username: string; password: string }) => {
+  const handleLogin = async (credentials: {
+    username: string;
+    password: string;
+  }) => {
     await login(credentials);
     setShowRegistration(false);
     setShowWelcome(true);
@@ -121,10 +138,18 @@ export function AppLayout() {
     return getNavigationForRole(user.role);
   }, [user]);
 
-  const dashboardItems = allowedNavigation.filter((item) => item.group === "dashboard");
-  const analysisItems = allowedNavigation.filter((item) => item.group === "analysis");
-  const forecastItems = allowedNavigation.filter((item) => item.group === "forecast");
-  const systemItems = allowedNavigation.filter((item) => item.group === "system");
+  const dashboardItems = allowedNavigation.filter(
+    (item) => item.group === "dashboard"
+  );
+  const analysisItems = allowedNavigation.filter(
+    (item) => item.group === "analysis"
+  );
+  const forecastItems = allowedNavigation.filter(
+    (item) => item.group === "forecast"
+  );
+  const systemItems = allowedNavigation.filter(
+    (item) => item.group === "system"
+  );
 
   const content = useMemo(() => {
     if (!user) return null;
@@ -180,13 +205,19 @@ export function AppLayout() {
           <SidebarContent>
             <div className="p-4 border-b">
               <div className="flex items-center justify-center">
-                <img src={pestFullLogo} alt="Pest.i - Monitoring & Forecasting" className="h-16 w-auto" />
+                <img
+                  src={pestFullLogo}
+                  alt="Pest.i - Monitoring & Forecasting"
+                  className="h-16 w-auto"
+                />
               </div>
             </div>
 
             {dashboardItems.length > 0 && (
-              <SidebarGroup>
-                <SidebarGroupLabel>Overview</SidebarGroupLabel>
+              <SidebarGroup className="mt-4">
+                <SidebarGroupLabel className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-wider">
+                  Overview
+                </SidebarGroupLabel>
                 <SidebarGroupContent>
                   <SidebarMenu>
                     {dashboardItems.map((item) => (
@@ -194,9 +225,9 @@ export function AppLayout() {
                         <SidebarMenuButton
                           onClick={() => setActiveSection(item.id)}
                           isActive={activeSection === item.id}
-                          className="w-full justify-start"
+                          className="w-full justify-start h-8 text-sm"
                         >
-                          <item.icon className="h-4 w-4" />
+                          <item.icon className="h-4 w-4 opacity-70" />
                           <span>{item.title}</span>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
@@ -207,8 +238,10 @@ export function AppLayout() {
             )}
 
             {analysisItems.length > 0 && (
-              <SidebarGroup>
-                <SidebarGroupLabel>Pest Insights</SidebarGroupLabel>
+              <SidebarGroup className="mt-4">
+                <SidebarGroupLabel className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-wider">
+                  Pest Insights
+                </SidebarGroupLabel>
                 <SidebarGroupContent>
                   <SidebarMenu>
                     {analysisItems.map((item) => (
@@ -216,9 +249,9 @@ export function AppLayout() {
                         <SidebarMenuButton
                           onClick={() => setActiveSection(item.id)}
                           isActive={activeSection === item.id}
-                          className="w-full justify-start"
+                          className="w-full justify-start h-8 text-sm"
                         >
-                          <item.icon className="h-4 w-4" />
+                          <item.icon className="h-4 w-4 opacity-70" />
                           <span>{item.title}</span>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
@@ -229,8 +262,10 @@ export function AppLayout() {
             )}
 
             {forecastItems.length > 0 && (
-              <SidebarGroup>
-                <SidebarGroupLabel>Forecast</SidebarGroupLabel>
+              <SidebarGroup className="mt-4">
+                <SidebarGroupLabel className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-wider">
+                  Forecast
+                </SidebarGroupLabel>
                 <SidebarGroupContent>
                   <SidebarMenu>
                     {forecastItems.map((item) => (
@@ -238,9 +273,9 @@ export function AppLayout() {
                         <SidebarMenuButton
                           onClick={() => setActiveSection(item.id)}
                           isActive={activeSection === item.id}
-                          className="w-full justify-start"
+                          className="w-full justify-start h-8 text-sm"
                         >
-                          <item.icon className="h-4 w-4" />
+                          <item.icon className="h-4 w-4 opacity-70" />
                           <span>{item.title}</span>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
@@ -251,8 +286,10 @@ export function AppLayout() {
             )}
 
             {systemItems.length > 0 && (
-              <SidebarGroup>
-                <SidebarGroupLabel>System</SidebarGroupLabel>
+              <SidebarGroup className="mt-4">
+                <SidebarGroupLabel className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-wider">
+                  System
+                </SidebarGroupLabel>
                 <SidebarGroupContent>
                   <SidebarMenu>
                     {systemItems.map((item) => (
@@ -260,9 +297,9 @@ export function AppLayout() {
                         <SidebarMenuButton
                           onClick={() => setActiveSection(item.id)}
                           isActive={activeSection === item.id}
-                          className="w-full justify-start"
+                          className="w-full justify-start h-8 text-sm"
                         >
-                          <item.icon className="h-4 w-4" />
+                          <item.icon className="h-4 w-4 opacity-70" />
                           <span>{item.title}</span>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
@@ -275,29 +312,51 @@ export function AppLayout() {
         </Sidebar>
 
         <main className="flex-1 overflow-auto">
-          <div className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <div className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60">
             <div className="flex h-14 items-center justify-between px-4">
               <div className="flex items-center gap-3">
                 <SidebarTrigger />
-                <h2 className="text-lg font-semibold">{getSectionTitle(activeSection)}</h2>
+                <h2 className="text-lg font-semibold">
+                  {getSectionTitle(activeSection)}
+                </h2>
               </div>
 
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-4">
                 <ThemeToggle />
-                <NotificationBell onViewAll={() => setActiveSection("notifications")} />
-                <Separator orientation="vertical" className="h-6 hidden md:block" />
-                <div className="hidden md:block text-right">
-                  <p className="text-sm font-medium">{user.username}</p>
-                  <p className="text-xs text-muted-foreground">{user.role}</p>
+                <div className="flex items-center">
+                  <NotificationBell
+                    onViewAll={() => setActiveSection("notifications")}
+                  />
                 </div>
-                <UserMenu user={user} onLogout={handleLogout} onProfileClick={() => setActiveSection("profile")} />
+                <Separator
+                  orientation="vertical"
+                  className="h-6 hidden md:block"
+                />
+                <div className="hidden md:block text-right">
+                  <p className="text-sm font-semibold text-foreground/90">
+                    {user.username}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground">
+                    {user.role}
+                  </p>
+                </div>
+                <UserMenu
+                  user={user}
+                  onLogout={handleLogout}
+                  onProfileClick={() => setActiveSection("profile")}
+                />
               </div>
             </div>
           </div>
-          {content}
+          <div className="px-4 pb-6">{content}</div>
         </main>
 
-        {showWelcome && <WelcomeNotification user={user} onDismiss={() => setShowWelcome(false)} />}
+        {showWelcome && (
+          <WelcomeNotification
+            user={user}
+            onDismiss={() => setShowWelcome(false)}
+          />
+        )}
       </div>
     </SidebarProvider>
   );
@@ -311,7 +370,8 @@ function PendingApprovalNotice({ onLogout }: { onLogout: () => void }) {
         <div className="space-y-1">
           <h2 className="text-xl font-semibold">Pending Admin Approval</h2>
           <p className="text-sm text-muted-foreground">
-            Your registration is awaiting review. You’ll be notified once an administrator approves your access.
+            Your registration is awaiting review. You’ll be notified once an
+            administrator approves your access.
           </p>
         </div>
         <Button variant="outline" onClick={onLogout}>

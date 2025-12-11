@@ -99,30 +99,36 @@ export const filterObservations = (
     actionStatus?: "Taken" | "Not Taken" | "All";
   },
 ): PestObservation[] => {
-  return observations.filter(obs => {
+  const initialCount = observations.length;
+  const filtered = observations.filter(obs => {
     const obsDate = new Date(obs.date);
-    
+
     if (filters.year && obsDate.getFullYear() !== filters.year) return false;
     if (filters.season && filters.season !== 'All' && obs.season !== filters.season) return false;
     if (filters.fieldStage && filters.fieldStage !== 'All' && obs.fieldStage !== filters.fieldStage) return false;
     if (filters.pestType && filters.pestType !== 'All' && obs.pestType !== filters.pestType) return false;
-    
+
     if (filters.dateRange) {
       if (obsDate < filters.dateRange.start || obsDate > filters.dateRange.end) return false;
     }
-    
+
     if (filters.thresholdStatus) {
       if (filters.thresholdStatus === 'Above' && !obs.aboveThreshold) return false;
       if (filters.thresholdStatus === 'Below' && obs.aboveThreshold) return false;
     }
-    
+
     if (filters.actionStatus) {
       if (filters.actionStatus === 'Taken' && !obs.actionTaken) return false;
       if (filters.actionStatus === 'Not Taken' && obs.actionTaken) return false;
     }
-    
+
     return true;
   });
+
+  // #region agent log
+  // #endregion
+
+  return filtered;
 };
 
 // Calculate KPIs
@@ -138,7 +144,7 @@ export const calculateKPIs = (observations: PestObservation[]): KPIMetrics => {
       mostAffectedStage: 'N/A'
     };
   }
-  
+
   const totalObservations = observations.length;
   const totalPestCount = observations.reduce((sum, obs) => sum + obs.count, 0);
   const averagePestCount = totalPestCount / totalObservations;
@@ -146,20 +152,23 @@ export const calculateKPIs = (observations: PestObservation[]): KPIMetrics => {
   const percentAboveThreshold = (aboveThresholdCount / totalObservations) * 100;
   const totalActionsTaken = observations.filter(obs => obs.actionTaken).length;
   const actionRate = (totalActionsTaken / totalObservations) * 100;
-  
+
   // Get most recent stage as current
   const sortedObs = [...observations].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   const currentFieldStage = sortedObs[0]?.fieldStage || 'N/A';
-  
+
   // Find most affected stage
   const stageCounts: Record<string, number> = {};
   observations.forEach(obs => {
     stageCounts[obs.fieldStage] = (stageCounts[obs.fieldStage] || 0) + obs.count;
   });
-  const mostAffectedStage = Object.keys(stageCounts).reduce((a, b) => 
+  const mostAffectedStage = Object.keys(stageCounts).reduce((a, b) =>
     stageCounts[a] > stageCounts[b] ? a : b, 'N/A'
   );
-  
+
+  // #region agent log
+  // #endregion
+
   return {
     totalObservations,
     averagePestCount: Math.round(averagePestCount * 10) / 10,

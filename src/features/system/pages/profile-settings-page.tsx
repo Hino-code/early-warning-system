@@ -150,9 +150,9 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
         </div>
 
         {saved && (
-          <Alert className="w-auto border-green-200 bg-green-50">
-            <CheckCircle className="h-4 w-4 text-green-600" />
-            <AlertDescription className="text-green-800">
+          <Alert className="w-auto border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/30">
+            <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
+            <AlertDescription className="text-green-800 dark:text-green-400">
               Settings saved successfully!
             </AlertDescription>
           </Alert>
@@ -327,7 +327,7 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
                     <p className="text-sm text-muted-foreground">
                       Account Status
                     </p>
-                    <Badge className="bg-green-100 text-green-800">
+                    <Badge className="bg-green-100 text-green-800 dark:bg-green-950/30 dark:text-green-400">
                       Active
                     </Badge>
                   </div>

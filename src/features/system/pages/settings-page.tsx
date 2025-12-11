@@ -1,67 +1,79 @@
-import { useState } from 'react';
+import { useState } from "react";
 import { Card } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { Switch } from "@/shared/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/components/ui/select";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/shared/components/ui/tabs";
 import { Textarea } from "@/shared/components/ui/textarea";
 import { Slider } from "@/shared/components/ui/slider";
 import { Separator } from "@/shared/components/ui/separator";
-import { 
-  Settings as SettingsIcon, 
-  Bell, 
-  Shield, 
-  Database, 
-  Mail, 
-  Smartphone, 
-  Save, 
+import { useSettings } from "@/shared/providers/settings-provider";
+import {
+  Settings as SettingsIcon,
+  Bell,
+  Shield,
+  Database,
+  Mail,
+  Smartphone,
+  Save,
   RefreshCw,
   AlertTriangle,
   Eye,
   EyeOff,
   Download,
-  Upload
-} from 'lucide-react';
+  Upload,
+} from "lucide-react";
 
 export function Settings() {
+  const { settings, updateSettings } = useSettings();
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [smsNotifications, setSmsNotifications] = useState(false);
   const [pushNotifications, setPushNotifications] = useState(true);
   const [autoExport, setAutoExport] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  
+
   // Alert thresholds
   const [blackRiceBugThreshold, setBlackRiceBugThreshold] = useState([75]);
   const [damageThreshold, setDamageThreshold] = useState([15]);
   const [temperatureThreshold, setTemperatureThreshold] = useState([32]);
-  
+
   // Data collection settings
-  const [dataInterval, setDataInterval] = useState('15min');
-  const [retentionPeriod, setRetentionPeriod] = useState('2years');
-  const [backupFrequency, setBackupFrequency] = useState('daily');
+  const [dataInterval, setDataInterval] = useState("15min");
+  const [retentionPeriod, setRetentionPeriod] = useState("2years");
+  const [backupFrequency, setBackupFrequency] = useState("daily");
 
   const handleSaveSettings = () => {
     // Mock save functionality
-    console.log('Settings saved successfully');
+    console.log("Settings saved successfully");
   };
 
   const handleExportSettings = () => {
     // Mock export functionality
-    console.log('Exporting settings configuration');
+    console.log("Exporting settings configuration");
   };
 
   const handleImportSettings = () => {
     // Mock import functionality
-    console.log('Importing settings configuration');
+    console.log("Importing settings configuration");
   };
 
   const handleResetToDefaults = () => {
     // Mock reset functionality
-    console.log('Resetting to default settings');
+    console.log("Resetting to default settings");
   };
 
   return (
@@ -69,7 +81,9 @@ export function Settings() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl">Pest.i Settings</h1>
-          <p className="text-muted-foreground">Configure system preferences and monitoring parameters</p>
+          <p className="text-muted-foreground">
+            Configure system preferences and monitoring parameters
+          </p>
         </div>
         <div className="flex space-x-2">
           <Button variant="outline" onClick={handleExportSettings}>
@@ -110,12 +124,15 @@ export function Settings() {
                   />
                   <div className="flex justify-between text-sm text-muted-foreground mt-1">
                     <span>10</span>
-                    <span className="font-medium">Current: {blackRiceBugThreshold[0]}</span>
+                    <span className="font-medium">
+                      Current: {blackRiceBugThreshold[0]}
+                    </span>
                     <span>100</span>
                   </div>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  Alert when black rice bug population exceeds this threshold per monitoring area
+                  Alert when black rice bug population exceeds this threshold
+                  per monitoring area
                 </p>
               </div>
 
@@ -134,7 +151,9 @@ export function Settings() {
                   />
                   <div className="flex justify-between text-sm text-muted-foreground mt-1">
                     <span>5%</span>
-                    <span className="font-medium">Current: {damageThreshold[0]}%</span>
+                    <span className="font-medium">
+                      Current: {damageThreshold[0]}%
+                    </span>
                     <span>30%</span>
                   </div>
                 </div>
@@ -158,12 +177,15 @@ export function Settings() {
                   />
                   <div className="flex justify-between text-sm text-muted-foreground mt-1">
                     <span>25°C</span>
-                    <span className="font-medium">Current: {temperatureThreshold[0]}°C</span>
+                    <span className="font-medium">
+                      Current: {temperatureThreshold[0]}°C
+                    </span>
                     <span>40°C</span>
                   </div>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  Alert when temperature exceeds this threshold (favorable for pest breeding)
+                  Alert when temperature exceeds this threshold (favorable for
+                  pest breeding)
                 </p>
               </div>
             </div>
@@ -239,10 +261,15 @@ export function Settings() {
                   <Mail className="h-5 w-5 text-blue-500" />
                   <div>
                     <p className="font-medium">Email Notifications</p>
-                    <p className="text-sm text-muted-foreground">Receive alerts via email</p>
+                    <p className="text-sm text-muted-foreground">
+                      Receive alerts via email
+                    </p>
                   </div>
                 </div>
-                <Switch checked={emailNotifications} onCheckedChange={setEmailNotifications} />
+                <Switch
+                  checked={emailNotifications}
+                  onCheckedChange={setEmailNotifications}
+                />
               </div>
 
               {emailNotifications && (
@@ -276,10 +303,15 @@ export function Settings() {
                   <Smartphone className="h-5 w-5 text-green-500" />
                   <div>
                     <p className="font-medium">SMS Notifications</p>
-                    <p className="text-sm text-muted-foreground">Receive critical alerts via SMS</p>
+                    <p className="text-sm text-muted-foreground">
+                      Receive critical alerts via SMS
+                    </p>
                   </div>
                 </div>
-                <Switch checked={smsNotifications} onCheckedChange={setSmsNotifications} />
+                <Switch
+                  checked={smsNotifications}
+                  onCheckedChange={setSmsNotifications}
+                />
               </div>
 
               {smsNotifications && (
@@ -301,8 +333,12 @@ export function Settings() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="all">All Alerts</SelectItem>
-                          <SelectItem value="high">High Priority Only</SelectItem>
-                          <SelectItem value="critical">Critical Only</SelectItem>
+                          <SelectItem value="high">
+                            High Priority Only
+                          </SelectItem>
+                          <SelectItem value="critical">
+                            Critical Only
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -317,10 +353,15 @@ export function Settings() {
                   <Bell className="h-5 w-5 text-orange-500" />
                   <div>
                     <p className="font-medium">Push Notifications</p>
-                    <p className="text-sm text-muted-foreground">Browser push notifications</p>
+                    <p className="text-sm text-muted-foreground">
+                      Browser push notifications
+                    </p>
                   </div>
                 </div>
-                <Switch checked={pushNotifications} onCheckedChange={setPushNotifications} />
+                <Switch
+                  checked={pushNotifications}
+                  onCheckedChange={setPushNotifications}
+                />
               </div>
             </div>
           </Card>
@@ -339,15 +380,13 @@ export function Settings() {
 
               <div className="space-y-3">
                 <Label htmlFor="quiet-hours-end">Quiet Hours End</Label>
-                <Input
-                  id="quiet-hours-end"
-                  type="time"
-                  defaultValue="06:00"
-                />
+                <Input id="quiet-hours-end" type="time" defaultValue="06:00" />
               </div>
 
               <div className="space-y-3">
-                <Label htmlFor="weekend-notifications">Weekend Notifications</Label>
+                <Label htmlFor="weekend-notifications">
+                  Weekend Notifications
+                </Label>
                 <Select defaultValue="critical">
                   <SelectTrigger>
                     <SelectValue />
@@ -362,11 +401,7 @@ export function Settings() {
 
               <div className="space-y-3">
                 <Label htmlFor="daily-summary">Daily Summary Time</Label>
-                <Input
-                  id="daily-summary"
-                  type="time"
-                  defaultValue="08:00"
-                />
+                <Input id="daily-summary" type="time" defaultValue="08:00" />
               </div>
             </div>
           </Card>
@@ -393,7 +428,10 @@ export function Settings() {
 
               <div className="space-y-3">
                 <Label htmlFor="retention-period">Data Retention Period</Label>
-                <Select value={retentionPeriod} onValueChange={setRetentionPeriod}>
+                <Select
+                  value={retentionPeriod}
+                  onValueChange={setRetentionPeriod}
+                >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -408,7 +446,10 @@ export function Settings() {
 
               <div className="space-y-3">
                 <Label htmlFor="backup-frequency">Backup Frequency</Label>
-                <Select value={backupFrequency} onValueChange={setBackupFrequency}>
+                <Select
+                  value={backupFrequency}
+                  onValueChange={setBackupFrequency}
+                >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -444,7 +485,9 @@ export function Settings() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-medium">Auto-Export Reports</p>
-                  <p className="text-sm text-muted-foreground">Automatically export daily reports</p>
+                  <p className="text-sm text-muted-foreground">
+                    Automatically export daily reports
+                  </p>
                 </div>
                 <Switch checked={autoExport} onCheckedChange={setAutoExport} />
               </div>
@@ -494,7 +537,11 @@ export function Settings() {
                     className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
                     onClick={() => setShowPassword(!showPassword)}
                   >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
                   </Button>
                 </div>
               </div>
@@ -523,7 +570,9 @@ export function Settings() {
                 <h4 className="font-medium">Session Settings</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="session-timeout">Session Timeout (minutes)</Label>
+                    <Label htmlFor="session-timeout">
+                      Session Timeout (minutes)
+                    </Label>
                     <Input
                       id="session-timeout"
                       type="number"
@@ -533,7 +582,9 @@ export function Settings() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="max-sessions">Max Concurrent Sessions</Label>
+                    <Label htmlFor="max-sessions">
+                      Max Concurrent Sessions
+                    </Label>
                     <Input
                       id="max-sessions"
                       type="number"
@@ -575,12 +626,50 @@ export function Settings() {
           <Card className="p-6">
             <h3 className="mb-4">System Preferences</h3>
             <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Dark Mode</p>
-                  <p className="text-sm text-muted-foreground">Switch to dark theme</p>
-                </div>
-                <Switch checked={darkMode} onCheckedChange={setDarkMode} />
+              <div className="space-y-3">
+                <Label htmlFor="theme">Theme</Label>
+                <Select
+                  value={settings.theme}
+                  onValueChange={(value: "light" | "dark" | "system") =>
+                    updateSettings({ theme: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="light">Light</SelectItem>
+                    <SelectItem value="dark">Dark</SelectItem>
+                    <SelectItem value="system">System</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-sm text-muted-foreground">
+                  Choose your preferred theme or sync with system settings
+                </p>
+              </div>
+
+              <Separator />
+
+              <div className="space-y-3">
+                <Label htmlFor="density">Interface Density</Label>
+                <Select
+                  value={settings.density}
+                  onValueChange={(
+                    value: "compact" | "comfortable" | "spacious"
+                  ) => updateSettings({ density: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="compact">Compact</SelectItem>
+                    <SelectItem value="comfortable">Comfortable</SelectItem>
+                    <SelectItem value="spacious">Spacious</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-sm text-muted-foreground">
+                  Adjust spacing and sizing of interface elements
+                </p>
               </div>
 
               <Separator />
@@ -588,7 +677,12 @@ export function Settings() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-3">
                   <Label htmlFor="language">Language</Label>
-                  <Select defaultValue="en">
+                  <Select
+                    value={settings.language}
+                    onValueChange={(value) =>
+                      updateSettings({ language: value })
+                    }
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -618,27 +712,37 @@ export function Settings() {
 
                 <div className="space-y-3">
                   <Label htmlFor="date-format">Date Format</Label>
-                  <Select defaultValue="mm/dd/yyyy">
+                  <Select
+                    value={settings.dateFormat}
+                    onValueChange={(value) =>
+                      updateSettings({ dateFormat: value })
+                    }
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="mm/dd/yyyy">MM/DD/YYYY</SelectItem>
-                      <SelectItem value="dd/mm/yyyy">DD/MM/YYYY</SelectItem>
-                      <SelectItem value="yyyy-mm-dd">YYYY-MM-DD</SelectItem>
+                      <SelectItem value="MM/DD/YYYY">MM/DD/YYYY</SelectItem>
+                      <SelectItem value="DD/MM/YYYY">DD/MM/YYYY</SelectItem>
+                      <SelectItem value="YYYY-MM-DD">YYYY-MM-DD</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="space-y-3">
-                  <Label htmlFor="temperature-unit">Temperature Unit</Label>
-                  <Select defaultValue="celsius">
+                  <Label htmlFor="time-format">Time Format</Label>
+                  <Select
+                    value={settings.timeFormat}
+                    onValueChange={(value) =>
+                      updateSettings({ timeFormat: value })
+                    }
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="celsius">Celsius (°C)</SelectItem>
-                      <SelectItem value="fahrenheit">Fahrenheit (°F)</SelectItem>
+                      <SelectItem value="12">12-hour</SelectItem>
+                      <SelectItem value="24">24-hour</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -650,7 +754,9 @@ export function Settings() {
             <h3 className="mb-4">Performance Settings</h3>
             <div className="space-y-6">
               <div className="space-y-3">
-                <Label htmlFor="refresh-interval">Dashboard Refresh Interval</Label>
+                <Label htmlFor="refresh-interval">
+                  Dashboard Refresh Interval
+                </Label>
                 <Select defaultValue="30s">
                   <SelectTrigger>
                     <SelectValue />
@@ -687,7 +793,9 @@ export function Settings() {
             <h3 className="mb-4">Advanced Configuration</h3>
             <div className="space-y-6">
               <div className="space-y-3">
-                <Label htmlFor="sarima-config">SARIMA Model Configuration</Label>
+                <Label htmlFor="sarima-config">
+                  SARIMA Model Configuration
+                </Label>
                 <Textarea
                   id="sarima-config"
                   placeholder="Enter SARIMA model parameters in JSON format..."
@@ -736,7 +844,9 @@ export function Settings() {
               <div className="flex items-center justify-between p-4 border border-red-200 rounded-lg">
                 <div>
                   <p className="font-medium text-red-900">Reset to Defaults</p>
-                  <p className="text-sm text-red-700">Reset all settings to factory defaults</p>
+                  <p className="text-sm text-red-700">
+                    Reset all settings to factory defaults
+                  </p>
                 </div>
                 <Button variant="destructive" onClick={handleResetToDefaults}>
                   Reset Settings
@@ -746,11 +856,11 @@ export function Settings() {
               <div className="flex items-center justify-between p-4 border border-red-200 rounded-lg">
                 <div>
                   <p className="font-medium text-red-900">Clear All Data</p>
-                  <p className="text-sm text-red-700">Permanently delete all collected data</p>
+                  <p className="text-sm text-red-700">
+                    Permanently delete all collected data
+                  </p>
                 </div>
-                <Button variant="destructive">
-                  Clear Data
-                </Button>
+                <Button variant="destructive">Clear Data</Button>
               </div>
             </div>
           </Card>
