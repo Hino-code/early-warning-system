@@ -15,16 +15,19 @@ Run `npm run dev` to start the development server.
 ## System Overview
 
 ### Frontend
+
 - Built with: **React / TypeScript / Vite / Tailwind CSS**
 - Provides: User interface for visualizing pest data, forecast charts, and system alerts
 - Features: Real-time dashboards, interactive charts, responsive design, accessibility support
 
 ### Backend
+
 - Built with: **Express.js / Node.js / MongoDB**
 - Role: API for data access, database integration, user authentication, and alert logic
 - Features: JWT authentication, rate limiting, secure admin endpoints
 
 ### Forecasting & Analytics
+
 - Tools: **Python**, **pandas**, **statsmodels**, **scikit-learn**
 - Models: **SARIMA**, **K-Nearest Neighbors (KNN)**, and other time series/predictive models
 - Data: Focused on **Rice Black Bug** and **White Stem Borer**
@@ -62,17 +65,20 @@ Run `npm run dev` to start the development server.
 ## Development
 
 ### Prerequisites
+
 - Node.js 18+
 - MongoDB
 - npm or yarn
 
 ### Installation
+
 ```bash
 npm install
 cd server && npm install
 ```
 
 ### Running
+
 ```bash
 # Frontend only
 npm run dev
