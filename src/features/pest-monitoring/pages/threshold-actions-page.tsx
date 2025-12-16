@@ -1,9 +1,10 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Card } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { SharedFilters } from "@/shared/components/filters/shared-filters";
 import type { FilterValues } from "@/shared/types/filters";
-import { getObservations, filterObservations } from "@/shared/lib/data-service";
+import { filterObservations } from "@/shared/lib/data-service";
+import { useDashboardStore } from "@/state/store";
 import {
   LineChart,
   Line,
@@ -66,9 +67,15 @@ export function ThresholdActions() {
     chartColors.chart6,
   ];
 
-  const allObservations = useMemo(() => getObservations(), []);
+  const { observations: storeObservations, initialize } = useDashboardStore();
+  
+  useEffect(() => {
+    initialize();
+  }, [initialize]);
+
+  const allObservations = storeObservations;
   const filteredData = useMemo(
-    () => filterObservations(allObservations, filters),
+    () => filterObservations(allObservations, { ...filters, dateRange: filters.dateRange || undefined }),
     [allObservations, filters]
   );
 

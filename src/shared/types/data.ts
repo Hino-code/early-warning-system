@@ -40,6 +40,22 @@ export interface ForecastData {
   confidence: number;
 }
 
+export interface BackendForecastResponse {
+  success: boolean;
+  data: {
+    max_pest_count: number;
+    min_pest_count: number;
+    current_dates: string[];
+    actual: number[];
+    forecasted: {
+      future_dates: { [index: string]: string };
+      forecast: { [index: string]: number };
+      ci_lower?: { [index: string]: number };
+      ci_upper?: { [index: string]: number };
+    };
+  };
+}
+
 export interface AlertRecord {
   id: string;
   title: string;
@@ -49,11 +65,11 @@ export interface AlertRecord {
   read: boolean;
   priority: "high" | "medium" | "low";
   category:
-    | "pest-alert"
-    | "threshold"
-    | "forecast"
-    | "system"
-    | "action-required";
+  | "pest-alert"
+  | "threshold"
+  | "forecast"
+  | "system"
+  | "action-required";
   metadata?: {
     pestType?: PestType;
     location?: string;

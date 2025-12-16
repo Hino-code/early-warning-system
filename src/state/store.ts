@@ -4,31 +4,15 @@ import type {
   ForecastData,
   KPIMetrics,
   PestObservation,
+  BackendForecastResponse,
 } from "@/shared/types/data";
 import * as dataService from "@/shared/lib/data-service";
 import { apiClient } from "@/shared/lib/api-client";
 import type { FilterValues } from "@/shared/types/filters";
 import { createDefaultFilters } from "@/shared/types/filters";
 
-let mockModeOverride: boolean | null = null;
+// Mock mode removed
 
-export const setDashboardMockMode = (value: boolean | null) => {
-  mockModeOverride = value;
-};
-
-const shouldUseMocks = () => {
-  if (mockModeOverride !== null) {
-    return mockModeOverride;
-  }
-
-  if (typeof window === "undefined") {
-    return true;
-  }
-  const env = import.meta?.env ?? {};
-  const nodeEnv = typeof process !== "undefined" ? process.env : {};
-  const flag = env.VITE_USE_MOCKS ?? nodeEnv?.VITE_USE_MOCKS ?? "true";
-  return String(flag).toLowerCase() !== "false";
-};
 
 export const DEFAULT_KPIS: KPIMetrics = {
   totalObservations: 0,
@@ -60,27 +44,19 @@ interface DashboardState {
   setForecastHorizon: (horizon: 7 | 14 | 30) => void;
 }
 
-type DataProvider = {
-  getObservations: () => PestObservation[];
-  getForecastData: () => ForecastData[];
-  getAlerts: () => AlertRecord[];
-};
+// DataProvider abstraction removed
 
-let dataProvider: DataProvider = {
-  getObservations: () => dataService.getObservations(),
-  getForecastData: () => dataService.getForecastData(),
-  getAlerts: () => dataService.getAlerts(),
-};
-
-export const setDashboardDataProvider = (provider: DataProvider) => {
-  dataProvider = provider;
-};
 
 const applyFilters = (
   observations: PestObservation[],
   filters: FilterValues,
 ) => {
-  const filtered = dataService.filterObservations(observations, filters);
+  // Convert null dateRange to undefined for compatibility with dataService
+  const safeFilters = {
+    ...filters,
+    dateRange: filters.dateRange || undefined,
+  };
+  const filtered = dataService.filterObservations(observations, safeFilters);
   const kpis = dataService.calculateKPIs(filtered);
   return { filtered, kpis };
 };
@@ -112,16 +88,35 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
       let observations: PestObservation[] = [];
       let forecasts: ForecastData[] = [];
 
-      if (shouldUseMocks()) {
-        observations = dataProvider.getObservations();
-        forecasts = dataProvider.getForecastData();
-      } else {
-        observations = await apiClient.get<PestObservation[]>("/observations", {
-          mockResponse: () => [],
-        });
-        forecasts = await apiClient.get<ForecastData[]>("/forecasts", {
-          mockResponse: () => [],
-        });
+      // Observations: Restore mock data as no backend API exists
+      observations = dataService.getObservations();
+
+      // Forecasts: Fetch from real backend and map to frontend format
+      try {
+        const forecastResponse = await apiClient.get<BackendForecastResponse>("/dashboard/forecast");
+        if (forecastResponse?.success && forecastResponse?.data?.forecasted?.future_dates) {
+          const { future_dates, forecast, ci_lower, ci_upper } = forecastResponse.data.forecasted;
+
+          // Map indexed objects to array
+          forecasts = Object.keys(future_dates).map((key) => {
+            const date = future_dates[key];
+            const predicted = forecast[key] || 0;
+            const lower = ci_lower ? ci_lower[key] : Math.max(0, predicted - 5);
+            const upper = ci_upper ? ci_upper[key] : predicted + 5;
+
+            return {
+              date,
+              pestType: "Black Rice Bug",
+              predicted,
+              lowerBound: lower,
+              upperBound: upper,
+              confidence: 0.85
+            };
+          });
+        }
+      } catch (err) {
+        console.warn("Failed to fetch forecasts, falling back to empty", err);
+        forecasts = [];
       }
 
       const { filtered, kpis } = applyFilters(observations, get().filters);
@@ -148,7 +143,8 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
       typeof localStorage !== "undefined"
         ? JSON.parse(localStorage.getItem("mock_alert_reads") || "[]")
         : [];
-    const alerts = dataProvider.getAlerts().map((alert) => ({
+    // Alerts still mocked for now as backend implementation wasn't specified, but removing dataProvider dependency
+    const alerts = dataService.getAlerts().map((alert) => ({
       ...alert,
       read: storedReads.includes(alert.id) ? true : alert.read,
     }));

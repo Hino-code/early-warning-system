@@ -1,9 +1,9 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Card } from '@/shared/components/ui/card';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select';
-import { getForecastData, getObservations } from '@/shared/lib/data-service';
+import { useDashboardStore } from '@/state/store';
 import { 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, 
   Area, AreaChart, ComposedChart, ReferenceLine, Bar, BarChart, Cell
@@ -18,8 +18,12 @@ export function ForecastEarlyWarning() {
   const [forecastDays, setForecastDays] = useState(7);
   const chartColors = useChartColors();
 
-  const forecasts = useMemo(() => getForecastData(), []);
-  const observations = useMemo(() => getObservations(), []);
+  const { forecasts, observations, initialize } = useDashboardStore();
+  
+  // Ensure data is loaded
+  useEffect(() => {
+    initialize();
+  }, [initialize]);
 
   // Filter forecasts by selected pest and days
   const filteredForecasts = useMemo(() => {
@@ -211,7 +215,7 @@ export function ForecastEarlyWarning() {
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 space-y-2">
             <label className="text-sm text-muted-foreground">Pest Type</label>
-            <Select value={selectedPest} onValueChange={(val) => setSelectedPest(val as any)}>
+            <Select value={selectedPest} onValueChange={(val: string) => setSelectedPest(val as 'Black Rice Bug')}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -223,7 +227,7 @@ export function ForecastEarlyWarning() {
 
           <div className="flex-1 space-y-2">
             <label className="text-sm text-muted-foreground">Forecast Period</label>
-            <Select value={forecastDays.toString()} onValueChange={(val) => setForecastDays(parseInt(val))}>
+            <Select value={forecastDays.toString()} onValueChange={(val: string) => setForecastDays(parseInt(val))}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
