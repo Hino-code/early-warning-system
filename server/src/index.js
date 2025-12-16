@@ -434,10 +434,25 @@ async function start() {
     console.log("✅ Connected to MongoDB");
     
     // Add database indexes for performance
-    await User.collection.createIndex({ email: 1 });
-    await User.collection.createIndex({ status: 1 });
-    await User.collection.createIndex({ role: 1 });
-    await User.collection.createIndex({ createdAt: -1 });
+    // Note: email index is already created by Mongoose schema (unique: true)
+    // Skip email index creation since it's handled by the schema
+    // Create other indexes with error handling
+    const indexes = [
+      { key: { status: 1 }, options: { background: true } },
+      { key: { role: 1 }, options: { background: true } },
+      { key: { createdAt: -1 }, options: { background: true } },
+    ];
+    
+    for (const index of indexes) {
+      try {
+        await User.collection.createIndex(index.key, index.options);
+      } catch (err) {
+        // Index may already exist or conflict, which is fine
+        if (err.code !== 86 && err.codeName !== "IndexKeySpecsConflict") {
+          console.warn(`⚠️  Index creation warning: ${err.message}`);
+        }
+      }
+    }
     console.log("✅ Database indexes created");
     
     // Ensure an admin account exists for bootstrap
