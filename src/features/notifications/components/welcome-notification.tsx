@@ -47,7 +47,10 @@ export function WelcomeNotification({
   };
 
   return (
-    <div className="fixed top-4 right-4 z-50 w-96 space-y-2">
+    <div
+      className="fixed top-4 right-4 w-96 space-y-2"
+      style={{ zIndex: 1080 }}
+    >
       <Card className="p-4 bg-green-50 border-green-200 dark:bg-green-950/30 dark:border-green-800">
         <div className="flex items-start justify-between">
           <div className="flex-1">

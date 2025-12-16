@@ -18,7 +18,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/shared/components/ui/popover";
-import { Avatar, AvatarFallback } from "@/shared/components/ui/avatar";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/shared/components/ui/avatar";
 import { Separator } from "@/shared/components/ui/separator";
 import { Toaster } from "@/shared/components/ui/sonner";
 import { ThemeToggle } from "@/shared/components/theme-toggle";
@@ -44,11 +48,30 @@ interface UserMenuProps {
 }
 
 function UserMenu({ user, onLogout, onProfileClick }: UserMenuProps) {
+  const [isOpen, setIsOpen] = useState(false);
+
   return (
-    <Popover>
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
-        <Button variant="ghost" className="h-8 w-8 p-0">
+        <Button
+          variant="ghost"
+          className="h-8 w-8 p-0"
+          aria-label={`${user.username}'s profile menu`}
+          aria-haspopup="true"
+          aria-expanded={isOpen}
+        >
           <Avatar className="h-8 w-8">
+            {user.photoUrl && (
+              <AvatarImage
+                src={user.photoUrl}
+                alt="Profile photo"
+                className="object-cover"
+                onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+                  // If image fails to load, hide it and show fallback
+                  e.currentTarget.style.display = "none";
+                }}
+              />
+            )}
             <AvatarFallback className="text-xs">
               {user.username
                 .split(" ")
@@ -59,7 +82,12 @@ function UserMenu({ user, onLogout, onProfileClick }: UserMenuProps) {
           </Avatar>
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-56" align="end">
+      <PopoverContent
+        className="w-56"
+        align="end"
+        role="menu"
+        aria-label="User menu"
+      >
         <div className="space-y-4">
           <div className="space-y-1">
             <p className="text-sm font-medium">{user.username}</p>
@@ -312,7 +340,10 @@ export function AppLayout() {
         </Sidebar>
 
         <main className="flex-1 overflow-auto">
-          <div className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60">
+          <div
+            className="sticky top-0 border-b bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60"
+            style={{ zIndex: 1030 }}
+          >
             <div className="flex h-14 items-center justify-between px-4">
               <div className="flex items-center gap-3">
                 <SidebarTrigger />
@@ -334,24 +365,26 @@ export function AppLayout() {
                 />
                 <div className="hidden md:block text-right">
                   <p className="text-sm font-semibold text-foreground/90">
-                    {user.username}
+                    {user?.username}
                   </p>
                   <p className="text-[11px] text-muted-foreground">
-                    {user.role}
+                    {user?.role}
                   </p>
                 </div>
-                <UserMenu
-                  user={user}
-                  onLogout={handleLogout}
-                  onProfileClick={() => setActiveSection("profile")}
-                />
+                {user && (
+                  <UserMenu
+                    user={user}
+                    onLogout={handleLogout}
+                    onProfileClick={() => setActiveSection("profile")}
+                  />
+                )}
               </div>
             </div>
           </div>
           <div className="px-4 pb-6">{content}</div>
         </main>
 
-        {showWelcome && (
+        {showWelcome && user && (
           <WelcomeNotification
             user={user}
             onDismiss={() => setShowWelcome(false)}

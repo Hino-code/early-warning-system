@@ -6,10 +6,17 @@ import type {
 const defaultConfig: ApiClientConfig = {
   baseUrl: import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000",
   useMocks:
-    (import.meta.env.VITE_USE_MOCKS ?? "true").toLowerCase() !== "false",
+    (import.meta.env.VITE_USE_MOCKS ?? "false").toLowerCase() === "true",
   fetchImpl: (...args) => fetch(...args),
   getToken: () => {
     try {
+      // Try to get token from session first
+      const session = localStorage.getItem("pest-i-session");
+      if (session) {
+        const parsed = JSON.parse(session);
+        return parsed.token || null;
+      }
+      // Fallback to direct token storage
       return localStorage.getItem("pest-i-token");
     } catch {
       return null;

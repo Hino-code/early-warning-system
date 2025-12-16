@@ -1,5 +1,5 @@
 import type { AppUser } from "@/shared/types/user";
-import { useState } from "react";
+import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import {
   Card,
   CardContent,
@@ -28,7 +28,22 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/shared/components/ui/tabs";
-import { Avatar, AvatarFallback } from "@/shared/components/ui/avatar";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/shared/components/ui/avatar";
+import { userService } from "@/shared/lib/user-service";
+import { cropImageToSquare } from "@/shared/lib/user-photo-utils";
+import { useSettings } from "@/shared/providers/settings-provider";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/shared/components/ui/dialog";
 import {
   User,
   Mail,
@@ -58,19 +73,39 @@ interface ProfileSettingsProps {
 export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isPasswordUpdating, setIsPasswordUpdating] = useState(false);
+  const [isPhotoUploading, setIsPhotoUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const { settings, updateSettings } = useSettings();
+  const [pendingPhoto, setPendingPhoto] = useState<File | null>(null);
+  const [pendingPhotoPreview, setPendingPhotoPreview] = useState<string | null>(
+    null
+  );
+  const [photoScale, setPhotoScale] = useState(1.1);
+  const [photoOffset, setPhotoOffset] = useState({ x: 0, y: 0 });
+  const [photoMeta, setPhotoMeta] = useState<{
+    width: number;
+    height: number;
+    minSide: number;
+  } | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStart = useRef<{ x: number; y: number } | null>(null);
+  const [isCropperOpen, setIsCropperOpen] = useState(false);
 
   // Profile data state
   const [profileData, setProfileData] = useState({
     displayName: user.username,
-    email: "user@agriculture.gov",
-    phone: "+1 (555) 123-4567",
-    department: "Agricultural Research Division",
-    location: "Regional Office - North",
-    bio: "Agricultural researcher specializing in integrated pest management and sustainable farming practices.",
-    jobTitle: "Senior Agricultural Researcher",
+    email: user.email,
+    phone: user.phone ?? "",
+    department: user.department ?? "",
+    location: user.location ?? "",
+    bio: user.bio ?? "",
+    jobTitle: user.jobTitle ?? "",
+    photoUrl: user.photoUrl ?? "",
   });
 
   // Security settings
@@ -96,30 +131,261 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
 
   // Appearance settings
   const [appearanceData, setAppearanceData] = useState({
-    theme: "system",
-    language: "en",
-    dateFormat: "MM/DD/YYYY",
-    timeFormat: "12",
-    density: "comfortable",
+    theme: user.theme ?? "system",
+    language: user.language ?? "en",
+    dateFormat: user.dateFormat ?? "MM/DD/YYYY",
+    timeFormat: user.timeFormat ?? "12",
+    density: user.density ?? "comfortable",
   });
+
+  useEffect(() => {
+    setProfileData((prev) => ({
+      ...prev,
+      displayName: user.username,
+      email: user.email,
+      phone: user.phone ?? "",
+      department: user.department ?? "",
+      location: user.location ?? "",
+      bio: user.bio ?? "",
+      jobTitle: user.jobTitle ?? "",
+      photoUrl: user.photoUrl ?? "",
+    }));
+    setAppearanceData({
+      theme: user.theme ?? settings.theme ?? "system",
+      language: user.language ?? settings.language ?? "en",
+      dateFormat: user.dateFormat ?? settings.dateFormat ?? "MM/DD/YYYY",
+      timeFormat: user.timeFormat ?? settings.timeFormat ?? "12",
+      density: user.density ?? settings.density ?? "comfortable",
+    });
+  }, [
+    settings.dateFormat,
+    settings.density,
+    settings.language,
+    settings.theme,
+    settings.timeFormat,
+    user,
+  ]);
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const latest = await userService.me();
+        onUpdateUser(latest);
+        setProfileData((prev) => ({
+          ...prev,
+          displayName: latest.username,
+          email: latest.email,
+          phone: latest.phone ?? "",
+          department: latest.department ?? "",
+          location: latest.location ?? "",
+          bio: latest.bio ?? "",
+          jobTitle: latest.jobTitle ?? "",
+          photoUrl: latest.photoUrl ?? "",
+        }));
+        setAppearanceData({
+          theme: latest.theme ?? settings.theme ?? "system",
+          language: latest.language ?? settings.language ?? "en",
+          dateFormat: latest.dateFormat ?? settings.dateFormat ?? "MM/DD/YYYY",
+          timeFormat: latest.timeFormat ?? settings.timeFormat ?? "12",
+          density: latest.density ?? settings.density ?? "comfortable",
+        });
+        updateSettings({
+          theme: latest.theme ?? settings.theme ?? "system",
+          density: latest.density ?? settings.density ?? "comfortable",
+          language: latest.language ?? settings.language ?? "en",
+          dateFormat: latest.dateFormat ?? settings.dateFormat ?? "MM/DD/YYYY",
+          timeFormat: latest.timeFormat ?? settings.timeFormat ?? "12",
+        });
+      } catch (err) {
+        console.error("Failed to load profile", err);
+      }
+    };
+    loadProfile();
+  }, [onUpdateUser]);
 
   const handleSaveProfile = async () => {
     setIsLoading(true);
-
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-
-    // Update user data if display name changed
-    if (profileData.displayName !== user.username) {
-      onUpdateUser({
-        ...user,
+    setError(null);
+    try {
+      const updated = await userService.updateProfile({
         username: profileData.displayName,
+        phone: profileData.phone,
+        department: profileData.department,
+        location: profileData.location,
+        bio: profileData.bio,
+        jobTitle: profileData.jobTitle,
+        theme: appearanceData.theme,
+        language: appearanceData.language,
+        dateFormat: appearanceData.dateFormat,
+        timeFormat: appearanceData.timeFormat,
+        density: appearanceData.density,
       });
+      onUpdateUser(updated);
+      setProfileData((prev) => ({
+        ...prev,
+        displayName: updated.username,
+        phone: updated.phone ?? "",
+        department: updated.department ?? "",
+        location: updated.location ?? "",
+        bio: updated.bio ?? "",
+        jobTitle: updated.jobTitle ?? "",
+      }));
+      const nextAppearance = {
+        theme: updated.theme ?? "system",
+        language: updated.language ?? "en",
+        dateFormat: updated.dateFormat ?? "MM/DD/YYYY",
+        timeFormat: updated.timeFormat ?? "12",
+        density: updated.density ?? "comfortable",
+      };
+      setAppearanceData(nextAppearance);
+      updateSettings({
+        theme: nextAppearance.theme as any,
+        density: nextAppearance.density as any,
+        language: nextAppearance.language,
+        dateFormat: nextAppearance.dateFormat,
+        timeFormat: nextAppearance.timeFormat,
+      });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch (err) {
+      console.error(err);
+      setError("Failed to save profile");
+    } finally {
+      setIsLoading(false);
     }
+  };
 
-    setIsLoading(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+  const handleUpdatePassword = async () => {
+    setIsPasswordUpdating(true);
+    setError(null);
+    try {
+      if (securityData.newPassword !== securityData.confirmPassword) {
+        setError("New password and confirmation do not match");
+        setIsPasswordUpdating(false);
+        return;
+      }
+      await userService.changePassword(
+        securityData.currentPassword,
+        securityData.newPassword
+      );
+      setSecurityData((prev) => ({
+        ...prev,
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      }));
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch (err) {
+      console.error(err);
+      setError("Failed to change password");
+    } finally {
+      setIsPasswordUpdating(false);
+    }
+  };
+
+  const handlePhotoSelect = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handlePhotoChange = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    // Allow selecting the same file again
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+    setIsCropperOpen(true);
+    setPendingPhoto(file);
+    setPhotoScale(1.1);
+    setPhotoOffset({ x: 0, y: 0 });
+    setPhotoMeta(null);
+    const previewUrl = URL.createObjectURL(file);
+    setPendingPhotoPreview(previewUrl);
+    setError(null);
+    // Load image meta for drag bounds
+    const img = new Image();
+    img.onload = () => {
+      const minSide = Math.min(img.width, img.height);
+      setPhotoMeta({ width: img.width, height: img.height, minSide });
+      setPhotoOffset({ x: 0, y: 0 });
+    };
+    img.src = previewUrl;
+  };
+
+  const handleApplyPhoto = async () => {
+    if (!pendingPhoto) return;
+    setIsPhotoUploading(true);
+    setError(null);
+    try {
+      const cropped = await cropImageToSquare(pendingPhoto, {
+        size: 400,
+        scale: photoScale,
+        offsetX: photoOffset.x,
+        offsetY: photoOffset.y,
+      });
+      const uploadFile = cropped ?? pendingPhoto;
+      const { user: updated } = await userService.uploadPhoto(uploadFile);
+      onUpdateUser(updated);
+      setProfileData((prev) => ({
+        ...prev,
+        photoUrl: updated.photoUrl ?? "",
+      }));
+      setPendingPhoto(null);
+      if (pendingPhotoPreview) {
+        URL.revokeObjectURL(pendingPhotoPreview);
+        setPendingPhotoPreview(null);
+      }
+      setIsCropperOpen(false);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch (err) {
+      console.error(err);
+      setError("Failed to upload photo");
+    } finally {
+      setIsPhotoUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
+
+  const handleRemovePhoto = async () => {
+    setIsPhotoUploading(true);
+    setError(null);
+    try {
+      const updated = await userService.updateProfile({ photoUrl: "" });
+      onUpdateUser(updated);
+      setProfileData((prev) => ({ ...prev, photoUrl: "" }));
+      if (pendingPhotoPreview) {
+        URL.revokeObjectURL(pendingPhotoPreview);
+        setPendingPhotoPreview(null);
+      }
+      setPendingPhoto(null);
+      setPhotoOffset({ x: 0, y: 0 });
+      setPhotoMeta(null);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch (err) {
+      console.error(err);
+      setError("Failed to remove photo");
+    } finally {
+      setIsPhotoUploading(false);
+    }
+  };
+
+  const clamp = (val: number, min: number, max: number) =>
+    Math.min(max, Math.max(min, val));
+
+  const resetPendingPhoto = () => {
+    if (pendingPhotoPreview) {
+      URL.revokeObjectURL(pendingPhotoPreview);
+    }
+    setPendingPhoto(null);
+    setPendingPhotoPreview(null);
+    setPhotoOffset({ x: 0, y: 0 });
+    setPhotoMeta(null);
+    setIsCropperOpen(false);
   };
 
   const handleInputChange = (section: string, field: string, value: any) => {
@@ -134,7 +400,18 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
         setNotificationData((prev) => ({ ...prev, [field]: value }));
         break;
       case "appearance":
-        setAppearanceData((prev) => ({ ...prev, [field]: value }));
+        setAppearanceData((prev) => {
+          const next = { ...prev, [field]: value };
+          // Apply immediately to app settings for live theme/density changes
+          updateSettings({
+            theme: next.theme as any,
+            density: next.density as any,
+            language: next.language,
+            dateFormat: next.dateFormat,
+            timeFormat: next.timeFormat,
+          });
+          return next;
+        });
         break;
     }
   };
@@ -158,6 +435,13 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
           </Alert>
         )}
       </div>
+
+      {error && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
 
       <Tabs defaultValue="profile" className="space-y-6">
         <TabsList className="grid w-full grid-cols-4">
@@ -183,6 +467,17 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
               {/* Avatar Section */}
               <div className="flex items-center space-x-4">
                 <Avatar className="h-20 w-20">
+                  {(pendingPhotoPreview || profileData.photoUrl) && (
+                    <AvatarImage
+                      src={pendingPhotoPreview ?? profileData.photoUrl}
+                      alt="Profile photo"
+                      className="object-cover"
+                      onError={() => {
+                        setError("Could not load image preview");
+                        resetPendingPhoto();
+                      }}
+                    />
+                  )}
                   <AvatarFallback className="text-lg">
                     {profileData.displayName
                       .split(" ")
@@ -193,13 +488,32 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
                 </Avatar>
                 <div className="space-y-2">
                   <p className="text-sm font-medium">Profile Picture</p>
-                  <div className="flex space-x-2">
-                    <Button variant="outline" size="sm">
-                      Upload Photo
+                  <div className="flex space-x-2 items-center">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*,.heic,.heif"
+                      className="hidden"
+                      onChange={handlePhotoChange}
+                    />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handlePhotoSelect}
+                      disabled={isPhotoUploading}
+                    >
+                      {isPhotoUploading ? "Uploading..." : "Choose Photo"}
                     </Button>
-                    <Button variant="ghost" size="sm">
-                      Remove
-                    </Button>
+                    {profileData.photoUrl && !pendingPhotoPreview && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleRemovePhoto}
+                        disabled={isPhotoUploading}
+                      >
+                        Remove
+                      </Button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -243,9 +557,7 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
                       type="email"
                       className="pl-10"
                       value={profileData.email}
-                      onChange={(e) =>
-                        handleInputChange("profile", "email", e.target.value)
-                      }
+                      disabled
                     />
                   </div>
                 </div>
@@ -335,6 +647,167 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
               </div>
             </CardContent>
           </Card>
+          <Dialog
+            open={isCropperOpen}
+            onOpenChange={(open) => {
+              if (!open) resetPendingPhoto();
+              else setIsCropperOpen(true);
+            }}
+          >
+            <DialogContent className="max-w-[520px]">
+              <DialogHeader>
+                <DialogTitle>Crop your new profile picture</DialogTitle>
+                <DialogDescription>
+                  Drag to reposition and adjust zoom, then apply.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div
+                  className="relative mx-auto border rounded-md overflow-hidden bg-slate-900"
+                  style={{
+                    width: 320,
+                    height: 320,
+                    cursor: isDragging ? "grabbing" : "grab",
+                  }}
+                  onMouseDown={(e) => {
+                    setIsDragging(true);
+                    dragStart.current = { x: e.clientX, y: e.clientY };
+                  }}
+                  onMouseUp={() => {
+                    setIsDragging(false);
+                    dragStart.current = null;
+                  }}
+                  onMouseLeave={() => {
+                    setIsDragging(false);
+                    dragStart.current = null;
+                  }}
+                  onMouseMove={(e) => {
+                    if (!isDragging || !dragStart.current || !photoMeta) return;
+                    const dx = e.clientX - dragStart.current.x;
+                    const dy = e.clientY - dragStart.current.y;
+                    dragStart.current = { x: e.clientX, y: e.clientY };
+                    const displayScale = (320 / photoMeta.minSide) * photoScale;
+                    const deltaSourceX = dx / displayScale;
+                    const deltaSourceY = dy / displayScale;
+                    const maxOffset =
+                      (photoMeta.minSide * (1 - 1 / photoScale)) / 2;
+                    setPhotoOffset((prev) => {
+                      const nextX = clamp(
+                        prev.x + deltaSourceX,
+                        -maxOffset,
+                        maxOffset
+                      );
+                      const nextY = clamp(
+                        prev.y + deltaSourceY,
+                        -maxOffset,
+                        maxOffset
+                      );
+                      return { x: nextX, y: nextY };
+                    });
+                  }}
+                  onTouchStart={(e) => {
+                    const touch = e.touches[0];
+                    setIsDragging(true);
+                    dragStart.current = { x: touch.clientX, y: touch.clientY };
+                  }}
+                  onTouchEnd={() => {
+                    setIsDragging(false);
+                    dragStart.current = null;
+                  }}
+                  onTouchMove={(e) => {
+                    if (!isDragging || !dragStart.current || !photoMeta) return;
+                    const touch = e.touches[0];
+                    const dx = touch.clientX - dragStart.current.x;
+                    const dy = touch.clientY - dragStart.current.y;
+                    dragStart.current = { x: touch.clientX, y: touch.clientY };
+                    const displayScale = (320 / photoMeta.minSide) * photoScale;
+                    const deltaSourceX = dx / displayScale;
+                    const deltaSourceY = dy / displayScale;
+                    const maxOffset =
+                      (photoMeta.minSide * (1 - 1 / photoScale)) / 2;
+                    setPhotoOffset((prev) => {
+                      const nextX = clamp(
+                        prev.x + deltaSourceX,
+                        -maxOffset,
+                        maxOffset
+                      );
+                      const nextY = clamp(
+                        prev.y + deltaSourceY,
+                        -maxOffset,
+                        maxOffset
+                      );
+                      return { x: nextX, y: nextY };
+                    });
+                  }}
+                >
+                  {pendingPhotoPreview && (
+                    <img
+                      src={pendingPhotoPreview}
+                      alt="Crop preview"
+                      draggable={false}
+                      style={{
+                        position: "absolute",
+                        left: "50%",
+                        top: "50%",
+                        transform: (() => {
+                          const minSide = photoMeta?.minSide ?? 320;
+                          const scale = (320 / minSide) * photoScale;
+                          const tx =
+                            photoOffset.x * (320 / minSide) * photoScale;
+                          const ty =
+                            photoOffset.y * (320 / minSide) * photoScale;
+                          return `translate(-50%, -50%) translate(${tx}px, ${ty}px) scale(${scale})`;
+                        })(),
+                        transformOrigin: "center center",
+                        userSelect: "none",
+                      }}
+                      onLoad={() => setError(null)}
+                      onError={() => {
+                        setError("Could not load image preview");
+                        resetPendingPhoto();
+                      }}
+                    />
+                  )}
+                  <div className="absolute inset-0 pointer-events-none border-2 border-white/60" />
+                </div>
+                <div className="flex flex-col space-y-2 items-center">
+                  <div className="flex items-center w-[320px] space-x-2">
+                    <Label className="text-xs text-muted-foreground">
+                      Zoom
+                    </Label>
+                    <input
+                      type="range"
+                      min="1"
+                      max="2"
+                      step="0.05"
+                      value={photoScale}
+                      onChange={(e) => {
+                        const next = parseFloat(e.target.value);
+                        setPhotoScale(next);
+                        setPhotoOffset({ x: 0, y: 0 });
+                      }}
+                      className="w-full accent-primary"
+                    />
+                  </div>
+                  <div className="flex justify-end gap-2 w-[320px]">
+                    <Button
+                      variant="ghost"
+                      onClick={resetPendingPhoto}
+                      disabled={isPhotoUploading}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={handleApplyPhoto}
+                      disabled={isPhotoUploading || !pendingPhoto}
+                    >
+                      {isPhotoUploading ? "Saving..." : "Apply & Upload"}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         </TabsContent>
 
         {/* Security Tab */}
@@ -457,8 +930,13 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
                     </div>
                   </div>
                 </div>
-                <Button variant="outline" size="sm">
-                  Update Password
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleUpdatePassword}
+                  disabled={isPasswordUpdating}
+                >
+                  {isPasswordUpdating ? "Updating..." : "Update Password"}
                 </Button>
               </div>
 

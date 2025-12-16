@@ -12,6 +12,17 @@ export interface AppUser {
   email: string;
   role: UserRole;
   status: UserStatus;
+  phone?: string;
+  jobTitle?: string;
+  department?: string;
+  location?: string;
+  bio?: string;
+  photoUrl?: string;
+  theme?: string;
+  language?: string;
+  dateFormat?: string;
+  timeFormat?: string;
+  density?: string;
 }
 
 export interface RegistrationPayload {

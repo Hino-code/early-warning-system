@@ -106,8 +106,8 @@ export function SharedFilters({
 
   return (
     <div className={compact ? "mb-4" : "mb-6"}>
-      {/* Primary Filter Row - Compact, Professional Layout */}
-      <div className="flex items-center gap-3 flex-wrap">
+      {/* Primary Filter Row - compact, closer to mock */}
+      <div className="flex items-center gap-3 flex-wrap rounded-md border border-border bg-white px-3 py-2 shadow-sm text-foreground">
         {/* Group 1: Primary Filters */}
         <div className="flex items-center gap-2">
           <Select
@@ -255,7 +255,7 @@ export function SharedFilters({
 
       {/* Advanced Filters Panel */}
       {showAdvanced && advancedOpen && (
-        <Card className="mt-3 p-4 bg-muted/30">
+        <Card className="mt-3 p-4 bg-white border border-border shadow-sm">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Season */}
             {primaryOnly && (

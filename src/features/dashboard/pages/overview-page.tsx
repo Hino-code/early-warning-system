@@ -609,14 +609,14 @@ export function Overview() {
             <KpiCards kpis={kpis} insights={kpiData} />
           </div>
 
-          <Card className="p-6 relative overflow-hidden border border-border/60 bg-gradient-to-br from-card to-muted/10 shadow-sm rounded-xl">
+          <Card className="p-6 relative overflow-hidden border border-border bg-white shadow-sm rounded-xl">
             <div className="flex flex-col space-y-6 pt-2">
               <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                 <div>
-                  <h3 className="text-xl uppercase font-bold text-muted-foreground/80 tracking-widest">
+                  <h3 className="text-xl font-semibold text-foreground">
                     Forecast Horizon: {forecastHorizon} Days
                   </h3>
-                  <p className="text-base text-foreground/70 mt-1 font-medium">
+                  <p className="text-base text-muted-foreground mt-1 font-medium">
                     Projected pest trends & confidence intervals
                   </p>
                 </div>
@@ -625,7 +625,7 @@ export function Overview() {
                     <button
                       key={days}
                       onClick={() => setForecastHorizon(days as 7 | 14 | 30)}
-                      className={`px-4 py-1.5 text-sm uppercase font-bold tracking-wide rounded-md transition-all ${
+                      className={`px-4 py-1.5 text-sm font-semibold rounded-md transition-all ${
                         forecastHorizon === days
                           ? "bg-background text-foreground shadow-sm border border-border/50"
                           : "text-muted-foreground hover:text-foreground hover:bg-background/40"
@@ -639,14 +639,14 @@ export function Overview() {
 
               {/* Risk and Peak Badges Row */}
               {peakForecast && (
-                <div className="flex flex-wrap items-center gap-3 bg-muted/10 p-4 rounded-lg border border-border/40">
+                <div className="flex flex-wrap items-center gap-3 text-sm font-semibold text-foreground">
                   <Badge
                     variant={
                       peakForecast.risk === "Critical"
                         ? "destructive"
                         : "outline"
                     }
-                    className={`text-xs px-3 py-1 font-bold uppercase tracking-wider ${
+                    className={`text-xs px-3 py-1 font-bold ${
                       peakForecast.risk === "Elevated"
                         ? "bg-amber-50 text-amber-700 border-amber-200"
                         : peakForecast.risk === "Normal"
@@ -656,10 +656,9 @@ export function Overview() {
                   >
                     {peakForecast.risk}
                   </Badge>
-                  <div className="h-4 w-px bg-border/60" />
-                  <span className="text-sm font-medium text-muted-foreground">
+                  <span className="text-muted-foreground">
                     Peak:{" "}
-                    <span className="text-foreground font-bold tracking-tight ml-1 text-base">
+                    <span className="text-foreground font-bold tracking-tight ml-1">
                       {peakForecast.peak}
                     </span>
                   </span>
@@ -853,12 +852,12 @@ export function Overview() {
           {/* Mini-Visuals Row */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Threshold Status Breakdown */}
-            <Card className="p-6 relative overflow-hidden border border-border/60 bg-gradient-to-br from-card to-muted/10 shadow-sm rounded-xl">
+            <Card className="p-6 relative overflow-hidden border border-border bg-white shadow-sm rounded-xl">
               <div className="mb-4">
-                <h3 className="text-lg uppercase font-bold text-muted-foreground/80 tracking-widest">
+                <h3 className="text-lg font-semibold text-foreground">
                   Threshold Status
                 </h3>
-                <p className="text-base text-foreground/70 mt-1 font-medium">
+                <p className="text-base text-muted-foreground mt-1 font-medium">
                   Critical vs Warning Breakdown
                 </p>
               </div>
@@ -912,12 +911,12 @@ export function Overview() {
             </Card>
 
             {/* Action Tracker */}
-            <Card className="p-6 relative overflow-hidden border border-border/60 bg-gradient-to-br from-card to-muted/10 shadow-sm rounded-xl">
+            <Card className="p-6 relative overflow-hidden border border-border bg-white shadow-sm rounded-xl">
               <div className="mb-4">
-                <h3 className="text-lg uppercase font-bold text-muted-foreground/80 tracking-widest">
+                <h3 className="text-lg font-semibold text-foreground">
                   Action Tracker
                 </h3>
-                <p className="text-base text-foreground/70 mt-1 font-medium">
+                <p className="text-base text-muted-foreground mt-1 font-medium">
                   Interventions taken by type
                 </p>
               </div>
@@ -970,7 +969,7 @@ export function Overview() {
                     />
                     <Bar
                       dataKey="value"
-                      fill={chartColors.primary}
+                      fill="rgba(119, 119, 223, 1)"
                       radius={[0, 4, 4, 0]}
                       background={{
                         fill: chartColors.muted,
@@ -984,12 +983,12 @@ export function Overview() {
             </Card>
 
             {/* Recent Alerts - Now Premium Styled */}
-            <Card className="p-6 relative overflow-hidden border border-border/60 bg-gradient-to-br from-card to-muted/10 shadow-sm rounded-xl">
+            <Card className="p-6 relative overflow-hidden border border-border bg-white shadow-sm rounded-xl">
               <div className="mb-4">
-                <h3 className="text-lg uppercase font-bold text-muted-foreground/80 tracking-widest">
+                <h3 className="text-lg font-semibold text-foreground">
                   Recent Alerts
                 </h3>
-                <p className="text-base text-foreground/70 mt-1 font-medium">
+                <p className="text-base text-muted-foreground mt-1 font-medium">
                   Latest critical notifications
                 </p>
               </div>

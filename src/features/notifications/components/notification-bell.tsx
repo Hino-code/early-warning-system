@@ -27,6 +27,7 @@ export function NotificationBell({ onViewAll }: NotificationBellProps) {
   const unreadCount = useDashboardStore((state) => state.alertUnreadCount);
   const loadAlerts = useDashboardStore((state) => state.loadAlerts);
   const markAlertRead = useDashboardStore((state) => state.markAlertRead);
+  const loading = useDashboardStore((state) => state.loading);
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
@@ -95,7 +96,10 @@ export function NotificationBell({ onViewAll }: NotificationBellProps) {
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[400px] p-0" align="end">
+      <PopoverContent
+        className="w-[calc(100vw-2rem)] sm:w-[400px] p-0"
+        align="end"
+      >
         <div className="flex items-center justify-between p-4 border-b">
           <div className="flex items-center gap-2">
             <h3 className="font-semibold">Notifications</h3>
@@ -116,7 +120,19 @@ export function NotificationBell({ onViewAll }: NotificationBellProps) {
         </div>
 
         <div className="max-h-[400px] overflow-y-auto">
-          {notifications.length === 0 ? (
+          {loading ? (
+            <div className="p-4 space-y-3">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="flex gap-3">
+                  <div className="h-10 w-10 rounded-full bg-muted animate-pulse shrink-0" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 w-3/4 bg-muted rounded animate-pulse" />
+                    <div className="h-3 w-full bg-muted rounded animate-pulse" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : notifications.length === 0 ? (
             <div className="p-8 text-center">
               <Bell className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
               <p className="text-sm text-muted-foreground">No notifications</p>

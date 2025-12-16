@@ -37,7 +37,7 @@ interface AuthState {
 }
 
 const shouldUseMocks = () =>
-  (import.meta.env.VITE_USE_MOCKS ?? "true").toLowerCase() !== "false";
+  (import.meta.env.VITE_USE_MOCKS ?? "false").toLowerCase() === "true";
 
 const persistSession = (session: AuthSession | null) => {
   if (!session) {
@@ -64,19 +64,31 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   error: undefined,
   initialize: async () => {
     const session = readSession();
-    // #region agent log
-    // #endregion
-    // #region agent log
-    // #endregion
     if (!session) {
       set({ user: null, token: null, status: "idle" });
       return;
     }
     set({ status: "loading" });
     try {
-      const restored = await mockLoadSession(session.token);
-      // #region agent log
-      // #endregion
+      let restored: AuthSession | null = null;
+      if (shouldUseMocks()) {
+        restored = await mockLoadSession(session.token);
+      } else {
+        // Verify token with real API
+        try {
+          const response = await apiClient.get<{ user: AppUser }>("/user/me", {
+            mockResponse: () => mockLoadSession(session.token),
+          });
+          restored = {
+            token: session.token,
+            user: response.user,
+          };
+        } catch (error) {
+          // Token is invalid, clear session
+          restored = null;
+        }
+      }
+      
       if (!restored) {
         persistSession(null);
         set({ user: null, token: null, status: "idle" });
@@ -88,8 +100,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         token: restored.token,
         status: restored.user.status === "approved" ? "authenticated" : "pending-review",
       });
-      // #region agent log
-      // #endregion
     } catch (error) {
       persistSession(null);
       set({

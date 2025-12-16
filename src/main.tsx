@@ -1,13 +1,16 @@
+import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { AppLayout } from "./app/layout";
 import { AppProviders } from "./app/providers";
+import { ErrorBoundary } from "./shared/components/error-boundary";
 import "./styles/globals.css";
 
-// #region agent log
-// #endregion
-
 createRoot(document.getElementById("root")!).render(
-  <AppProviders>
-    <AppLayout />
-  </AppProviders>
+  <StrictMode>
+    <ErrorBoundary>
+      <AppProviders>
+        <AppLayout />
+      </AppProviders>
+    </ErrorBoundary>
+  </StrictMode>
 );
