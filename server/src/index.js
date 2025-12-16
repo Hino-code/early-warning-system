@@ -54,6 +54,29 @@ app.use(cors(corsOptions));
 app.use(express.json({ limit: "10mb" })); // Add body size limit
 app.use("/uploads", express.static(UPLOAD_DIR));
 
+// Rate limiting for auth endpoints
+// Note: Install express-rate-limit: npm install express-rate-limit
+// Uncomment the following code after installing:
+/*
+const rateLimit = require("express-rate-limit");
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // 5 requests per window
+  message: "Too many login attempts, please try again later",
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const registerLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 3, // 3 registrations per hour
+  message: "Too many registration attempts, please try again later",
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+*/
+
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 20 * 1024 * 1024 },
@@ -190,6 +213,7 @@ app.get("/debug/users", requireAdmin, async (req, res) => {
   }
 });
 
+// Apply rate limiting: app.post("/auth/register", registerLimiter, async (req, res) => {
 app.post("/auth/register", async (req, res) => {
   try {
     const { name, email, agency, role, password } = req.body || {};
@@ -219,6 +243,7 @@ app.post("/auth/register", async (req, res) => {
   }
 });
 
+// Apply rate limiting: app.post("/auth/login", authLimiter, async (req, res) => {
 app.post("/auth/login", async (req, res) => {
   try {
     const { username, password } = req.body || {};

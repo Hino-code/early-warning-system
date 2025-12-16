@@ -4,6 +4,7 @@ import { Button } from "@/shared/components/ui/button";
 import { Alert, AlertDescription } from "@/shared/components/ui/alert";
 import { Badge } from "@/shared/components/ui/badge";
 import { X, CheckCircle, Info, Clock } from "lucide-react";
+import { Z_INDEX } from "@/shared/config/z-index";
 
 interface WelcomeNotificationProps {
   user: {
@@ -49,7 +50,7 @@ export function WelcomeNotification({
   return (
     <div
       className="fixed top-4 right-4 w-96 space-y-2"
-      style={{ zIndex: 1080 }}
+      style={{ zIndex: Z_INDEX.NOTIFICATION }}
     >
       <Card className="p-4 bg-green-50 border-green-200 dark:bg-green-950/30 dark:border-green-800">
         <div className="flex items-start justify-between">

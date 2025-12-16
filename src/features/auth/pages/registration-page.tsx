@@ -1,8 +1,9 @@
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@/shared/lib/zod-resolver-wrapper";
 import { Card } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
-import { Label } from "@/shared/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -10,10 +11,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/components/ui/select";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/shared/components/ui/form";
 import { Alert, AlertDescription } from "@/shared/components/ui/alert";
 import { AlertCircle, CheckCircle, Mail, Shield } from "lucide-react";
 import type { RegistrationPayload, UserRole } from "@/shared/types/user";
 import pestIconLogo from "@/assets/pest-logo-icon.png";
+import {
+  registrationSchema,
+  type RegistrationFormData,
+} from "@/shared/lib/validation-schemas";
 
 interface RegistrationProps {
   loading?: boolean;
@@ -31,32 +44,33 @@ export function RegistrationPage({
   onBack,
 }: RegistrationProps) {
   const [success, setSuccess] = useState("");
-  const [formError, setFormError] = useState<string>();
-  const [form, setForm] = useState<RegistrationPayload>({
-    name: "",
-    email: "",
-    agency: "",
-    role: "Researcher",
-    password: "",
+
+  const form = useForm<RegistrationFormData>({
+    resolver: zodResolver(registrationSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      agency: "",
+      role: "Researcher",
+      password: "",
+    },
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-    setFormError(undefined);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setFormError(undefined);
+  const handleSubmit = async (data: RegistrationFormData) => {
     setSuccess("");
     try {
-      await onSubmit(form);
+      await onSubmit({
+        name: data.name,
+        email: data.email,
+        agency: data.agency || "",
+        role: data.role,
+        password: data.password,
+      });
       setSuccess("Registration submitted! Awaiting admin approval.");
     } catch (err) {
-      setFormError(
-        err instanceof Error ? err.message : "Unable to submit registration."
-      );
+      const message =
+        err instanceof Error ? err.message : "Unable to submit registration.";
+      form.setError("root", { message });
     }
   };
 
@@ -78,102 +92,150 @@ export function RegistrationPage({
         </div>
 
         <Card className="p-6 space-y-6">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Full Name</Label>
-              <Input
-                id="name"
+          <Form {...form}>
+            <form
+              onSubmit={form.handleSubmit(handleSubmit)}
+              className="space-y-4"
+            >
+              <FormField
+                control={form.control}
                 name="name"
-                placeholder="Juan Dela Cruz"
-                value={form.name}
-                onChange={handleChange}
-                required
+                render={({ field }: { field: any }) => (
+                  <FormItem>
+                    <FormLabel>Full Name</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder="Juan Dela Cruz"
+                        aria-invalid={!!form.formState.errors.name}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="email">Government Email</Label>
-              <Input
-                id="email"
+              <FormField
+                control={form.control}
                 name="email"
-                type="email"
-                placeholder="name@agency.gov"
-                value={form.email}
-                onChange={handleChange}
-                required
+                render={({ field }: { field: any }) => (
+                  <FormItem>
+                    <FormLabel>Government Email</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="email"
+                        placeholder="name@agency.gov"
+                        aria-invalid={!!form.formState.errors.email}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="agency">Agency / Office</Label>
-              <Input
-                id="agency"
+              <FormField
+                control={form.control}
                 name="agency"
-                placeholder="Department of Agriculture Region XII"
-                value={form.agency}
-                onChange={handleChange}
-                required
+                render={({ field }: { field: any }) => (
+                  <FormItem>
+                    <FormLabel>Agency / Office</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder="Department of Agriculture Region XII"
+                        aria-invalid={!!form.formState.errors.agency}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="role">Requested Role</Label>
-              <Select
-                value={form.role}
-                onValueChange={(value) =>
-                  setForm((prev) => ({ ...prev, role: value as UserRole }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select role" />
-                </SelectTrigger>
-                <SelectContent>
-                  {roles.map((role) => (
-                    <SelectItem key={role} value={role}>
-                      {role}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+              <FormField
+                control={form.control}
+                name="role"
+                render={({ field }: { field: any }) => (
+                  <FormItem>
+                    <FormLabel>Requested Role</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select role" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {roles.map((role) => (
+                          <SelectItem key={role} value={role}>
+                            {role}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <div className="space-y-2">
-              <Label htmlFor="password">Preferred Password</Label>
-              <Input
-                id="password"
+              <FormField
+                control={form.control}
                 name="password"
-                type="password"
-                placeholder="At least 8 characters"
-                value={form.password}
-                onChange={handleChange}
-                required
-                minLength={8}
+                render={({ field }: { field: any }) => (
+                  <FormItem>
+                    <FormLabel>Preferred Password</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="password"
+                        placeholder="Min 8 chars, with uppercase, lowercase, and number"
+                        aria-invalid={!!form.formState.errors.password}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
 
-            {(formError || error) && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{formError ?? error}</AlertDescription>
-              </Alert>
-            )}
+              {(form.formState.errors.root || error) && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    {form.formState.errors.root?.message ?? error}
+                  </AlertDescription>
+                </Alert>
+              )}
 
-            {success && (
-              <Alert className="border-green-200 bg-green-50 text-green-900 dark:border-green-800 dark:bg-green-950/30 dark:text-green-400">
-                <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
-                <AlertDescription>{success}</AlertDescription>
-              </Alert>
-            )}
+              {success && (
+                <Alert className="border-green-200 bg-green-50 text-green-900 dark:border-green-800 dark:bg-green-950/30 dark:text-green-400">
+                  <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
+                  <AlertDescription>{success}</AlertDescription>
+                </Alert>
+              )}
 
-            <div className="flex flex-col gap-3">
-              <Button type="submit" disabled={loading}>
-                {loading ? "Submitting..." : "Submit for Approval"}
-              </Button>
-              <Button type="button" variant="ghost" onClick={onBack}>
-                Back to Login
-              </Button>
-            </div>
-          </form>
+              <div className="flex flex-col gap-3">
+                <Button
+                  type="submit"
+                  disabled={loading || form.formState.isSubmitting}
+                  aria-label="Submit registration request"
+                >
+                  {loading || form.formState.isSubmitting
+                    ? "Submitting..."
+                    : "Submit for Approval"}
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={onBack}
+                  aria-label="Return to login page"
+                >
+                  Back to Login
+                </Button>
+              </div>
+            </form>
+          </Form>
         </Card>
 
         <div className="text-center space-y-2">

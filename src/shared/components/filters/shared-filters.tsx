@@ -201,6 +201,7 @@ export function SharedFilters({
                   onClick={applyDateRange}
                   disabled={!tempDateRange.from || !tempDateRange.to}
                   className="flex-1"
+                  aria-label="Apply selected date range"
                 >
                   Apply Range
                 </Button>
@@ -209,6 +210,7 @@ export function SharedFilters({
                   variant="outline"
                   onClick={clearDateRange}
                   className="flex-1"
+                  aria-label="Clear date range filter"
                 >
                   Clear
                 </Button>
@@ -228,6 +230,10 @@ export function SharedFilters({
               size="sm"
               onClick={() => setAdvancedOpen(!advancedOpen)}
               className="h-9 gap-1"
+              aria-label={
+                advancedOpen ? "Hide advanced filters" : "Show advanced filters"
+              }
+              aria-expanded={advancedOpen}
             >
               <Filter className="h-3.5 w-3.5" />
               Advanced
@@ -245,6 +251,7 @@ export function SharedFilters({
               size="sm"
               onClick={resetFilters}
               className="h-9"
+              aria-label="Reset all filters to default values"
             >
               <X className="h-3.5 w-3.5 mr-1" />
               Reset

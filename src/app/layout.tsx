@@ -33,6 +33,7 @@ import { RegistrationPage } from "@/features/auth/pages/registration-page";
 import pestFullLogo from "@/assets/pest-logo-full.png";
 import { AlertTriangle, Bug, LogOut, User as UserIcon } from "lucide-react";
 import { useAuthStore } from "@/state/auth-store";
+import { Z_INDEX } from "@/shared/config/z-index";
 import {
   AppSection,
   getNavigationForRole,
@@ -342,11 +343,11 @@ export function AppLayout() {
         <main className="flex-1 overflow-auto">
           <div
             className="sticky top-0 border-b bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60"
-            style={{ zIndex: 1030 }}
+            style={{ zIndex: Z_INDEX.STICKY }}
           >
             <div className="flex h-14 items-center justify-between px-4">
               <div className="flex items-center gap-3">
-                <SidebarTrigger />
+                <SidebarTrigger aria-label="Toggle sidebar (⌘B or Ctrl+B)" />
                 <h2 className="text-lg font-semibold">
                   {getSectionTitle(activeSection)}
                 </h2>

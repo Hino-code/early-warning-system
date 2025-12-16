@@ -630,6 +630,8 @@ export function Overview() {
                           ? "bg-background text-foreground shadow-sm border border-border/50"
                           : "text-muted-foreground hover:text-foreground hover:bg-background/40"
                       }`}
+                      aria-label={`Set forecast horizon to ${days} days`}
+                      aria-pressed={forecastHorizon === days}
                     >
                       {days}D
                     </button>

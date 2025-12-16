@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@/shared/lib/zod-resolver-wrapper";
 import { Alert, AlertDescription } from "@/shared/components/ui/alert";
 import { Button } from "@/shared/components/ui/button";
 import { Card } from "@/shared/components/ui/card";
@@ -6,6 +8,14 @@ import { Checkbox } from "@/shared/components/ui/checkbox";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { Separator } from "@/shared/components/ui/separator";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/shared/components/ui/form";
 import {
   AlertCircle,
   CheckCircle,
@@ -15,6 +25,10 @@ import {
   Mail,
 } from "lucide-react";
 import pestIconLogo from "@/assets/pest-logo-icon.png";
+import {
+  loginSchema,
+  type LoginFormData,
+} from "@/shared/lib/validation-schemas";
 
 // Removed inline styles - using Tailwind classes instead
 
@@ -34,29 +48,27 @@ export function Login({
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [success, setSuccess] = useState("");
-  const [formError, setFormError] = useState<string | undefined>();
-  const [formData, setFormData] = useState({
-    username: "",
-    password: "",
+
+  const form = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      username: "",
+      password: "",
+    },
   });
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    setFormError(undefined);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setFormError(undefined);
+  const handleSubmit = async (data: LoginFormData) => {
     setSuccess("");
     try {
-      await onLogin(formData);
+      await onLogin({
+        username: data.username,
+        password: data.password,
+      });
       setSuccess("Login successful! Redirecting...");
     } catch (err) {
-      setFormError(
-        err instanceof Error ? err.message : "Invalid username or password."
-      );
+      const message =
+        err instanceof Error ? err.message : "Invalid username or password.";
+      form.setError("root", { message });
     }
   };
 
@@ -88,103 +100,132 @@ export function Login({
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-3 overflow-visible">
-            <div className="space-y-1.5">
-              <Label htmlFor="username" className="text-sm font-medium">
-                Username
-              </Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="username"
-                  name="username"
-                  type="text"
-                  placeholder="Enter your username"
-                  value={formData.username}
-                  onChange={handleInputChange}
-                  className="pl-10"
-                  required
-                />
-              </div>
-            </div>
+          <Form {...form}>
+            <form
+              onSubmit={form.handleSubmit(handleSubmit)}
+              className="space-y-3 overflow-visible"
+            >
+              <FormField
+                control={form.control}
+                name="username"
+                render={({ field }: { field: any }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-medium">
+                      Username
+                    </FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          {...field}
+                          type="email"
+                          placeholder="Enter your email"
+                          className="pl-10"
+                          aria-invalid={!!form.formState.errors.username}
+                        />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <div className="space-y-1.5">
-              <Label htmlFor="password">Password</Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="password"
-                  name="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Enter your password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  className="pl-10 pr-10"
-                  required
-                />
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }: { field: any }) => (
+                  <FormItem>
+                    <FormLabel>Password</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          {...field}
+                          type={showPassword ? "text" : "password"}
+                          placeholder="Enter your password"
+                          className="pl-10 pr-10"
+                          aria-invalid={!!form.formState.errors.password}
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                          onClick={() => setShowPassword(!showPassword)}
+                          aria-label={
+                            showPassword ? "Hide password" : "Show password"
+                          }
+                          aria-pressed={showPassword}
+                        >
+                          {showPassword ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="remember"
+                    checked={rememberMe}
+                    onCheckedChange={(checked: boolean) =>
+                      setRememberMe(checked)
+                    }
+                  />
+                  <Label htmlFor="remember" className="text-sm">
+                    Remember me
+                  </Label>
+                </div>
                 <Button
-                  type="button"
-                  variant="ghost"
+                  variant="link"
                   size="sm"
-                  className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
-                  onClick={() => setShowPassword(!showPassword)}
+                  className="px-0 h-auto"
+                  aria-label="Reset forgotten password"
                 >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
+                  Forgot password?
                 </Button>
               </div>
-            </div>
 
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="remember"
-                  checked={rememberMe}
-                  onCheckedChange={(checked) =>
-                    setRememberMe(checked as boolean)
-                  }
-                />
-                <Label htmlFor="remember" className="text-sm">
-                  Remember me
-                </Label>
-              </div>
-              <Button variant="link" size="sm" className="px-0 h-auto">
-                Forgot password?
-              </Button>
-            </div>
-
-            {(formError || error) && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{formError ?? error}</AlertDescription>
-              </Alert>
-            )}
-
-            {success && (
-              <Alert className="border-green-200 bg-green-50 text-green-900 dark:border-green-800 dark:bg-green-950/30 dark:text-green-400">
-                <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
-                <AlertDescription>{success}</AlertDescription>
-              </Alert>
-            )}
-
-            <Button
-              type="submit"
-              disabled={loading}
-              className="w-full min-h-[44px] bg-success text-success-foreground hover:bg-success/90 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? (
-                <>
-                  <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                  <span>Signing in...</span>
-                </>
-              ) : (
-                "Sign In"
+              {(form.formState.errors.root || error) && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    {form.formState.errors.root?.message ?? error}
+                  </AlertDescription>
+                </Alert>
               )}
-            </Button>
-          </form>
+
+              {success && (
+                <Alert className="border-green-200 bg-green-50 text-green-900 dark:border-green-800 dark:bg-green-950/30 dark:text-green-400">
+                  <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
+                  <AlertDescription>{success}</AlertDescription>
+                </Alert>
+              )}
+
+              <Button
+                type="submit"
+                disabled={loading || form.formState.isSubmitting}
+                className="w-full min-h-[44px] bg-success text-success-foreground hover:bg-success/90 disabled:opacity-50 disabled:cursor-not-allowed"
+                aria-label="Sign in to your account"
+              >
+                {loading || form.formState.isSubmitting ? (
+                  <>
+                    <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                    <span>Signing in...</span>
+                  </>
+                ) : (
+                  "Sign In"
+                )}
+              </Button>
+            </form>
+          </Form>
 
           <Separator className="my-3" />
 
@@ -196,6 +237,7 @@ export function Login({
               variant="link"
               onClick={onShowRegistration}
               className="text-xs h-auto py-0"
+              aria-label="Go to registration page"
             >
               Request Access
             </Button>

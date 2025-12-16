@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { lazy, Suspense } from "react";
 import {
   Bell,
   FileText,
@@ -11,14 +12,50 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
-import { Overview } from "@/features/dashboard/pages/overview-page";
-import { Reports } from "@/features/dashboard/pages/reports-page";
-import { ForecastEarlyWarning } from "@/features/forecasting/pages/forecast-page";
-import { Notifications } from "@/features/notifications/pages/notifications-page";
-import { PestAnalysis } from "@/features/pest-monitoring/pages/pest-analysis-page";
-import { ThresholdActions } from "@/features/pest-monitoring/pages/threshold-actions-page";
-import { ProfileSettings } from "@/features/system/pages/profile-settings-page";
-import { AdminApprovalsPage } from "@/features/system/pages/admin-approvals-page";
+// Lazy load components for code splitting
+const Overview = lazy(() =>
+  import("@/features/dashboard/pages/overview-page").then((m) => ({
+    default: m.Overview,
+  }))
+);
+const Reports = lazy(() =>
+  import("@/features/dashboard/pages/reports-page").then((m) => ({
+    default: m.Reports,
+  }))
+);
+const ForecastEarlyWarning = lazy(() =>
+  import("@/features/forecasting/pages/forecast-page").then((m) => ({
+    default: m.ForecastEarlyWarning,
+  }))
+);
+const Notifications = lazy(() =>
+  import("@/features/notifications/pages/notifications-page").then((m) => ({
+    default: m.Notifications,
+  }))
+);
+const PestAnalysis = lazy(() =>
+  import("@/features/pest-monitoring/pages/pest-analysis-page").then((m) => ({
+    default: m.PestAnalysis,
+  }))
+);
+const ThresholdActions = lazy(() =>
+  import("@/features/pest-monitoring/pages/threshold-actions-page").then(
+    (m) => ({
+      default: m.ThresholdActions,
+    })
+  )
+);
+const ProfileSettings = lazy(() =>
+  import("@/features/system/pages/profile-settings-page").then((m) => ({
+    default: m.ProfileSettings,
+  }))
+);
+const AdminApprovalsPage = lazy(() =>
+  import("@/features/system/pages/admin-approvals-page").then((m) => ({
+    default: m.AdminApprovalsPage,
+  }))
+);
+import { DashboardSkeleton } from "@/features/dashboard/components/loading-skeleton";
 import type { AppUser, UserRole } from "@/shared/types/user";
 
 export type NavigationGroup = "dashboard" | "analysis" | "forecast" | "system";
@@ -109,11 +146,15 @@ export const navigationConfig: NavigationItem[] = [
 ];
 
 export function getNavigationForRole(role: UserRole): NavigationItem[] {
-  return navigationConfig.filter((item) => item.roles.includes(role) && item.id !== "profile");
+  return navigationConfig.filter(
+    (item) => item.roles.includes(role) && item.id !== "profile"
+  );
 }
 
 export function getSectionTitle(section: AppSection): string {
-  return navigationConfig.find((item) => item.id === section)?.title ?? "Overview";
+  return (
+    navigationConfig.find((item) => item.id === section)?.title ?? "Overview"
+  );
 }
 
 interface RenderSectionProps {
@@ -121,25 +162,37 @@ interface RenderSectionProps {
   onUpdateUser: (user: AppUser) => void;
 }
 
-export function renderSection(section: AppSection, { user, onUpdateUser }: RenderSectionProps): ReactNode {
+export function renderSection(
+  section: AppSection,
+  { user, onUpdateUser }: RenderSectionProps
+): ReactNode {
+  const renderWithSuspense = (
+    Component: React.ComponentType<any>,
+    props?: Record<string, any>
+  ) => (
+    <Suspense fallback={<DashboardSkeleton />}>
+      <Component {...props} />
+    </Suspense>
+  );
+
   switch (section) {
     case "overview":
-      return <Overview />;
+      return renderWithSuspense(Overview);
     case "pest-analysis":
-      return <PestAnalysis />;
+      return renderWithSuspense(PestAnalysis);
     case "threshold-actions":
-      return <ThresholdActions />;
+      return renderWithSuspense(ThresholdActions);
     case "forecast":
-      return <ForecastEarlyWarning />;
+      return renderWithSuspense(ForecastEarlyWarning);
     case "reports":
-      return <Reports />;
+      return renderWithSuspense(Reports);
     case "notifications":
-      return <Notifications />;
+      return renderWithSuspense(Notifications);
     case "profile":
-      return <ProfileSettings user={user} onUpdateUser={onUpdateUser} />;
+      return renderWithSuspense(ProfileSettings, { user, onUpdateUser });
     case "admin-approvals":
-      return <AdminApprovalsPage />;
+      return renderWithSuspense(AdminApprovalsPage);
     default:
-      return <Overview />;
+      return renderWithSuspense(Overview);
   }
 }

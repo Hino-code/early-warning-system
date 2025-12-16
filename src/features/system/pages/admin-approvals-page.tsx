@@ -1,7 +1,14 @@
 import { useEffect } from "react";
 import { Button } from "@/shared/components/ui/button";
 import { Card } from "@/shared/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/shared/components/ui/table";
 import { Badge } from "@/shared/components/ui/badge";
 import { AlertTriangle, Check, X } from "lucide-react";
 import { useAuthStore } from "@/state/auth-store";
@@ -31,7 +38,12 @@ export function AdminApprovalsPage() {
             Approve or reject new access requests from agency partners.
           </p>
         </div>
-        <Button variant="outline" onClick={loadPendingUsers} disabled={isLoading}>
+        <Button
+          variant="outline"
+          onClick={loadPendingUsers}
+          disabled={isLoading}
+          aria-label="Refresh pending registrations list"
+        >
           Refresh
         </Button>
       </div>
@@ -57,8 +69,13 @@ export function AdminApprovalsPage() {
           <TableBody>
             {pendingUsers.length === 0 && (
               <TableRow>
-                <TableCell colSpan={6} className="text-center text-muted-foreground">
-                  {isLoading ? "Loading requests..." : "No pending registrations 🎉"}
+                <TableCell
+                  colSpan={6}
+                  className="text-center text-muted-foreground"
+                >
+                  {isLoading
+                    ? "Loading requests..."
+                    : "No pending registrations 🎉"}
                 </TableCell>
               </TableRow>
             )}
@@ -66,7 +83,9 @@ export function AdminApprovalsPage() {
               <TableRow key={user.id}>
                 <TableCell>
                   <div className="font-medium">{user.name}</div>
-                  <div className="text-xs text-muted-foreground">{user.email}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {user.email}
+                  </div>
                 </TableCell>
                 <TableCell>{user.agency}</TableCell>
                 <TableCell>{user.email}</TableCell>
@@ -82,6 +101,7 @@ export function AdminApprovalsPage() {
                     size="sm"
                     onClick={() => approveUser(user.id)}
                     disabled={isLoading}
+                    aria-label={`Approve registration for ${user.name}`}
                   >
                     <Check className="h-4 w-4 text-green-600" />
                   </Button>
@@ -90,6 +110,7 @@ export function AdminApprovalsPage() {
                     size="sm"
                     onClick={() => rejectUser(user.id)}
                     disabled={isLoading}
+                    aria-label={`Reject registration for ${user.name}`}
                   >
                     <X className="h-4 w-4 text-destructive" />
                   </Button>
@@ -107,4 +128,3 @@ export function AdminApprovalsPage() {
     </div>
   );
 }
-
