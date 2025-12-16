@@ -22,7 +22,7 @@ import {
 import { Alert, AlertDescription } from "@/shared/components/ui/alert";
 import { AlertCircle, CheckCircle, Mail, Shield } from "lucide-react";
 import type { RegistrationPayload, UserRole } from "@/shared/types/user";
-import pestIconLogo from "@/assets/pest-logo-icon.png";
+import pestIconLogo from "@/assets/pest-logo-icon.svg";
 import {
   registrationSchema,
   type RegistrationFormData,

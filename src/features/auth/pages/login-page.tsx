@@ -24,7 +24,7 @@ import {
   Lock,
   Mail,
 } from "lucide-react";
-import pestIconLogo from "@/assets/pest-logo-icon.png";
+import pestIconLogo from "@/assets/pest-logo-icon.svg";
 import {
   loginSchema,
   type LoginFormData,

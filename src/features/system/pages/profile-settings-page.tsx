@@ -96,6 +96,11 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
   const dragStart = useRef<{ x: number; y: number } | null>(null);
   const [isCropperOpen, setIsCropperOpen] = useState(false);
 
+  // Debug: Log when isCropperOpen changes
+  useEffect(() => {
+    console.log("isCropperOpen state changed to:", isCropperOpen);
+  }, [isCropperOpen]);
+
   // Profile data state
   const [profileData, setProfileData] = useState({
     displayName: user.username,
@@ -285,32 +290,52 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
   };
 
   const handlePhotoSelect = () => {
-    fileInputRef.current?.click();
+    console.log("handlePhotoSelect called");
+    if (fileInputRef.current) {
+      console.log("File input ref exists, clicking...");
+      fileInputRef.current.click();
+    } else {
+      console.log("File input ref is null!");
+    }
   };
 
   const handlePhotoChange = async (event: ChangeEvent<HTMLInputElement>) => {
+    console.log("handlePhotoChange called");
     const file = event.target.files?.[0];
-    if (!file) return;
-    // Allow selecting the same file again
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
+    if (!file) {
+      console.log("No file selected");
+      return;
     }
+    console.log("File selected:", file.name, file.type, file.size);
+
+    console.log("Setting isCropperOpen to true");
     setIsCropperOpen(true);
     setPendingPhoto(file);
     setPhotoScale(1.1);
     setPhotoOffset({ x: 0, y: 0 });
     setPhotoMeta(null);
     const previewUrl = URL.createObjectURL(file);
+    console.log("Preview URL created:", previewUrl);
     setPendingPhotoPreview(previewUrl);
     setError(null);
+
     // Load image meta for drag bounds
     const img = new Image();
     img.onload = () => {
+      console.log("Image loaded, dimensions:", img.width, "x", img.height);
       const minSide = Math.min(img.width, img.height);
       setPhotoMeta({ width: img.width, height: img.height, minSide });
       setPhotoOffset({ x: 0, y: 0 });
     };
     img.src = previewUrl;
+
+    // Reset input value after processing to allow selecting the same file again
+    // Do this after a small delay to ensure the change event has fully processed
+    setTimeout(() => {
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }, 100);
   };
 
   const handleApplyPhoto = async () => {
@@ -493,14 +518,17 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
                       ref={fileInputRef}
                       type="file"
                       accept="image/*,.heic,.heif"
-                      className="hidden"
+                      className="sr-only"
                       onChange={handlePhotoChange}
+                      aria-label="Upload profile picture"
+                      id="profile-photo-input"
                     />
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={handlePhotoSelect}
                       disabled={isPhotoUploading}
+                      type="button"
                     >
                       {isPhotoUploading ? "Uploading..." : "Choose Photo"}
                     </Button>
@@ -510,6 +538,7 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
                         size="sm"
                         onClick={handleRemovePhoto}
                         disabled={isPhotoUploading}
+                        type="button"
                       >
                         Remove
                       </Button>
@@ -649,21 +678,30 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
           </Card>
           <Dialog
             open={isCropperOpen}
-            onOpenChange={(open) => {
-              if (!open) resetPendingPhoto();
-              else setIsCropperOpen(true);
+            onOpenChange={(open: boolean) => {
+              console.log(
+                "Dialog onOpenChange called with open:",
+                open,
+                "isCropperOpen:",
+                isCropperOpen
+              );
+              if (!open) {
+                resetPendingPhoto();
+              } else {
+                setIsCropperOpen(true);
+              }
             }}
           >
             <DialogContent className="max-w-[520px]">
               <DialogHeader>
-                <DialogTitle>Crop your new profile picture</DialogTitle>
-                <DialogDescription>
-                  Drag to reposition and adjust zoom, then apply.
+                <DialogTitle className="text-center">Profile photo</DialogTitle>
+                <DialogDescription className="sr-only">
+                  Crop and adjust your profile picture
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <div
-                  className="relative mx-auto border rounded-md overflow-hidden bg-slate-900"
+                  className="relative mx-auto border-2 border-border rounded-full overflow-hidden bg-slate-900"
                   style={{
                     width: 320,
                     height: 320,
@@ -768,11 +806,14 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
                       }}
                     />
                   )}
-                  <div className="absolute inset-0 pointer-events-none border-2 border-white/60" />
+                  <div className="absolute inset-0 pointer-events-none rounded-full border-2 border-white/80 ring-1 ring-black/20" />
                 </div>
-                <div className="flex flex-col space-y-2 items-center">
-                  <div className="flex items-center w-[320px] space-x-2">
-                    <Label className="text-xs text-muted-foreground">
+                <p className="text-sm text-center text-muted-foreground">
+                  Drag to reposition photo
+                </p>
+                <div className="flex flex-col space-y-4 items-center">
+                  <div className="flex items-center w-full max-w-[320px] space-x-4">
+                    <Label className="text-sm text-foreground min-w-[40px]">
                       Zoom
                     </Label>
                     <input
@@ -786,26 +827,43 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
                         setPhotoScale(next);
                         setPhotoOffset({ x: 0, y: 0 });
                       }}
-                      className="w-full accent-primary"
+                      className="flex-1 h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
                     />
-                  </div>
-                  <div className="flex justify-end gap-2 w-[320px]">
-                    <Button
-                      variant="ghost"
-                      onClick={resetPendingPhoto}
-                      disabled={isPhotoUploading}
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      onClick={handleApplyPhoto}
-                      disabled={isPhotoUploading || !pendingPhoto}
-                    >
-                      {isPhotoUploading ? "Saving..." : "Apply & Upload"}
-                    </Button>
+                    <span className="text-sm font-medium text-foreground min-w-[32px] text-right">
+                      {photoScale.toFixed(1)}
+                    </span>
                   </div>
                 </div>
               </div>
+              <DialogFooter className="flex justify-between items-center gap-2 sm:justify-between">
+                <div className="flex gap-2">
+                  {profileData.photoUrl && (
+                    <Button
+                      variant="ghost"
+                      onClick={handleRemovePhoto}
+                      disabled={isPhotoUploading}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      Delete photo
+                    </Button>
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={handlePhotoSelect}
+                    disabled={isPhotoUploading}
+                  >
+                    Change photo
+                  </Button>
+                  <Button
+                    onClick={handleApplyPhoto}
+                    disabled={isPhotoUploading || !pendingPhoto}
+                  >
+                    {isPhotoUploading ? "Saving..." : "Apply"}
+                  </Button>
+                </div>
+              </DialogFooter>
             </DialogContent>
           </Dialog>
         </TabsContent>

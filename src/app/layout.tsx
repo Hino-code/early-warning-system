@@ -30,7 +30,7 @@ import { NotificationBell } from "@/features/notifications/components/notificati
 import { WelcomeNotification } from "@/features/notifications/components/welcome-notification";
 import { Login } from "@/features/auth/pages/login-page";
 import { RegistrationPage } from "@/features/auth/pages/registration-page";
-import pestFullLogo from "@/assets/pest-logo-full.png";
+import pestFullLogo from "@/assets/pest-logo-full.svg";
 import { AlertTriangle, Bug, LogOut, User as UserIcon } from "lucide-react";
 import { useAuthStore } from "@/state/auth-store";
 import { Z_INDEX } from "@/shared/config/z-index";
@@ -231,19 +231,30 @@ export function AppLayout() {
       <Toaster position="top-right" richColors />
       <div className="flex h-screen w-full">
         <Sidebar className="border-r">
-          <SidebarContent>
+          <SidebarContent
+            style={{
+              color: "rgba(0, 0, 0, 1)",
+            }}
+          >
             <div
               className="border-b"
               style={{ padding: "0px 29px", height: "62px" }}
             >
               <div
                 className="flex items-center justify-center"
-                style={{ width: "225px", height: "61px" }}
+                style={{
+                  width: "209px",
+                  height: "61px",
+                  paddingLeft: "24px",
+                  paddingRight: "68px",
+                  marginLeft: "14px",
+                  marginRight: "14px",
+                }}
               >
                 <img
                   src={pestFullLogo}
                   alt="Pest.i - Monitoring & Forecasting"
-                  style={{ height: "52px", width: "176px" }}
+                  style={{ height: "51px", width: "167px" }}
                 />
               </div>
             </div>
