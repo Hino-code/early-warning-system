@@ -679,16 +679,9 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
           <Dialog
             open={isCropperOpen}
             onOpenChange={(open: boolean) => {
-              console.log(
-                "Dialog onOpenChange called with open:",
-                open,
-                "isCropperOpen:",
-                isCropperOpen
-              );
+              setIsCropperOpen(open);
               if (!open) {
                 resetPendingPhoto();
-              } else {
-                setIsCropperOpen(true);
               }
             }}
           >

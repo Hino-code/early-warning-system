@@ -231,11 +231,7 @@ export function AppLayout() {
       <Toaster position="top-right" richColors />
       <div className="flex h-screen w-full">
         <Sidebar className="border-r">
-          <SidebarContent
-            style={{
-              color: "rgba(0, 0, 0, 1)",
-            }}
-          >
+          <SidebarContent className="text-sidebar-foreground">
             <div
               className="border-b"
               style={{ padding: "0px 29px", height: "62px" }}
@@ -255,6 +251,7 @@ export function AppLayout() {
                   src={pestFullLogo}
                   alt="Pest.i - Monitoring & Forecasting"
                   style={{ height: "51px", width: "167px" }}
+                  className="logo-image"
                 />
               </div>
             </div>
