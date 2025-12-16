@@ -232,12 +232,18 @@ export function AppLayout() {
       <div className="flex h-screen w-full">
         <Sidebar className="border-r">
           <SidebarContent>
-            <div className="p-4 border-b">
-              <div className="flex items-center justify-center">
+            <div
+              className="border-b"
+              style={{ padding: "0px 29px", height: "62px" }}
+            >
+              <div
+                className="flex items-center justify-center"
+                style={{ width: "225px", height: "61px" }}
+              >
                 <img
                   src={pestFullLogo}
                   alt="Pest.i - Monitoring & Forecasting"
-                  className="h-16 w-auto"
+                  style={{ height: "52px", width: "176px" }}
                 />
               </div>
             </div>
@@ -345,7 +351,14 @@ export function AppLayout() {
             className="sticky top-0 border-b bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60"
             style={{ zIndex: Z_INDEX.STICKY }}
           >
-            <div className="flex h-14 items-center justify-between px-4">
+            <div
+              className="flex items-center justify-between"
+              style={{
+                height: "61px",
+                paddingLeft: "24px",
+                paddingRight: "24px",
+              }}
+            >
               <div className="flex items-center gap-3">
                 <SidebarTrigger aria-label="Toggle sidebar (⌘B or Ctrl+B)" />
                 <h2 className="text-lg font-semibold">
@@ -353,7 +366,15 @@ export function AppLayout() {
                 </h2>
               </div>
 
-              <div className="flex items-center space-x-4">
+              <div
+                className="flex items-center space-x-4"
+                style={{
+                  paddingLeft: "24px",
+                  paddingRight: "24px",
+                  marginLeft: "14px",
+                  marginRight: "14px",
+                }}
+              >
                 <ThemeToggle />
                 <div className="flex items-center">
                   <NotificationBell
