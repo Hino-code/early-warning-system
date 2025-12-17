@@ -10,6 +10,8 @@ import {
   SidebarMenuItem,
   SidebarProvider,
   SidebarTrigger,
+  SidebarHeader,
+  useSidebar,
 } from "@/shared/components/ui/sidebar";
 import { Button } from "@/shared/components/ui/button";
 import { Card } from "@/shared/components/ui/card";
@@ -31,6 +33,7 @@ import { WelcomeNotification } from "@/features/notifications/components/welcome
 import { Login } from "@/features/auth/pages/login-page";
 import { RegistrationPage } from "@/features/auth/pages/registration-page";
 import pestFullLogo from "@/assets/pest-logo-full.svg";
+import pestIconLogo from "@/assets/pest-logo-icon.svg";
 import { AlertTriangle, Bug, LogOut, User as UserIcon } from "lucide-react";
 import { useAuthStore } from "@/state/auth-store";
 import { Z_INDEX } from "@/shared/config/z-index";
@@ -46,6 +49,60 @@ interface UserMenuProps {
   user: AppUser;
   onLogout: () => void;
   onProfileClick: () => void;
+}
+
+function SidebarLogo() {
+  const { state } = useSidebar();
+  const isCollapsed = state === "collapsed";
+
+  return (
+    <div
+      className="border-b flex items-center justify-center transition-all duration-200 w-full"
+      style={{
+        padding: isCollapsed ? "16px 8px" : "0px 29px",
+        height: "62px",
+        minHeight: "62px",
+      }}
+    >
+      {isCollapsed ? (
+        <img
+          src={pestIconLogo}
+          alt="Pest.i"
+          style={{
+            height: "32px",
+            width: "32px",
+            objectFit: "contain",
+            display: "block",
+            margin: "0 auto",
+          }}
+          className="transition-all duration-200"
+        />
+      ) : (
+        <div
+          className="flex items-center justify-center transition-all duration-200 w-full"
+          style={{
+            height: "61px",
+            paddingLeft: "24px",
+            paddingRight: "68px",
+            marginLeft: "14px",
+            marginRight: "14px",
+          }}
+        >
+          <img
+            src={pestFullLogo}
+            alt="Pest.i - Monitoring & Forecasting"
+            style={{
+              height: "51px",
+              width: "167px",
+              objectFit: "contain",
+              display: "block",
+            }}
+            className="transition-all duration-200"
+          />
+        </div>
+      )}
+    </div>
+  );
 }
 
 function UserMenu({ user, onLogout, onProfileClick }: UserMenuProps) {
@@ -227,35 +284,14 @@ export function AppLayout() {
   }
 
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={false}>
       <Toaster position="top-right" richColors />
       <div className="flex h-screen w-full">
-        <Sidebar className="border-r">
+        <Sidebar className="border-r" collapsible="icon">
+          <SidebarHeader className="p-0">
+            <SidebarLogo />
+          </SidebarHeader>
           <SidebarContent className="text-sidebar-foreground">
-            <div
-              className="border-b"
-              style={{ padding: "0px 29px", height: "62px" }}
-            >
-              <div
-                className="flex items-center justify-center"
-                style={{
-                  width: "209px",
-                  height: "61px",
-                  paddingLeft: "24px",
-                  paddingRight: "68px",
-                  marginLeft: "14px",
-                  marginRight: "14px",
-                }}
-              >
-                <img
-                  src={pestFullLogo}
-                  alt="Pest.i - Monitoring & Forecasting"
-                  style={{ height: "51px", width: "167px" }}
-                  className="logo-image"
-                />
-              </div>
-            </div>
-
             {dashboardItems.length > 0 && (
               <SidebarGroup className="mt-4">
                 <SidebarGroupLabel className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-wider">
