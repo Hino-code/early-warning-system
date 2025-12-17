@@ -44,6 +44,9 @@ import {
   PieChart,
   Pie,
   Cell,
+  AreaChart,
+  Area,
+  Legend,
 } from "recharts";
 import {
   FileText,
@@ -397,46 +400,66 @@ export function Reports() {
         <TabsContent value="trends" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card className="p-6">
-              <h3 className="mb-4">Pest Population Trends (6 Months)</h3>
+              <h3 className="mb-4 font-medium">Pest Population Trends (6 Months)</h3>
+              <defs>
+                 <linearGradient id="pestTrendGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={chartColors.chart3} stopOpacity={0.2} />
+                    <stop offset="100%" stopColor={chartColors.chart3} stopOpacity={0} />
+                 </linearGradient>
+              </defs>
               <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={monthlyTrends}>
-                  <CartesianGrid strokeDasharray="3 3" />
+                <AreaChart data={monthlyTrends}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
                   <XAxis
                     dataKey="month"
                     angle={-45}
                     textAnchor="end"
-                    height={80}
+                    height={60}
+                    tick={{ fontSize: 11, fill: chartColors.muted }}
+                    axisLine={false}
+                    tickLine={false}
                   />
-                  <YAxis />
-                  <Tooltip />
-                  <Line
+                  <YAxis tick={{ fontSize: 11, fill: chartColors.muted }} axisLine={false} tickLine={false} />
+                  <Tooltip 
+                      contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                  />
+                  <Area
                     type="monotone"
                     dataKey="blackRiceBug"
                     stroke={chartColors.chart3}
                     strokeWidth={2}
+                    fill="url(#pestTrendGradient)"
                     name="Black Rice Bug"
+                    activeDot={{ r: 4, strokeWidth: 2, stroke: chartColors.background }}
                   />
-                </LineChart>
+                </AreaChart>
               </ResponsiveContainer>
             </Card>
 
             <Card className="p-6">
-              <h3 className="mb-4">Crop Damage Trends</h3>
+              <h3 className="mb-4 font-medium">Crop Damage Trends</h3>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={monthlyTrends}>
-                  <CartesianGrid strokeDasharray="3 3" />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
                   <XAxis
                     dataKey="month"
                     angle={-45}
                     textAnchor="end"
-                    height={80}
+                    height={60}
+                    tick={{ fontSize: 11, fill: chartColors.muted }}
+                    axisLine={false}
+                    tickLine={false}
                   />
-                  <YAxis />
-                  <Tooltip />
+                  <YAxis tick={{ fontSize: 11, fill: chartColors.muted }} axisLine={false} tickLine={false} />
+                  <Tooltip 
+                      contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                  />
                   <Bar
                     dataKey="totalDamage"
                     fill={chartColors.chart3}
                     name="Total Damage %"
+                    radius={[4, 4, 0, 0]}
+                    fillOpacity={0.9}
                   />
                 </BarChart>
               </ResponsiveContainer>
@@ -692,28 +715,42 @@ export function Reports() {
           </Card>
 
           <Card className="p-6">
-            <h3 className="mb-4">Weekly Temperature & Humidity Trends</h3>
+            <h3 className="mb-4 font-medium">Weekly Temperature & Humidity Trends</h3>
             <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={weeklyReports}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="week" />
-                <YAxis />
-                <Tooltip />
-                <Line
+              <AreaChart data={weeklyReports}>
+                <defs>
+                    <linearGradient id="tempGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor={chartColors.chart4} stopOpacity={0.2} />
+                        <stop offset="100%" stopColor={chartColors.chart4} stopOpacity={0} />
+                    </linearGradient>
+                     <linearGradient id="humidGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor={chartColors.chart1} stopOpacity={0.2} />
+                        <stop offset="100%" stopColor={chartColors.chart1} stopOpacity={0} />
+                    </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
+                <XAxis dataKey="week" tick={{ fontSize: 11, fill: chartColors.muted }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 11, fill: chartColors.muted }} axisLine={false} tickLine={false} />
+                <Tooltip 
+                     contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                />
+                <Area
                   type="monotone"
                   dataKey="avgTemp"
                   stroke={chartColors.chart4}
                   strokeWidth={2}
+                  fill="url(#tempGradient)"
                   name="Temperature (°C)"
                 />
-                <Line
+                <Area
                   type="monotone"
                   dataKey="avgHumidity"
                   stroke={chartColors.chart1}
                   strokeWidth={2}
+                  fill="url(#humidGradient)"
                   name="Humidity (%)"
                 />
-              </LineChart>
+              </AreaChart>
             </ResponsiveContainer>
           </Card>
         </TabsContent>
@@ -721,7 +758,7 @@ export function Reports() {
         <TabsContent value="pest" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card className="p-6">
-              <h3 className="mb-4">Pest Distribution (6 Months)</h3>
+              <h3 className="mb-4 font-medium">Pest Distribution (6 Months)</h3>
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
                   <Pie
@@ -729,9 +766,11 @@ export function Reports() {
                     cx="50%"
                     cy="50%"
                     innerRadius={60}
-                    outerRadius={120}
-                    paddingAngle={5}
+                    outerRadius={90}
+                    paddingAngle={3}
                     dataKey="value"
+                    strokeWidth={0}
+                    cornerRadius={4}
                   >
                     {pestDistribution.map((entry, index) => (
                       <Cell
@@ -742,44 +781,38 @@ export function Reports() {
                       />
                     ))}
                   </Pie>
-                  <Tooltip />
+                  <Tooltip 
+                       contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                  />
+                  <Legend verticalAlign="bottom" height={36} iconType="circle" />
                 </PieChart>
               </ResponsiveContainer>
-              <div className="flex justify-center space-x-4 mt-4">
-                {pestDistribution.map((item, index) => (
-                  <div key={item.name} className="flex items-center space-x-2">
-                    <div
-                      className="w-3 h-3 rounded-full"
-                      style={{
-                        backgroundColor:
-                          index === 0 ? chartColors.chart3 : chartColors.chart1,
-                      }}
-                    />
-                    <span className="text-sm">
-                      {item.name} ({item.value}%)
-                    </span>
-                  </div>
-                ))}
-              </div>
             </Card>
 
             <Card className="p-6">
-              <h3 className="mb-4">Pest Activity by Month</h3>
+              <h3 className="mb-4 font-medium">Pest Activity by Month</h3>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={monthlyTrends}>
-                  <CartesianGrid strokeDasharray="3 3" />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
                   <XAxis
                     dataKey="month"
                     angle={-45}
                     textAnchor="end"
-                    height={80}
+                    height={60}
+                    tick={{ fontSize: 11, fill: chartColors.muted }}
+                    axisLine={false}
+                    tickLine={false}
                   />
-                  <YAxis />
-                  <Tooltip />
+                  <YAxis tick={{ fontSize: 11, fill: chartColors.muted }} axisLine={false} tickLine={false} />
+                  <Tooltip 
+                       contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                  />
                   <Bar
                     dataKey="blackRiceBug"
                     fill={chartColors.chart3}
                     name="Black Rice Bug"
+                    radius={[4, 4, 0, 0]}
+                    fillOpacity={0.9}
                   />
                 </BarChart>
               </ResponsiveContainer>

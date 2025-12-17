@@ -367,6 +367,12 @@ export function ThresholdActions() {
               Intervention distribution across seasons
             </p>
           </div>
+          <defs>
+             <linearGradient id="actionTakenGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={chartColors.success} stopOpacity={1} />
+                <stop offset="100%" stopColor={chartColors.success} stopOpacity={0.8} />
+             </linearGradient>
+          </defs>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={actionsBySeason}>
               <CartesianGrid {...chartGridStyle} />
@@ -380,15 +386,18 @@ export function ThresholdActions() {
               <Legend />
               <Bar
                 dataKey="taken"
-                fill={chartColors.success}
+                fill="url(#actionTakenGradient)"
                 name="Action Taken"
-                radius={[8, 8, 0, 0]}
+                radius={[6, 6, 0, 0]}
+                barSize={32}
               />
               <Bar
                 dataKey="notTaken"
                 fill={chartColors.muted}
                 name="No Action"
-                radius={[8, 8, 0, 0]}
+                radius={[6, 6, 0, 0]}
+                barSize={32}
+                fillOpacity={0.3}
               />
             </BarChart>
           </ResponsiveContainer>
@@ -427,14 +436,18 @@ export function ThresholdActions() {
                 dataKey="taken"
                 fill={chartColors.success}
                 name="Actions Taken"
-                radius={[8, 8, 0, 0]}
+                radius={[6, 6, 0, 0]}
+                barSize={20}
+                fillOpacity={0.9}
               />
               <Bar
                 yAxisId="left"
                 dataKey="notTaken"
                 fill={chartColors.muted}
                 name="No Action"
-                radius={[8, 8, 0, 0]}
+                radius={[6, 6, 0, 0]}
+                barSize={20}
+                fillOpacity={0.3}
               />
               <Line
                 yAxisId="right"
@@ -443,7 +456,8 @@ export function ThresholdActions() {
                 stroke={chartColors.primary}
                 strokeWidth={3}
                 name="Action Rate %"
-                dot={{ r: 3, fill: chartColors.primary }}
+                dot={{ r: 4, strokeWidth: 2, fill: chartColors.background, stroke: chartColors.primary }}
+                activeDot={{ r: 6, strokeWidth: 0 }}
               />
             </ComposedChart>
           </ResponsiveContainer>
@@ -465,22 +479,26 @@ export function ThresholdActions() {
                 data={actionTypeDistribution}
                 cx="50%"
                 cy="50%"
-                labelLine={false}
-                label={({ name, percent }) =>
-                  `${name} ${(percent * 100).toFixed(0)}%`
-                }
+                innerRadius={60}
                 outerRadius={80}
-                fill={chartColors.chart1}
+                paddingAngle={4}
                 dataKey="value"
               >
                 {actionTypeDistribution.map((entry, index) => (
                   <Cell
                     key={`cell-${index}`}
                     fill={palette[index % palette.length]}
+                    strokeWidth={0}
                   />
                 ))}
               </Pie>
               <Tooltip {...chartTooltipStyle} />
+              <Legend 
+                layout="vertical" 
+                verticalAlign="middle" 
+                align="right"
+                wrapperStyle={{ fontSize: '12px' }}
+              />
             </PieChart>
           </ResponsiveContainer>
         </Card>
@@ -493,26 +511,31 @@ export function ThresholdActions() {
             </p>
           </div>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={thresholdVsAction} layout="vertical">
-              <CartesianGrid {...chartGridStyle} />
+            <BarChart data={thresholdVsAction} layout="vertical" barGap={2}>
+              <CartesianGrid {...chartGridStyle} horizontal={false} />
               <XAxis type="number" {...chartAxisStyle} />
               <YAxis
                 dataKey="status"
                 type="category"
-                width={120}
+                width={100}
                 {...chartAxisStyle}
+                tick={{ fontSize: 11 }}
               />
               <Tooltip {...chartTooltipStyle} />
-              <Legend />
+              <Legend wrapperStyle={{ fontSize: '12px' }} />
               <Bar
                 dataKey="Action Taken"
                 fill={chartColors.success}
-                radius={[0, 8, 8, 0]}
+                radius={[0, 4, 4, 0]}
+                barSize={20}
+                fillOpacity={0.9}
               />
               <Bar
                 dataKey="No Action"
                 fill={chartColors.destructive}
-                radius={[0, 8, 8, 0]}
+                radius={[0, 4, 4, 0]}
+                barSize={20}
+                fillOpacity={0.9}
               />
             </BarChart>
           </ResponsiveContainer>
@@ -529,6 +552,12 @@ export function ThresholdActions() {
         </div>
         <ResponsiveContainer width="100%" height={300}>
           <ComposedChart data={monthlyActions}>
+            <defs>
+              <linearGradient id="monthlyActionGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={chartColors.primary} stopOpacity={0.8} />
+                <stop offset="100%" stopColor={chartColors.primary} stopOpacity={0.2} />
+              </linearGradient>
+            </defs>
             <CartesianGrid {...chartGridStyle} />
             <XAxis
               {...chartAxisStyle}
@@ -543,13 +572,14 @@ export function ThresholdActions() {
               tick={{ fontSize: 11 }}
             />
             <Tooltip {...chartTooltipStyle} />
-            <Legend />
+            <Legend wrapperStyle={{ fontSize: '12px' }} />
             <Bar
               yAxisId="left"
               dataKey="actions"
-              fill={chartColors.primary}
+              fill="url(#monthlyActionGradient)"
               name="Actions Taken"
-              radius={[8, 8, 0, 0]}
+              radius={[4, 4, 0, 0]}
+              barSize={32}
             />
             <Line
               yAxisId="right"
@@ -558,7 +588,8 @@ export function ThresholdActions() {
               stroke={chartColors.chart2}
               strokeWidth={3}
               name="Action Rate %"
-              dot={{ r: 3, fill: chartColors.chart2 }}
+              dot={{ r: 4, strokeWidth: 2, fill: chartColors.background, stroke: chartColors.chart2 }}
+              activeDot={{ r: 6, strokeWidth: 0 }}
             />
           </ComposedChart>
         </ResponsiveContainer>

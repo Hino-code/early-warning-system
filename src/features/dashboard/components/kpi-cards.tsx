@@ -142,13 +142,13 @@ function KpiCard({
             </div>
             
             {/* Micro-Trend Sparkline */}
-            <div className="h-[40px] w-[80px] pb-1 opacity-60 group-hover:opacity-100 transition-opacity">
+            <div className="h-[40px] w-[80px] pb-1 opacity-80 group-hover:opacity-100 transition-opacity">
                 <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={chartData}>
                     <defs>
                     <linearGradient id={`grad-${title}`} x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor={strokeColor} stopOpacity={0.3} />
-                        <stop offset="100%" stopColor={strokeColor} stopOpacity={0.05} />
+                        <stop offset="0%" stopColor={strokeColor} stopOpacity={0.2} />
+                        <stop offset="100%" stopColor={strokeColor} stopOpacity={0} />
                     </linearGradient>
                     </defs>
                     <Area
@@ -156,7 +156,8 @@ function KpiCard({
                     dataKey="value"
                     stroke={strokeColor}
                     fill={`url(#grad-${title})`}
-                    strokeWidth={2.5}
+                    strokeWidth={2}
+                    fillOpacity={1}
                     isAnimationActive={false}
                     />
                 </AreaChart>

@@ -867,234 +867,191 @@ export function Overview() {
                 <ResponsiveContainer width="100%" height={380}>
                   <ComposedChart
                     data={forecastSeries}
-                    margin={{ top: 3, right: 100, bottom: 3, left: 0 }}
+                    margin={{ top: 10, right: 30, bottom: 0, left: -20 }}
                   >
                     <defs>
-                      {/* Subtle background tint for forecast region */}
-                      <linearGradient
-                        id="forecastRegionTint"
-                        x1="0"
-                        x2="1"
-                        y1="0"
-                        y2="0"
-                      >
-                        <stop
-                          offset="0%"
-                          stopColor="rgba(139, 92, 246, 0.03)"
-                          stopOpacity={1}
-                        />
-                        <stop
-                          offset="100%"
-                          stopColor="rgba(139, 92, 246, 0.08)"
-                          stopOpacity={1}
-                        />
+                      <linearGradient id="forecastGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#9333ea" stopOpacity={0.15}/>
+                        <stop offset="95%" stopColor="#9333ea" stopOpacity={0}/>
+                      </linearGradient>
+                      <linearGradient id="historicalGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#2563eb" stopOpacity={0.1}/>
+                        <stop offset="95%" stopColor="#2563eb" stopOpacity={0}/>
                       </linearGradient>
                     </defs>
 
-                    {/* Background zones for risk regions - rendered first so they appear behind data */}
-                    {/* Green zone: below Economic Threshold (safe region) */}
+                    {/* Background zones - Subtler application */}
                     <ReferenceArea
                       y1={operationalBaseline}
                       y2={economicThreshold}
-                      fill={chartColors.success || "#10b981"}
-                      fillOpacity={0.08}
+                      fill={chartColors.success}
+                      fillOpacity={0.03}
                       stroke="none"
                     />
-
-                    {/* Yellow zone: between Economic Threshold and Economic Injury Level (warning region) */}
                     <ReferenceArea
                       y1={economicThreshold}
                       y2={economicInjuryLevel}
-                      fill={chartColors.warning || "#f59e0b"}
-                      fillOpacity={0.08}
+                      fill={chartColors.warning}
+                      fillOpacity={0.03}
                       stroke="none"
                     />
-
-                    {/* Red zone: above Economic Injury Level (damage region) */}
                     <ReferenceArea
                       y1={economicInjuryLevel}
                       y2={yAxisDomain[1]}
                       fill={chartColors.destructive}
-                      fillOpacity={0.08}
+                      fillOpacity={0.03}
                       stroke="none"
                     />
-                    <CartesianGrid {...chartGridStyle} />
+
+                    <CartesianGrid 
+                      vertical={false} 
+                      strokeDasharray="3 3" 
+                      stroke={chartColors.border} 
+                      opacity={0.4} 
+                    />
+                    
                     <XAxis
                       dataKey="date"
-                      {...chartAxisStyle}
-                      label={{
-                        value: "Date",
-                        position: "insideBottom",
-                        offset: -3,
-                        style: { fontSize: 11, fill: chartColors.muted },
-                      }}
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fill: chartColors.muted, fontSize: 11 }}
+                      dy={10}
+                      padding={{ left: 10, right: 10 }}
                     />
                     <YAxis
-                      {...chartAxisStyle}
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fill: chartColors.muted, fontSize: 11 }}
                       domain={yAxisDomain}
                       allowDecimals={false}
-                      label={{
-                        value: "Pest Count",
-                        angle: -90,
-                        position: "insideLeft",
-                        style: { fontSize: 11, fill: chartColors.muted },
-                      }}
+                      dx={-10}
                     />
-                    <Tooltip content={renderForecastTooltip} />
+                    
+                    <Tooltip 
+                      content={renderForecastTooltip}
+                      cursor={{ stroke: chartColors.muted, strokeWidth: 1, strokeDasharray: '4 4' }}
+                    />
+                    
                     <Legend
                       verticalAlign="top"
-                      height={28}
-                      iconType="line"
-                      formatter={(value, entry) => {
-                        // Custom icon for Confidence Interval
-                        if (value === "95% Confidence Interval") {
-                          return (
-                            <span
-                              style={{
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: "4px",
-                              }}
-                            >
-                              <span
-                                style={{
-                                  display: "inline-block",
-                                  width: "12px",
-                                  height: "12px",
-                                  backgroundColor:
-                                    entry.color || chartColors.chart2,
-                                  borderRadius: "2px",
-                                }}
-                              />
-                              {value}
-                            </span>
-                          );
-                        }
-                        return value;
+                      height={40}
+                      iconType="circle"
+                      iconSize={8}
+                      wrapperStyle={{ 
+                        paddingBottom: '20px',
+                        fontSize: '12px',
+                        fontWeight: 500
                       }}
                     />
 
-                    {/* Operational Baseline - thin solid gray line */}
-                    <ReferenceLine
-                      y={operationalBaseline}
-                      stroke={chartColors.muted}
-                      strokeWidth={1}
-                    />
-
-                    {/* Economic Threshold (ET) - red dashed line */}
+                    {/* Threshold Lines - Clean & Minimal */}
                     <ReferenceLine
                       y={economicThreshold}
                       stroke={chartColors.destructive}
-                      strokeDasharray="5 5"
-                      strokeWidth={2}
+                      strokeDasharray="4 4"
+                      strokeOpacity={0.6}
+                      strokeWidth={1}
                       label={{
-                        value: "Critical",
+                        value: "Critical Threshold",
                         fill: chartColors.destructive,
-                        fontSize: 11,
-                        position: "right",
-                        offset: 10,
-                        fontWeight: "500",
+                        fontSize: 10,
+                        position: "insideTopRight",
+                        fillOpacity: 0.8,
+                        offset: 10
                       }}
                     />
 
-                    {/* Economic Injury Level (EIL) - dark red solid line */}
                     <ReferenceLine
-                      y={economicInjuryLevel}
-                      stroke="#dc2626"
-                      strokeWidth={2}
+                    y={economicThreshold}
+                    stroke={chartColors.warning}
+                    strokeDasharray="4 4"
+                    strokeWidth={1.5}
+                    label={{
+                      value: "Economic Threshold",
+                      position: "insideTopRight",
+                      fill: chartColors.warning,
+                      fontSize: 10,
+                      fontWeight: 600,
+                      dy: -10
+                    }}
+                  />
+                  <ReferenceLine
+                    y={economicInjuryLevel}
+                    stroke={chartColors.destructive}
+                    strokeDasharray="4 4"
+                    strokeWidth={1.5}
+                    label={{
+                      value: "Economic Injury Level",
+                      position: "insideTopRight",
+                      fill: chartColors.destructive,
+                      fontSize: 10,
+                      fontWeight: 600,
+                      dy: -10
+                    }}
+                  />
+
+                  {/* Forecast Divider */}
+                  {forecastStartIndex !== -1 && (
+                    <ReferenceLine
+                      x={forecastSeries[forecastStartIndex]?.date}
+                      stroke={chartColors.muted}
+                      strokeDasharray="3 3"
                       label={{
-                        value: "EIL",
-                        fill: "#dc2626",
-                        fontSize: 11,
-                        position: "right",
+                        value: "FORECAST START",
+                        position: "insideTopLeft",
+                        angle: -90,
+                        fill: chartColors.muted,
+                        fontSize: 10,
                         offset: 10,
-                        fontWeight: "500",
                       }}
                     />
+                  )}
 
-                    {/* Vertical divider at forecast start - Clear Forecast Boundary */}
-                    {forecastStartIndex >= 0 && (
-                      <ReferenceLine
-                        x={forecastSeries[forecastStartIndex]?.date}
-                        stroke={chartColors.muted}
-                        strokeDasharray="4 4"
-                        strokeWidth={2}
-                        label={{
-                          value: "Forecast Starts",
-                          fill: chartColors.muted,
-                          fontSize: 11,
-                          position: "top",
-                          offset: 8,
-                          fontWeight: "500",
-                        }}
-                      />
-                    )}
-
-                    {/* Confidence interval band (shaded area) - Reduced visual dominance */}
-                    {/* Use stacked Areas: first creates base, second stacks on top to create the band */}
+                    {/* Confidence Band - Soft & Integrated */}
                     <Area
                       type="monotone"
                       dataKey="confidenceLower"
-                      stackId="confidenceBand"
+                      stackId="confidence"
                       stroke="none"
                       fill="transparent"
-                      isAnimationActive={false}
                       connectNulls={false}
                     />
                     <Area
                       type="monotone"
                       dataKey="confidenceBandHeight"
-                      stackId="confidenceBand"
+                      stackId="confidence"
                       stroke="none"
                       fill="#9333ea"
-                      fillOpacity={0.2}
-                      isAnimationActive={false}
-                      name="95% Confidence Interval"
-                      legendType="rect"
+                      fillOpacity={0.08}
+                      name="Confidence Range"
                       connectNulls={false}
                     />
 
-                    {/* Historical actual data - solid blue line */}
-                    <Line
+                    {/* Historical Data - Solid & Clear */}
+                    <Area
                       type="monotone"
                       dataKey="actual"
                       stroke="#2563eb"
                       strokeWidth={2}
-                      dot={false}
-                      name="Historical"
+                      fill="url(#historicalGradient)"
+                      activeDot={{ r: 4, strokeWidth: 2 }}
+                      name="Historical Data"
                       connectNulls={false}
-                      strokeOpacity={1}
                     />
 
-                    {/* Forecast prediction - dashed line with threshold-aware dot highlighting */}
-                    <Line
+                    {/* Forecast Data - Dashed with Gradient Fill */}
+                    <Area
                       type="monotone"
                       dataKey="predicted"
                       stroke="#9333ea"
                       strokeWidth={2}
-                      strokeDasharray="5 5"
+                      strokeDasharray="4 4"
+                      fill="url(#forecastGradient)"
                       dot={<ThresholdAwareDot />}
-                      name="Forecast (7 days)"
+                      activeDot={{ r: 5, strokeWidth: 2 }}
+                      name="Forecast Prediction"
                       connectNulls={false}
-                      strokeOpacity={1}
                     />
-
-                    {/* Subtle background tint for forecast region */}
-                    {forecastStartIndex >= 0 && (
-                      <Area
-                        type="monotone"
-                        dataKey={(entry: any) => {
-                          const idx = forecastSeries.indexOf(entry);
-                          if (idx >= forecastStartIndex) {
-                            return yAxisDomain[1];
-                          }
-                          return null;
-                        }}
-                        stroke="transparent"
-                        fill="url(#forecastRegionTint)"
-                        isAnimationActive={false}
-                      />
-                    )}
                   </ComposedChart>
                 </ResponsiveContainer>
               </div>
@@ -1121,44 +1078,52 @@ export function Overview() {
                   No status data available.
                 </p>
               ) : (
-                <ResponsiveContainer width="100%" height={250}>
-                  <RadialBarChart
-                    innerRadius="30%"
-                    outerRadius="100%"
-                    barSize={12}
-                    data={thresholdStackData.data}
-                    startAngle={180}
-                    endAngle={0}
-                  >
-                    <RadialBar
-                      background={{ fill: chartColors.muted, opacity: 0.1 }}
-                      dataKey="count"
-                      cornerRadius={6}
-                      label={{
-                        position: "insideStart",
-                        fill: "#fff",
-                        fontSize: 10,
-                        fontWeight: 700,
-                      }}
-                    />
-                    <Legend
-                      iconSize={8}
-                      layout="vertical"
-                      verticalAlign="middle"
-                      align="right"
-                      wrapperStyle={{ fontSize: 12, fontWeight: 500 }}
-                    />
-                    <Tooltip
-                      cursor={false}
-                      contentStyle={{
-                        backgroundColor: chartColors.card,
-                        border: `1px solid ${chartColors.border}`,
-                        borderRadius: "12px",
-                        boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                      }}
-                    />
-                  </RadialBarChart>
-                </ResponsiveContainer>
+                <div className="relative">
+                  {/* Center Text Overlay */}
+                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none pb-4">
+                    <span className="text-3xl font-bold text-foreground">
+                      {thresholdStackData.summary.critical + 
+                       thresholdStackData.summary.warning + 
+                       thresholdStackData.summary.normal}
+                    </span>
+                    <span className="text-xs text-muted-foreground uppercase tracking-wider font-medium">
+                      Total
+                    </span>
+                  </div>
+                  
+                  <ResponsiveContainer width="100%" height={250}>
+                    <RadialBarChart
+                      innerRadius="65%"
+                      outerRadius="100%"
+                      barSize={16}
+                      data={thresholdStackData.data}
+                      startAngle={90}
+                      endAngle={-270}
+                    >
+                      <RadialBar
+                        background={{ fill: chartColors.muted, opacity: 0.1 }}
+                        dataKey="count"
+                        cornerRadius={10}
+                      />
+                      <Legend
+                        iconSize={8}
+                        layout="horizontal"
+                        verticalAlign="bottom"
+                        align="center"
+                        wrapperStyle={{ fontSize: 11, fontWeight: 500, paddingTop: '20px' }}
+                      />
+                      <Tooltip
+                        cursor={false}
+                        contentStyle={{
+                          backgroundColor: chartColors.card,
+                          border: `1px solid ${chartColors.border}`,
+                          borderRadius: "12px",
+                          boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                        }}
+                      />
+                    </RadialBarChart>
+                  </ResponsiveContainer>
+                </div>
               )}
             </Card>
 
@@ -1182,12 +1147,18 @@ export function Overview() {
                     data={actionTrackerData}
                     layout="vertical"
                     margin={{ top: 0, right: 30, left: 10, bottom: 0 }}
-                    barSize={24}
+                    barSize={20}
                   >
+                    <defs>
+                      <linearGradient id="actionGradient" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0%" stopColor="#7c3aed" stopOpacity={0.8} />
+                        <stop offset="100%" stopColor="#9333ea" stopOpacity={1} />
+                      </linearGradient>
+                    </defs>
                     <CartesianGrid
-                      strokeDasharray="4 4"
+                      strokeDasharray="3 3"
                       stroke={chartColors.border}
-                      opacity={0.1}
+                      opacity={0.3}
                       horizontal={false}
                     />
                     <XAxis type="number" hide />
@@ -1195,7 +1166,7 @@ export function Overview() {
                       type="category"
                       dataKey="type"
                       tick={{
-                        fontSize: 12,
+                        fontSize: 11,
                         fill: chartColors.muted,
                         fontWeight: 600,
                       }}
@@ -1204,7 +1175,7 @@ export function Overview() {
                       tickLine={false}
                     />
                     <Tooltip
-                      cursor={{ fill: chartColors.muted, opacity: 0.1 }}
+                      cursor={{ fill: chartColors.muted, opacity: 0.05 }}
                       contentStyle={{
                         backgroundColor: chartColors.card,
                         border: `1px solid ${chartColors.border}`,
@@ -1221,12 +1192,12 @@ export function Overview() {
                     />
                     <Bar
                       dataKey="value"
-                      fill="rgba(119, 119, 223, 1)"
-                      radius={[0, 4, 4, 0]}
+                      fill="url(#actionGradient)"
+                      radius={[0, 6, 6, 0]}
                       background={{
                         fill: chartColors.muted,
                         opacity: 0.05,
-                        radius: [0, 4, 4, 0],
+                        radius: [0, 6, 6, 0],
                       }}
                     />
                   </BarChart>

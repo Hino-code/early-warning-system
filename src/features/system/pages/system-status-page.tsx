@@ -501,18 +501,18 @@ export function SystemStatus() {
                 <div className="h-[300px] w-full">
                    <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={systemMetrics} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.4} />
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.2} />
                       <XAxis 
                         dataKey="time" 
                         axisLine={false} 
                         tickLine={false} 
-                        tick={{ fill: "var(--muted-foreground)", fontSize: 12 }} 
+                        tick={{ fill: "var(--muted-foreground)", fontSize: 11 }} 
                         dy={10} 
                       />
                       <YAxis 
                         axisLine={false} 
                         tickLine={false} 
-                        tick={{ fill: "var(--muted-foreground)", fontSize: 12 }} 
+                        tick={{ fill: "var(--muted-foreground)", fontSize: 11 }} 
                       />
                       <Tooltip 
                          contentStyle={{ 
@@ -529,6 +529,7 @@ export function SystemStatus() {
                         strokeWidth={3} 
                         dot={false}
                         activeDot={{ r: 6, strokeWidth: 0, fill: chartColors.chart1 }}
+                        strokeOpacity={0.9}
                       />
                        <Line 
                         type="monotone" 
@@ -537,6 +538,7 @@ export function SystemStatus() {
                         strokeWidth={3} 
                         dot={false}
                         activeDot={{ r: 6, strokeWidth: 0, fill: chartColors.chart2 }}
+                        strokeOpacity={0.9}
                       />
                     </LineChart>
                   </ResponsiveContainer>

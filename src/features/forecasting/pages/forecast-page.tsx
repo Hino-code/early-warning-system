@@ -274,6 +274,12 @@ export function ForecastEarlyWarning() {
       if (d.upperBound !== null) allValues.push(d.upperBound);
     });
 
+    // Always include threshold values to ensure they're visible
+    allValues.push(
+      referenceLines.economicThreshold,
+      referenceLines.economicInjuryLevel
+    );
+
     if (allValues.length === 0) return [0, 100];
 
     const min = Math.min(...allValues);
@@ -283,7 +289,7 @@ export function ForecastEarlyWarning() {
 
     // Round to integers to prevent decimal ticks on Y-axis
     return [Math.max(0, Math.floor(min - padding)), Math.ceil(max + padding)];
-  }, [combinedData]);
+  }, [combinedData, referenceLines]);
 
   // Find the index where forecast starts (for vertical divider)
   const forecastStartIndex = useMemo(() => {
@@ -760,23 +766,23 @@ export function ForecastEarlyWarning() {
       </div>
 
       {/* Forecast Visualization with Confidence Bands */}
-      <Card className="p-4">
-        <div className="mb-3 space-y-2">
+      <Card className="p-4 rounded-xl border-border bg-card shadow-sm">
+        <div className="mb-6 space-y-1">
           <div>
-            <h3 className="font-medium text-base">
+            <h3 className="font-semibold text-lg text-foreground">
               SARIMA Forecast with Confidence Interval
             </h3>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               Historical data (last {historicalDateRange} days) + {forecastDays}
               -day prediction with upper/lower bounds
             </p>
           </div>
 
           {/* Risk Level and Suggested Action Display */}
-          <div className="flex flex-wrap items-center gap-3 p-2 rounded-lg bg-muted/30 border border-border">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-medium text-muted-foreground">
-                Next {forecastDays} Days Risk Level:
+          <div className="flex flex-wrap items-center gap-3 pt-3">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-secondary/40 border border-border/50">
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                Next {forecastDays} Days Risk:
               </span>
               <Badge
                 variant={
@@ -786,33 +792,42 @@ export function ForecastEarlyWarning() {
                     ? "default"
                     : "outline"
                 }
-                className={
+                className={`text-xs px-2 py-0.5 ${
                   riskMetrics.riskLevel === "Moderate"
-                    ? "bg-warning text-warning-foreground"
+                    ? "bg-amber-100 text-amber-700 hover:bg-amber-200 border-amber-200"
                     : ""
-                }
+                }`}
               >
                 {riskMetrics.riskLevel.toUpperCase()}
               </Badge>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-medium text-muted-foreground">
-                Model Uncertainty:
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-secondary/40 border border-border/50">
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                Uncertainty:
               </span>
-              <Badge variant="outline">
-                {riskMetrics.confidenceLevel === "Low"
-                  ? "High Range"
-                  : riskMetrics.confidenceLevel === "Medium"
-                  ? "Moderate Range"
-                  : "Low Range"}
-              </Badge>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-medium text-muted-foreground">
-                Suggested Action:
+              <span
+                className={`text-xs font-bold ${
+                  riskMetrics.confidenceLevel === "High"
+                    ? "text-emerald-600"
+                    : riskMetrics.confidenceLevel === "Medium"
+                    ? "text-amber-600"
+                    : "text-rose-600"
+                }`}
+              >
+                {riskMetrics.confidenceLevel}
               </span>
-              <span className="text-xs font-semibold">{suggestedAction}</span>
             </div>
+
+            {suggestedAction && (
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-secondary/40 border border-border/50">
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                  Suggested Action:
+                </span>
+                <span className="text-xs font-bold text-foreground">
+                  {suggestedAction}
+                </span>
+              </div>
+            )}
           </div>
         </div>
         <ResponsiveContainer width="100%" height={380}>
@@ -888,163 +903,123 @@ export function ForecastEarlyWarning() {
                 value: "Pest Count",
                 angle: -90,
                 position: "insideLeft",
-                style: { fontSize: 11, fill: chartColors.muted },
+                style: { fontSize: 12, fill: chartColors.muted },
               }}
             />
-            <Tooltip content={<ForecastTooltip />} />
-            <Legend
-              verticalAlign="top"
-              height={28}
-              iconType="line"
-              formatter={(value, entry) => {
-                // Custom icon for Confidence Interval
-                if (value === "95% Confidence Interval") {
-                  return (
-                    <span
-                      style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "4px",
-                      }}
-                    >
-                      <span
-                        style={{
-                          display: "inline-block",
-                          width: "12px",
-                          height: "12px",
-                          backgroundColor: entry.color || chartColors.chart2,
-                          borderRadius: "2px",
-                        }}
-                      />
-                      {value}
-                    </span>
-                  );
-                }
-                return value;
-              }}
-            />
-
-            {/* Operational Baseline - thin solid gray line */}
-            <ReferenceLine
-              y={referenceLines.operationalBaseline}
-              stroke={chartColors.muted}
-              strokeWidth={1}
-            />
-
-            {/* Economic Threshold (ET) - red dashed line */}
-            <ReferenceLine
-              y={referenceLines.economicThreshold}
-              stroke={chartColors.destructive}
-              strokeDasharray="5 5"
-              strokeWidth={2}
-              label={{
-                value: "ET",
-                fill: chartColors.destructive,
-                fontSize: 11,
-                position: "right",
-                offset: 10,
-                fontWeight: "500",
-              }}
-            />
-
-            {/* Economic Injury Level (EIL) - dark red solid line */}
-            <ReferenceLine
-              y={referenceLines.economicInjuryLevel}
-              stroke="#dc2626"
-              strokeWidth={2}
-              label={{
-                value: "EIL",
-                fill: "#dc2626",
-                fontSize: 11,
-                position: "right",
-                offset: 10,
-                fontWeight: "500",
-              }}
-            />
-
-            {/* Vertical divider at forecast start - Clear Forecast Boundary */}
-            {forecastStartIndex >= 0 && (
-              <ReferenceLine
-                x={combinedData[forecastStartIndex]?.date}
-                stroke={chartColors.muted}
-                strokeDasharray="4 4"
-                strokeWidth={2}
-                label={{
-                  value: "Forecast Starts",
-                  fill: chartColors.muted,
-                  fontSize: 11,
-                  position: "top",
-                  offset: 8,
-                  fontWeight: "500",
-                }}
-              />
-            )}
-
-            {/* Confidence interval band (shaded area) - Reduced visual dominance */}
             <Area
               type="monotone"
               dataKey="confidenceLower"
-              stackId="confidenceBand"
+              stackId="cb"
               stroke="none"
               fill="transparent"
+              connectNulls={false}
+              legendType="none"
+              tooltipType="none"
               isAnimationActive={false}
             />
             <Area
               type="monotone"
               dataKey="confidenceBandHeight"
-              stackId="confidenceBand"
+              stackId="cb"
               stroke="none"
-              fill={chartColors.chart2}
-              fillOpacity={0.2}
-              isAnimationActive={false}
+              fill="#9333ea"
+              fillOpacity={0.08}
               name="95% Confidence Interval"
-              legendType="rect"
+              connectNulls={false}
+              isAnimationActive={false}
             />
 
-            {/* Historical actual data - solid blue line */}
-            <Line
+            <Area
               type="monotone"
               dataKey="actual"
-              stroke="#3b82f6"
-              strokeWidth={3}
-              dot={{ r: 3, fill: "#3b82f6" }}
-              name="Historical"
+              stroke="#2563eb"
+              strokeWidth={2}
+              fill="url(#historicalMainGradient)"
+              name="Historical Data"
               connectNulls={false}
-              strokeOpacity={1}
+              activeDot={{ r: 4, strokeWidth: 2 }}
             />
-
-            {/* Forecast prediction - dashed line with threshold-aware dot highlighting */}
-            <Line
+            <Area
               type="monotone"
               dataKey="predicted"
-              stroke={chartColors.chart2}
-              strokeWidth={3}
-              strokeDasharray="8 4"
+              stroke="#9333ea"
+              strokeWidth={2}
+              strokeDasharray="4 4"
+              fill="url(#forecastMainGradient)"
               dot={<ThresholdAwareDot />}
-              name={`Forecast (${forecastDays} days)`}
+              activeDot={{ r: 5, strokeWidth: 2 }}
+              name="Forecast Prediction"
               connectNulls={false}
-              strokeOpacity={1}
             />
 
-            {/* Subtle background tint for forecast region */}
-            {forecastStartIndex >= 0 && (
-              <Area
-                type="monotone"
-                dataKey={(entry: any) => {
-                  const idx = combinedData.indexOf(entry);
-                  if (idx >= forecastStartIndex) {
-                    return yAxisDomain[1];
-                  }
-                  return null;
-                }}
+            {/* Threshold Lines - Rendered on top */}
+            <ReferenceLine
+              y={referenceLines.economicThreshold}
+              stroke={chartColors.warning}
+              strokeDasharray="4 4"
+              strokeWidth={1.5}
+              label={{
+                value: "Economic Threshold",
+                position: "insideTopRight",
+                fill: chartColors.warning,
+                fontSize: 10,
+                fontWeight: 600,
+                dy: -10
+              }}
+            />
+            <ReferenceLine
+              y={referenceLines.economicInjuryLevel}
+              stroke={chartColors.destructive}
+              strokeDasharray="4 4"
+              strokeWidth={1.5}
+              label={{
+                value: "Economic Injury Level",
+                position: "insideTopRight",
+                fill: chartColors.destructive,
+                fontSize: 10,
+                fontWeight: 600,
+                dy: -10
+              }}
+            />
+
+            <Tooltip content={<ForecastTooltip />} />
+            <Legend verticalAlign="top" height={36} />
+            {forecastStartIndex !== -1 && (
+              <>
+              <ReferenceArea
+                x1={combinedData[forecastStartIndex]?.date}
+                x2={combinedData[combinedData.length - 1]?.date}
+                y1={0}
+                y2={
+                  yAxisDomain && yAxisDomain.length > 1
+                    ? yAxisDomain[1]
+                    : undefined
+                }
                 stroke="transparent"
                 fill="url(#forecastRegionTint)"
                 isAnimationActive={false}
               />
+              <ReferenceLine
+                  x={combinedData[forecastStartIndex]?.date}
+                  stroke={chartColors.muted}
+                  strokeDasharray="3 3"
+                  strokeOpacity={0.5}
+                  label={{
+                    value: "FORECAST START",
+                    fill: chartColors.muted,
+                    fontSize: 9,
+                    position: "insideTopLeft",
+                    fontWeight: 600,
+                    angle: -90,
+                    offset: 10
+                  }}
+                />
+              </>
             )}
           </ComposedChart>
         </ResponsiveContainer>
       </Card>
+
 
       {/* Forecast Confidence & Seasonal Insights */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
