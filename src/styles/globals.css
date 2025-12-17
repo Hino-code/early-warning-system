@@ -18,9 +18,9 @@
   --popover: #ffffff;
   --popover-foreground: #18181b;
 
-  /* Brand: Sophisticated Indigo */
-  --primary: #5e6ad2;
-  /* Linear-esque Indigo */
+  /* Brand: Sophisticated Teal (Pesti) */
+  --primary: #0D9488;
+  /* Teal 600 */
   --primary-foreground: #ffffff;
 
   --secondary: #f4f4f5;
@@ -59,8 +59,8 @@
   --info-foreground: #ffffff;
 
   /* Data Visualization - Curated Palette */
-  --chart-1: #5e6ad2;
-  /* Indigo */
+  --chart-1: #0D9488;
+  /* Teal */
   --chart-2: #22c55e;
   /* Emerald */
   --chart-3: #f97316;
@@ -78,19 +78,21 @@
   --input-background: #ffffff;
   --switch-background: #e4e4e7;
 
-  --ring: #5e6ad2;
+  --ring: #0D9488;
   /* Match primary */
-  --radius: 0.5rem;
+  --radius: 0.75rem;
   /* Slightly tighter radius for cleaner look */
 
   --sidebar: #f8fafc;
   --sidebar-foreground: #18181b;
-  --sidebar-primary: #5e6ad2;
+  --sidebar-primary: #0D9488;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #e2e8f0;
-  --sidebar-accent-foreground: #18181b;
+  --sidebar-accent: rgba(13, 148, 136, 0.1);
+  /* Subtle Teal Tint */
+  --sidebar-accent-foreground: #0D9488;
+  /* Teal Text */
   --sidebar-border: #e4e4e7;
-  --sidebar-ring: #5e6ad2;
+  --sidebar-ring: #0D9488;
 
   /* Logo Colors - Light Mode */
   --logo-teal: #0D9488;
@@ -103,7 +105,7 @@
 /* Global Chart Glow & Smoothness */
 .recharts-cylinder-rectangle,
 .recharts-line-curve {
-  filter: drop-shadow(0 4px 6px rgba(94, 106, 210, 0.15));
+  filter: drop-shadow(0 4px 6px rgba(13, 148, 136, 0.15));
   /* Colored shadow matching primary */
   transition: all 0.3s ease;
 }
@@ -113,7 +115,7 @@
 }
 
 .recharts-active-dot circle {
-  filter: drop-shadow(0 0 8px rgba(94, 106, 210, 0.4));
+  filter: drop-shadow(0 0 8px rgba(13, 148, 136, 0.4));
 }
 
 .dark {
@@ -131,8 +133,8 @@
   --popover: #121215;
   --popover-foreground: #fafafa;
 
-  --primary: #6366f1;
-  /* Indigo 500 */
+  --primary: #2DD4BF;
+  /* Teal 400 */
   --primary-foreground: #ffffff;
 
   --secondary: #27272a;
@@ -169,7 +171,8 @@
   --info-foreground: #09090b;
 
   /* Chart Colors - Neon/Glow */
-  --chart-1: #6366f1;
+  --chart-1: #2DD4BF;
+  /* Teal 400 */
   --chart-2: #34d399;
   --chart-3: #fb923c;
   --chart-4: #a78bfa;
@@ -181,16 +184,16 @@
   --input: #27272a;
   --input-background: #18181b;
   --switch-background: #27272a;
-  --ring: #6366f1;
+  --ring: #2DD4BF;
 
   --sidebar: #18181b;
   --sidebar-foreground: #fafafa;
-  --sidebar-primary: #6366f1;
+  --sidebar-primary: #2DD4BF;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #27272a;
-  --sidebar-accent-foreground: #fafafa;
+  --sidebar-accent: rgba(45, 212, 191, 0.1);
+  --sidebar-accent-foreground: #2DD4BF;
   --sidebar-border: #27272a;
-  --sidebar-ring: #6366f1;
+  --sidebar-ring: #2DD4BF;
 
   /* Logo Colors - Dark Mode (lighter/brighter versions) */
   --logo-teal: #14b8a6;
