@@ -68,14 +68,18 @@ export function ThresholdActions() {
   ];
 
   const { observations: storeObservations, initialize } = useDashboardStore();
-  
+
   useEffect(() => {
     initialize();
   }, [initialize]);
 
   const allObservations = storeObservations;
   const filteredData = useMemo(
-    () => filterObservations(allObservations, { ...filters, dateRange: filters.dateRange || undefined }),
+    () =>
+      filterObservations(allObservations, {
+        ...filters,
+        dateRange: filters.dateRange || undefined,
+      }),
     [allObservations, filters]
   );
 
@@ -114,10 +118,12 @@ export function ThresholdActions() {
     };
 
     filteredData.forEach((obs) => {
-      if (obs.actionTaken) {
-        seasons[obs.season].taken++;
-      } else {
-        seasons[obs.season].notTaken++;
+      if (seasons[obs.season]) {
+        if (obs.actionTaken) {
+          seasons[obs.season].taken++;
+        } else {
+          seasons[obs.season].notTaken++;
+        }
       }
     });
 
@@ -129,23 +135,28 @@ export function ThresholdActions() {
     const stages: Record<
       string,
       { stage: string; taken: number; notTaken: number; actionRate: number }
-    > = {
-      Seedling: { stage: "Seedling", taken: 0, notTaken: 0, actionRate: 0 },
-      Vegetative: { stage: "Vegetative", taken: 0, notTaken: 0, actionRate: 0 },
-      Reproductive: {
-        stage: "Reproductive",
-        taken: 0,
-        notTaken: 0,
-        actionRate: 0,
-      },
-      Ripening: { stage: "Ripening", taken: 0, notTaken: 0, actionRate: 0 },
-    };
+    > = {};
 
+    // Initialize stages dynamically from observations
     filteredData.forEach((obs) => {
-      if (obs.actionTaken) {
-        stages[obs.fieldStage].taken++;
-      } else {
-        stages[obs.fieldStage].notTaken++;
+      if (!stages[obs.fieldStage]) {
+        stages[obs.fieldStage] = {
+          stage: obs.fieldStage,
+          taken: 0,
+          notTaken: 0,
+          actionRate: 0,
+        };
+      }
+    });
+
+    // Count actions by stage
+    filteredData.forEach((obs) => {
+      if (stages[obs.fieldStage]) {
+        if (obs.actionTaken) {
+          stages[obs.fieldStage].taken++;
+        } else {
+          stages[obs.fieldStage].notTaken++;
+        }
       }
     });
 
@@ -207,7 +218,7 @@ export function ThresholdActions() {
           day: "numeric",
           year: "numeric",
         }),
-        location: o.location,
+        location: o.location || "N/A",
         pestType: o.pestType,
         count: o.count,
         threshold: o.threshold,
@@ -582,7 +593,7 @@ export function ThresholdActions() {
                 {highRiskNoAction.map((event, idx) => (
                   <TableRow key={idx}>
                     <TableCell>{event.date}</TableCell>
-                    <TableCell>{event.location}</TableCell>
+                    <TableCell>{event.location || "N/A"}</TableCell>
                     <TableCell>{event.pestType}</TableCell>
                     <TableCell className="text-right font-semibold">
                       {event.count}

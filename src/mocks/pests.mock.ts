@@ -1,99 +1,185 @@
-import type { PestObservation } from "@/shared/lib/data-service";
+import type { PestObservation, FieldStage, Season } from "@/shared/types/data";
 
-export const generateObservations = (): PestObservation[] => {
-  const observations: PestObservation[] = [];
-  const locations = ['Bual Norte', 'Poblacion', 'Bual Sur', 'Upper Glad', 'San Isidro', 'Lower Glad', 'Kiwanan'];
-  const pestTypes: Array<'Black Rice Bug'> = ['Black Rice Bug'];
+// Cache for generated observations
+let cachedObservations: PestObservation[] | null = null;
 
-  let id = 1;
-  const today = new Date();
+// All 7 field stages from CSV
+const FIELD_STAGES: FieldStage[] = [
+  "Seedling",
+  "Vegetative",
+  "Reproductive",
+  "Ripening",
+  "Harvest",
+  "Fallow",
+  "Land Prep",
+  "Nursery",
+];
 
-  // Generate data for the last 12 months up to today + some future days for forecasts context if needed, 
-  // but predominantly we need history for trends.
-  // Let's go back 365 days.
-  const startDate = new Date(today);
-  startDate.setDate(today.getDate() - 365);
+// Field stage weights - matching CSV patterns where certain stages are more common
+const FIELD_STAGE_WEIGHTS = [0.05, 0.25, 0.25, 0.20, 0.10, 0.05, 0.05, 0.05];
 
-  const totalDays = 365 + 7; // Go a week into future just in case
+/**
+ * Get season based on month (matching CSV logic)
+ * Dry: Nov-Apr (months 11, 12, 1, 2, 3, 4)
+ * Wet: May-Oct (months 5, 6, 7, 8, 9, 10)
+ */
+function getSeason(date: Date): Season {
+  const month = date.getMonth() + 1; // getMonth() returns 0-11
+  return month >= 5 && month <= 10 ? "Wet" : "Dry";
+}
 
-  for (let i = 0; i < totalDays; i += 3) {
-    const date = new Date(startDate);
-    date.setDate(startDate.getDate() + i);
-
-    // Stop if we go too far into the future (keep it realistic to "now")
-    if (date > new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000)) break;
-
-    const month = date.getMonth(); // 0-11
-
-    // Season logic: Dry (Nov-Apr), Wet (May-Oct) roughly
-    // month 0=Jan, 1=Feb, 2=Mar, 3=Apr (Dry)
-    // 4=May... 9=Oct (Wet)
-    // 10=Nov, 11=Dec (Dry)
-    const season = (month >= 10 || month <= 3) ? 'Dry' : 'Wet';
-
-    // Field Stage logic: simplified cycle based on month
-    // Let's keep the modulo logic but based on the month of the generated date
-    let fieldStage: 'Seedling' | 'Vegetative' | 'Reproductive' | 'Ripening';
-    const monthMod = month % 4;
-    if (monthMod === 0) fieldStage = 'Seedling';
-    else if (monthMod === 1) fieldStage = 'Vegetative';
-    else if (monthMod === 2) fieldStage = 'Reproductive';
-    else fieldStage = 'Ripening';
-
-    for (const location of locations) {
-      for (const pestType of pestTypes) {
-        // Randomly skip some observations to vary the "Total Observations" count week-over-week
-        // This ensures the trend isn't always 0%
-        if (Math.random() > 0.9) continue;
-
-        let baseCount = Math.floor(Math.random() * 60) + 10;
-        if (season === 'Wet') baseCount *= 1.5;
-        if (fieldStage === 'Reproductive') baseCount *= 1.4;
-        else if (fieldStage === 'Vegetative') baseCount *= 1.2;
-        baseCount *= 1.3;
-
-        // Add some "trend" randomness
-        // e.g. if it's recent (last 30 days), maybe spike it up or down to show interesting KPIs
-        const daysFromToday = (today.getTime() - date.getTime()) / (1000 * 60 * 60 * 24);
-        if (daysFromToday < 14 && daysFromToday > 0) {
-          // Create a "Good Trend" scenario for demo purposes
-          // "This week" (0-7 days) should be LOWER than "Last week" (7-14 days) to show improvement
-          if (daysFromToday < 7) {
-            baseCount *= 0.7; // 30% reduction in pests vs last week
-          } else {
-            baseCount *= 1.1; // Last week was higher
-          }
-        }
-
-        const count = Math.floor(baseCount);
-        const threshold = 50;
-        const aboveThreshold = count > threshold;
-
-        // Increase action rate for this week to show "Positive Action Trend"
-        const isThisWeek = daysFromToday < 7 && daysFromToday > 0;
-        const actionChance = aboveThreshold ? (isThisWeek ? 0.8 : 0.4) : 0.1;
-        const actionTaken = Math.random() < actionChance;
-
-        observations.push({
-          id: `OBS-${id.toString().padStart(4, '0')}`,
-          date: date.toISOString().split('T')[0],
-          pestType,
-          count,
-          threshold,
-          aboveThreshold,
-          season,
-          fieldStage,
-          location,
-          actionTaken,
-          actionType: actionTaken ? ['Chemical Spray', 'Biological Control', 'Manual Removal'][Math.floor(Math.random() * 3)] : undefined,
-          actionDate: actionTaken ? new Date(date.getTime() + Math.random() * 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] : undefined
-        });
-
-        id++;
-      }
+/**
+ * Get random field stage based on weighted distribution
+ */
+function getRandomFieldStage(): FieldStage {
+  const random = Math.random();
+  let cumulative = 0;
+  for (let i = 0; i < FIELD_STAGES.length; i++) {
+    cumulative += FIELD_STAGE_WEIGHTS[i];
+    if (random <= cumulative) {
+      return FIELD_STAGES[i];
     }
   }
+  return FIELD_STAGES[FIELD_STAGES.length - 1];
+}
 
+/**
+ * Generate random pest count (0-25 range, matching CSV patterns)
+ * Most values are in 0-12 range, with occasional higher values
+ */
+function generatePestCount(): number {
+  const random = Math.random();
+  if (random < 0.5) {
+    // 50% chance: 0-5 range
+    return Math.floor(Math.random() * 6);
+  } else if (random < 0.8) {
+    // 30% chance: 5-12 range
+    return 5 + Math.floor(Math.random() * 8);
+  } else if (random < 0.95) {
+    // 15% chance: 12-20 range
+    return 12 + Math.floor(Math.random() * 9);
+  } else {
+    // 5% chance: 20-25 range
+    return 20 + Math.floor(Math.random() * 6);
+  }
+}
+
+/**
+ * Calculate threshold status based on pest count (matching CSV logic)
+ * - Count < 5: Below Threshold (threshold: 5, aboveThreshold: false)
+ * - Count >= 5 and < 10: Economic Threshold (threshold: 5, aboveThreshold: true)
+ * - Count >= 10: Economic Damage (threshold: 10, aboveThreshold: true)
+ */
+function calculateThreshold(count: number): { threshold: number; aboveThreshold: boolean } {
+  if (count < 5) {
+    return { threshold: 5, aboveThreshold: false };
+  } else if (count < 10) {
+    return { threshold: 5, aboveThreshold: true };
+  } else {
+    return { threshold: 10, aboveThreshold: true };
+  }
+}
+
+/**
+ * Determine if action was taken based on threshold status (matching CSV patterns)
+ * - Higher probability when above threshold (~60-80%)
+ * - Lower probability when below threshold (~10-20%)
+ */
+function shouldTakeAction(aboveThreshold: boolean): boolean {
+  if (aboveThreshold) {
+    return Math.random() < 0.7; // 70% chance when above threshold
+  } else {
+    return Math.random() < 0.15; // 15% chance when below threshold
+  }
+}
+
+/**
+ * Format date as YYYY-MM-DD string
+ */
+function formatDate(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+/**
+ * Generate mock observations matching CSV structure and characteristics
+ * - All 7 field stages
+ * - Threshold values: 5 (Economic Threshold), 10 (Economic Damage)
+ * - Date range: Last 2-3 years
+ * - Pest count ranges: 0-25 (matching CSV patterns)
+ * - Season logic: Dry (Nov-Apr), Wet (May-Oct)
+ * - Location: undefined for all records
+ * - Action mapping based on threshold status
+ */
+export const generateObservations = (): PestObservation[] => {
+  // If already cached, return immediately
+  if (cachedObservations) {
+    return cachedObservations;
+  }
+
+  const observations: PestObservation[] = [];
+  const today = new Date();
+  const startDate = new Date(today);
+  startDate.setFullYear(today.getFullYear() - 2); // 2-3 years back
+
+  // Generate observations - approximately 2-3 observations per week
+  const totalDays = Math.floor((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+  const observationsCount = Math.floor(totalDays * 0.3); // ~2-3 per week
+
+  let idCounter = 1;
+
+  for (let i = 0; i < observationsCount; i++) {
+    // Distribute dates evenly across the time range
+    const daysOffset = Math.floor((i / observationsCount) * totalDays);
+    const observationDate = new Date(startDate);
+    observationDate.setDate(observationDate.getDate() + daysOffset);
+
+    // Add some randomness to dates (±3 days) for more natural distribution
+    const randomOffset = Math.floor(Math.random() * 7) - 3;
+    observationDate.setDate(observationDate.getDate() + randomOffset);
+
+    // Skip if date is in the future
+    if (observationDate > today) {
+      continue;
+    }
+
+    const pestCount = generatePestCount();
+    const { threshold, aboveThreshold } = calculateThreshold(pestCount);
+    const actionTaken = shouldTakeAction(aboveThreshold);
+
+    const observation: PestObservation = {
+      id: `OBS-${idCounter.toString().padStart(4, "0")}`,
+      date: formatDate(observationDate),
+      pestType: "Black Rice Bug",
+      count: pestCount,
+      threshold,
+      aboveThreshold,
+      season: getSeason(observationDate),
+      fieldStage: getRandomFieldStage(),
+      location: undefined, // Matching CSV - no location data
+      actionTaken,
+      actionType: undefined, // Matching CSV - no specific action type
+      actionDate: actionTaken ? formatDate(observationDate) : undefined,
+    };
+
+    observations.push(observation);
+    idCounter++;
+  }
+
+  // Sort by date (oldest first)
+  observations.sort((a, b) => a.date.localeCompare(b.date));
+
+  cachedObservations = observations;
+  console.log(`Generated ${observations.length} mock observations matching CSV structure`);
   return observations;
+};
+
+/**
+ * Get observations with async support for backward compatibility
+ */
+export const getObservationsAsync = async (): Promise<PestObservation[]> => {
+  return Promise.resolve(generateObservations());
 };
 

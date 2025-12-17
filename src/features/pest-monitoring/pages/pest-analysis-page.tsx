@@ -57,14 +57,18 @@ export function PestAnalysis() {
   const chartColors = useChartColors();
 
   const { observations: storeObservations, initialize } = useDashboardStore();
-  
+
   useEffect(() => {
     initialize();
   }, [initialize]);
 
   const allObservations = storeObservations;
   const filteredData = useMemo(
-    () => filterObservations(allObservations, { ...filters, dateRange: filters.dateRange || undefined }),
+    () =>
+      filterObservations(allObservations, {
+        ...filters,
+        dateRange: filters.dateRange || undefined,
+      }),
     [allObservations, filters]
   );
 
@@ -121,8 +125,10 @@ export function PestAnalysis() {
     };
 
     filteredData.forEach((obs) => {
-      seasonal[obs.season].count += 1;
-      seasonal[obs.season].rbb += obs.count;
+      if (seasonal[obs.season]) {
+        seasonal[obs.season].count += 1;
+        seasonal[obs.season].rbb += obs.count;
+      }
     });
 
     const currentSeason =
@@ -146,16 +152,25 @@ export function PestAnalysis() {
     const stages: Record<
       string,
       { stage: string; rbb: number; count: number }
-    > = {
-      Seedling: { stage: "Seedling", rbb: 0, count: 0 },
-      Vegetative: { stage: "Vegetative", rbb: 0, count: 0 },
-      Reproductive: { stage: "Reproductive", rbb: 0, count: 0 },
-      Ripening: { stage: "Ripening", rbb: 0, count: 0 },
-    };
+    > = {};
 
+    // Initialize stages dynamically from observations
     filteredData.forEach((obs) => {
-      stages[obs.fieldStage].count += 1;
-      stages[obs.fieldStage].rbb += obs.count;
+      if (!stages[obs.fieldStage]) {
+        stages[obs.fieldStage] = {
+          stage: obs.fieldStage,
+          rbb: 0,
+          count: 0,
+        };
+      }
+    });
+
+    // Count observations by stage
+    filteredData.forEach((obs) => {
+      if (stages[obs.fieldStage]) {
+        stages[obs.fieldStage].count += 1;
+        stages[obs.fieldStage].rbb += obs.count;
+      }
     });
 
     return Object.values(stages).map((s) => ({

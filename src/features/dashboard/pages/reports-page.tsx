@@ -1,10 +1,5 @@
-import { useState } from "react";
-import {
-  fieldPerformance,
-  monthlyTrends,
-  pestDistribution,
-  weeklyReports,
-} from "@/mocks/dashboard.mock";
+import { useState, useEffect, useMemo } from "react";
+import { useDashboardStore } from "@/state/store";
 import { useChartColors } from "@/shared/hooks/use-chart-colors";
 import { Card } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
@@ -68,10 +63,243 @@ export function Reports() {
   const [dateRange, setDateRange] = useState("6months");
   const [reportType, setReportType] = useState("summary");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(
-
     new Date()
   );
   const chartColors = useChartColors();
+
+  const observations = useDashboardStore((state) => state.observations);
+  const initialize = useDashboardStore((state) => state.initialize);
+
+  useEffect(() => {
+    initialize();
+  }, [initialize]);
+
+  // Helper function to get date range based on selection
+  const getDateRange = (range: string): { start: Date; end: Date } => {
+    const end = new Date();
+    const start = new Date();
+
+    switch (range) {
+      case "1month":
+        start.setMonth(start.getMonth() - 1);
+        break;
+      case "3months":
+        start.setMonth(start.getMonth() - 3);
+        break;
+      case "6months":
+        start.setMonth(start.getMonth() - 6);
+        break;
+      case "1year":
+        start.setFullYear(start.getFullYear() - 1);
+        break;
+      default:
+        start.setMonth(start.getMonth() - 6);
+    }
+
+    return { start, end };
+  };
+
+  // Filter observations based on selected date range
+  const filteredObservations = useMemo(() => {
+    const { start, end } = getDateRange(dateRange);
+    return observations.filter((obs) => {
+      const obsDate = new Date(obs.date);
+      return obsDate >= start && obsDate <= end;
+    });
+  }, [observations, dateRange]);
+
+  // Generate monthly trends from observations
+  const monthlyTrends = useMemo(() => {
+    const grouped: Record<
+      string,
+      { count: number; observations: number; fieldStages: Set<string> }
+    > = {};
+
+    filteredObservations.forEach((obs) => {
+      const date = new Date(obs.date);
+      const monthKey = date.toLocaleDateString("en-US", {
+        month: "short",
+        year: "numeric",
+      });
+
+      if (!grouped[monthKey]) {
+        grouped[monthKey] = {
+          count: 0,
+          observations: 0,
+          fieldStages: new Set(),
+        };
+      }
+
+      grouped[monthKey].count += obs.count;
+      grouped[monthKey].observations += 1;
+      grouped[monthKey].fieldStages.add(obs.fieldStage);
+    });
+
+    return Object.entries(grouped)
+      .map(([month, data]) => ({
+        month,
+        blackRiceBug: Math.round(data.count / data.observations),
+        totalDamage:
+          Math.round((data.count / data.observations) * 0.25 * 10) / 10, // Estimate damage as 0.25% per pest count
+        fieldsAffected: data.fieldStages.size,
+      }))
+      .sort((a, b) => {
+        const dateA = new Date(a.month);
+        const dateB = new Date(b.month);
+        return dateA.getTime() - dateB.getTime();
+      });
+  }, [filteredObservations]);
+
+  // Generate weekly reports from observations
+  const weeklyReports = useMemo(() => {
+    const grouped: Record<
+      string,
+      {
+        date: string;
+        count: number;
+        observations: number;
+        alerts: number;
+        actions: number;
+        dates: string[];
+      }
+    > = {};
+
+    filteredObservations.forEach((obs) => {
+      const date = new Date(obs.date);
+      const weekStart = new Date(date);
+      weekStart.setDate(date.getDate() - date.getDay()); // Start of week (Sunday)
+      const weekKey = `Week ${Math.ceil(
+        (date.getTime() - new Date(date.getFullYear(), 0, 1).getTime()) /
+          (7 * 24 * 60 * 60 * 1000)
+      )}`;
+      const dateStr = obs.date;
+
+      if (!grouped[weekKey]) {
+        grouped[weekKey] = {
+          date: dateStr,
+          count: 0,
+          observations: 0,
+          alerts: 0,
+          actions: 0,
+          dates: [],
+        };
+      }
+
+      grouped[weekKey].count += obs.count;
+      grouped[weekKey].observations += 1;
+      if (obs.aboveThreshold) grouped[weekKey].alerts += 1;
+      if (obs.actionTaken) grouped[weekKey].actions += 1;
+      if (!grouped[weekKey].dates.includes(dateStr)) {
+        grouped[weekKey].dates.push(dateStr);
+      }
+    });
+
+    return Object.entries(grouped)
+      .map(([week, data]) => {
+        const avgCount = data.count / data.observations;
+        let damageLevel: "Low" | "Medium" | "High" = "Low";
+        if (avgCount >= 10) damageLevel = "High";
+        else if (avgCount >= 5) damageLevel = "Medium";
+
+        // Mock temperature and humidity (not available in observations)
+        const baseTemp = 28;
+        const baseHumidity = 75;
+        const tempVariation =
+          Math.sin(new Date(data.date).getTime() / 1000000) * 2;
+        const humidityVariation =
+          Math.cos(new Date(data.date).getTime() / 1000000) * 3;
+
+        return {
+          week,
+          date: data.dates[0] || data.date,
+          avgTemp: Math.round((baseTemp + tempVariation) * 10) / 10,
+          avgHumidity: Math.round(baseHumidity + humidityVariation),
+          pestAlerts: data.alerts,
+          damageLevel,
+          actionsTaken: data.actions,
+        };
+      })
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      .slice(-4); // Last 4 weeks
+  }, [filteredObservations]);
+
+  // Generate field performance from observations (grouped by field stage)
+  const fieldPerformance = useMemo(() => {
+    const grouped: Record<
+      string,
+      {
+        alerts: number;
+        totalCount: number;
+        observations: number;
+        actions: number;
+        lastTreatment?: string;
+      }
+    > = {};
+
+    filteredObservations.forEach((obs) => {
+      const stage = obs.fieldStage;
+
+      if (!grouped[stage]) {
+        grouped[stage] = {
+          alerts: 0,
+          totalCount: 0,
+          observations: 0,
+          actions: 0,
+        };
+      }
+
+      grouped[stage].totalCount += obs.count;
+      grouped[stage].observations += 1;
+      if (obs.aboveThreshold) grouped[stage].alerts += 1;
+      if (obs.actionTaken) {
+        grouped[stage].actions += 1;
+        if (
+          !grouped[stage].lastTreatment ||
+          (obs.actionDate && obs.actionDate > grouped[stage].lastTreatment!)
+        ) {
+          grouped[stage].lastTreatment = obs.actionDate || obs.date;
+        }
+      }
+    });
+
+    return Object.entries(grouped)
+      .map(([field, data]) => {
+        const avgDamage =
+          data.observations > 0
+            ? Math.round((data.totalCount / data.observations) * 0.25 * 10) / 10
+            : 0;
+        const efficiency =
+          data.alerts > 0
+            ? Math.round((data.actions / data.alerts) * 100)
+            : 100;
+
+        return {
+          field,
+          totalAlerts: data.alerts,
+          avgDamage,
+          efficiency,
+          lastTreatment: data.lastTreatment || "N/A",
+        };
+      })
+      .sort((a, b) => b.totalAlerts - a.totalAlerts);
+  }, [filteredObservations]);
+
+  // Generate pest distribution from observations
+  const pestDistribution = useMemo(() => {
+    const counts: Record<string, number> = {};
+
+    filteredObservations.forEach((obs) => {
+      counts[obs.pestType] = (counts[obs.pestType] || 0) + 1;
+    });
+
+    const total = Object.values(counts).reduce((sum, count) => sum + count, 0);
+
+    return Object.entries(counts).map(([name, count]) => ({
+      name,
+      value: total > 0 ? Math.round((count / total) * 100) : 0,
+      color: name === "Black Rice Bug" ? "#ef4444" : "#3b82f6",
+    }));
+  }, [filteredObservations]);
 
   const handleExport = (format: string) => {
     // Mock export functionality
@@ -215,58 +443,60 @@ export function Reports() {
             </Card>
           </div>
 
-            <Card className="p-6">
+          <Card className="p-6">
             <h3 className="mb-4">Monthly Summary Statistics</h3>
             {monthlyTrends.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Month</TableHead>
-                  <TableHead>Black Rice Bug</TableHead>
-                  <TableHead>Total Damage (%)</TableHead>
-                  <TableHead>Fields Affected</TableHead>
-                  <TableHead>Trend</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {monthlyTrends.map((month, index) => (
-                  <TableRow key={month.month}>
-                    <TableCell className="font-medium">{month.month}</TableCell>
-                    <TableCell>{month.blackRiceBug}</TableCell>
-                    <TableCell>
-                      <span
-                        className={
-                          month.totalDamage > 20
-                            ? "text-red-600"
-                            : month.totalDamage > 10
-                            ? "text-yellow-600"
-                            : "text-green-600"
-                        }
-                      >
-                        {month.totalDamage}%
-                      </span>
-                    </TableCell>
-                    <TableCell>{month.fieldsAffected}</TableCell>
-                    <TableCell>
-                      {index > 0 && (
-                        <div className="flex items-center">
-                          <TrendingUp
-                            className={`h-4 w-4 ${
-                              month.totalDamage >
-                              monthlyTrends[index - 1].totalDamage
-                                ? "text-red-500 rotate-0"
-                                : "text-green-500 rotate-180"
-                            }`}
-                          />
-                        </div>
-                      )}
-                    </TableCell>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Month</TableHead>
+                    <TableHead>Black Rice Bug</TableHead>
+                    <TableHead>Total Damage (%)</TableHead>
+                    <TableHead>Fields Affected</TableHead>
+                    <TableHead>Trend</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {monthlyTrends.map((month, index) => (
+                    <TableRow key={month.month}>
+                      <TableCell className="font-medium">
+                        {month.month}
+                      </TableCell>
+                      <TableCell>{month.blackRiceBug}</TableCell>
+                      <TableCell>
+                        <span
+                          className={
+                            month.totalDamage > 20
+                              ? "text-red-600"
+                              : month.totalDamage > 10
+                              ? "text-yellow-600"
+                              : "text-green-600"
+                          }
+                        >
+                          {month.totalDamage}%
+                        </span>
+                      </TableCell>
+                      <TableCell>{month.fieldsAffected}</TableCell>
+                      <TableCell>
+                        {index > 0 && (
+                          <div className="flex items-center">
+                            <TrendingUp
+                              className={`h-4 w-4 ${
+                                month.totalDamage >
+                                monthlyTrends[index - 1].totalDamage
+                                  ? "text-red-500 rotate-0"
+                                  : "text-green-500 rotate-180"
+                              }`}
+                            />
+                          </div>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             ) : (
-              <EmptyState 
+              <EmptyState
                 title="No Monthly Data"
                 description="There are no trend records for the selected period."
               />
@@ -281,7 +511,17 @@ export function Reports() {
                 <Activity className="h-5 w-5 text-green-500" />
                 <h3>Average Efficiency</h3>
               </div>
-              <div className="text-2xl font-bold">87.3%</div>
+              <div className="text-2xl font-bold">
+                {fieldPerformance.length > 0
+                  ? Math.round(
+                      fieldPerformance.reduce(
+                        (sum, f) => sum + f.efficiency,
+                        0
+                      ) / fieldPerformance.length
+                    )
+                  : 0}
+                %
+              </div>
               <p className="text-sm text-muted-foreground">Across all fields</p>
             </Card>
 
@@ -290,8 +530,15 @@ export function Reports() {
                 <Bug className="h-5 w-5 text-red-500" />
                 <h3>Total Alerts</h3>
               </div>
-              <div className="text-2xl font-bold">186</div>
-              <p className="text-sm text-muted-foreground">Last 6 months</p>
+              <div className="text-2xl font-bold">
+                {
+                  filteredObservations.filter((obs) => obs.aboveThreshold)
+                    .length
+                }
+              </div>
+              <p className="text-sm text-muted-foreground">
+                {dateRange === "6months" ? "Last 6 months" : `Selected period`}
+              </p>
             </Card>
 
             <Card className="p-6">
@@ -299,8 +546,22 @@ export function Reports() {
                 <TrendingUp className="h-5 w-5 text-blue-500" />
                 <h3>Best Performing Field</h3>
               </div>
-              <div className="text-2xl font-bold">B-3</div>
-              <p className="text-sm text-muted-foreground">98% efficiency</p>
+              <div className="text-2xl font-bold">
+                {fieldPerformance.length > 0
+                  ? fieldPerformance.sort(
+                      (a, b) => b.efficiency - a.efficiency
+                    )[0].field
+                  : "N/A"}
+              </div>
+              <p className="text-sm text-muted-foreground">
+                {fieldPerformance.length > 0
+                  ? `${
+                      fieldPerformance.sort(
+                        (a, b) => b.efficiency - a.efficiency
+                      )[0].efficiency
+                    }% efficiency`
+                  : "No data"}
+              </p>
             </Card>
           </div>
 
@@ -473,7 +734,12 @@ export function Reports() {
                     dataKey="value"
                   >
                     {pestDistribution.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={index === 0 ? chartColors.chart3 : chartColors.chart1} />
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={
+                          index === 0 ? chartColors.chart3 : chartColors.chart1
+                        }
+                      />
                     ))}
                   </Pie>
                   <Tooltip />
@@ -484,7 +750,10 @@ export function Reports() {
                   <div key={item.name} className="flex items-center space-x-2">
                     <div
                       className="w-3 h-3 rounded-full"
-                      style={{ backgroundColor: index === 0 ? chartColors.chart3 : chartColors.chart1 }}
+                      style={{
+                        backgroundColor:
+                          index === 0 ? chartColors.chart3 : chartColors.chart1,
+                      }}
                     />
                     <span className="text-sm">
                       {item.name} ({item.value}%)

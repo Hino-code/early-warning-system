@@ -152,6 +152,10 @@ export function SharedFilters({
                 <SelectItem value="Vegetative">Vegetative</SelectItem>
                 <SelectItem value="Reproductive">Reproductive</SelectItem>
                 <SelectItem value="Ripening">Ripening</SelectItem>
+                <SelectItem value="Harvest">Harvest</SelectItem>
+                <SelectItem value="Fallow">Fallow</SelectItem>
+                <SelectItem value="Land Prep">Land Prep</SelectItem>
+                <SelectItem value="Nursery">Nursery</SelectItem>
               </SelectContent>
             </Select>
           )}

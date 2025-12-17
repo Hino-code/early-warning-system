@@ -13,6 +13,9 @@ dist
 build
 .vite
 
+# Vercel
+.vercel
+
 # Uploads (user-generated content)
 server/uploads/*
 !server/uploads/.gitkeep

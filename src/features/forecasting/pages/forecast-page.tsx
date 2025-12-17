@@ -57,9 +57,9 @@ export function ForecastEarlyWarning() {
   const chartColors = useChartColors();
 
   // Custom dot component for threshold-aware highlighting
-  const ThresholdAwareDot = (props: DotProps) => {
+  const ThresholdAwareDot = (props: DotProps & { payload?: any }) => {
     const { cx, cy, payload } = props;
-    const exceedsThreshold = (payload as any)?.exceedsThreshold;
+    const exceedsThreshold = payload?.exceedsThreshold;
 
     if (cx === undefined || cy === undefined) return null;
 
@@ -589,7 +589,9 @@ export function ForecastEarlyWarning() {
             <label className="text-sm text-muted-foreground">Pest Type</label>
             <Select
               value={selectedPest}
-              onValueChange={(val) => setSelectedPest(val as any)}
+              onValueChange={(val: string) =>
+                setSelectedPest(val as "Black Rice Bug")
+              }
             >
               <SelectTrigger>
                 <SelectValue />
@@ -606,7 +608,7 @@ export function ForecastEarlyWarning() {
             </label>
             <Select
               value={forecastDays.toString()}
-              onValueChange={(val) => setForecastDays(parseInt(val))}
+              onValueChange={(val: string) => setForecastDays(parseInt(val))}
             >
               <SelectTrigger>
                 <SelectValue />

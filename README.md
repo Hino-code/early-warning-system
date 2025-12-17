@@ -45,7 +45,9 @@ Run `npm run dev` to start the development server.
 │   └── state/             # State management (Zustand)
 ├── server/                # Express.js backend
 │   └── src/               # Server source code
-├── build/                 # Production build output
+├── dist/                  # Production build output (Vercel)
+├── build/                 # Legacy build output
+├── vercel.json            # Vercel deployment configuration
 └── README.md
 ```
 
@@ -89,6 +91,38 @@ npm run dev:server
 # Both (recommended)
 npm run dev:all
 ```
+
+---
+
+## Deployment (Vercel)
+
+This project is configured for deployment on Vercel.
+
+### Quick Deploy
+
+1. Push your code to GitHub
+2. Import your repository in [Vercel](https://vercel.com)
+3. Vercel will auto-detect the Vite configuration
+4. Add environment variables in Vercel dashboard:
+   - `VITE_API_BASE_URL` - Your backend API URL (e.g., `https://api.example.com`)
+   - `VITE_USE_MOCKS` - Set to `false` for production
+
+### Environment Variables
+
+Create a `.env` file (or set in Vercel dashboard) with:
+
+```bash
+VITE_API_BASE_URL=https://your-api-url.com
+VITE_USE_MOCKS=false
+```
+
+### Build Configuration
+
+- **Build Command**: `npm run build`
+- **Output Directory**: `dist`
+- **Install Command**: `npm install`
+
+The `vercel.json` file is already configured for SPA routing, so all routes will correctly serve the React app.
 
 ---
 

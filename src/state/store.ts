@@ -88,8 +88,24 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
       let observations: PestObservation[] = [];
       let forecasts: ForecastData[] = [];
 
-      // Observations: Restore mock data as no backend API exists
+      // Observations: Load from mock data generator
       observations = dataService.getObservations();
+      
+      // Check if data loaded successfully
+      if (observations.length === 0) {
+        console.warn("No observations generated from mock data. Check mock data generator.");
+        const errorMsg = "No data available. Please check console for details.";
+        set({ 
+          error: errorMsg,
+          observations: [],
+          filteredObservations: [],
+          kpis: DEFAULT_KPIS,
+          loading: false 
+        });
+        return;
+      }
+      
+      console.log(`Loaded ${observations.length} observations from mock data generator`);
 
       // Forecasts: Fetch from real backend and map to frontend format
       try {
@@ -132,8 +148,10 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
         loading: false,
       });
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to load data";
+      console.error("Error in refreshData:", error);
       set({
-        error: error instanceof Error ? error.message : "Failed to load data",
+        error: errorMessage,
         loading: false,
       });
     }

@@ -4,7 +4,11 @@ export type FieldStage =
   | "Seedling"
   | "Vegetative"
   | "Reproductive"
-  | "Ripening";
+  | "Ripening"
+  | "Harvest"
+  | "Fallow"
+  | "Land Prep"
+  | "Nursery";
 
 export interface PestObservation {
   id: string;
@@ -15,7 +19,7 @@ export interface PestObservation {
   aboveThreshold: boolean;
   season: Season;
   fieldStage: FieldStage;
-  location: string;
+  location?: string;
   actionTaken: boolean;
   actionType?: string;
   actionDate?: string;

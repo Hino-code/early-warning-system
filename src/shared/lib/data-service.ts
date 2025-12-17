@@ -12,11 +12,25 @@ let cachedObservations: PestObservation[] | null = null;
 let cachedForecasts: ForecastData[] | null = null;
 let cachedAlerts: AlertRecord[] | null = null;
 
+/**
+ * Get observations from mock data generator
+ * Mock data is generated on-demand and cached for performance
+ */
 export const getObservations = (): PestObservation[] => {
-  if (!cachedObservations) {
-    cachedObservations = generateObservations();
+  if (cachedObservations && cachedObservations.length > 0) {
+    return cachedObservations;
   }
+  
+  cachedObservations = generateObservations();
   return cachedObservations;
+};
+
+/**
+ * Async version for backward compatibility
+ * Since CSV is now bundled, this is effectively synchronous
+ */
+export const getObservationsAsync = async (): Promise<PestObservation[]> => {
+  return Promise.resolve(getObservations());
 };
 
 export const getForecastData = (): ForecastData[] => {

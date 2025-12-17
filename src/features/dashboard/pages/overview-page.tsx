@@ -568,6 +568,7 @@ export function Overview() {
   };
 
   const contentReady = !loading && filteredData.length > 0;
+  const hasNoData = !loading && !error && filteredData.length === 0;
 
   const peakForecast = useMemo(() => {
     const predicted = forecasts
@@ -603,6 +604,15 @@ export function Overview() {
       )}
       {loading && !contentReady ? (
         <DashboardSkeleton />
+      ) : hasNoData ? (
+        <Card className="p-8 text-center border-border bg-background/50">
+          <p className="text-muted-foreground mb-2">No data available</p>
+          <p className="text-sm text-muted-foreground/70">
+            {error
+              ? "There was an error loading the data. Please check the console for details."
+              : "No observations match the current filters. Try adjusting your filter criteria."}
+          </p>
+        </Card>
       ) : (
         <div className="space-y-6">
           <div className="mb-6">
