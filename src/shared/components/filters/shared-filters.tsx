@@ -19,7 +19,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/shared/components/ui/collapsible";
-import { CalendarIcon, ChevronDown, Filter, X } from "lucide-react";
+import { Calendar as CalendarIcon, NavArrowDown, FilterList, Xmark } from "iconoir-react";
 import { format } from "date-fns";
 import type { DateRange as PickerDateRange } from "react-day-picker";
 import type { FilterValues } from "@/shared/types/filters";
@@ -239,9 +239,9 @@ export function SharedFilters({
               }
               aria-expanded={advancedOpen}
             >
-              <Filter className="h-3.5 w-3.5" />
+              <FilterList className="h-3.5 w-3.5" />
               Advanced
-              <ChevronDown
+              <NavArrowDown
                 className={`h-3.5 w-3.5 transition-transform ${
                   advancedOpen ? "rotate-180" : ""
                 }`}
@@ -257,7 +257,7 @@ export function SharedFilters({
               className="h-9"
               aria-label="Reset all filters to default values"
             >
-              <X className="h-3.5 w-3.5 mr-1" />
+              <Xmark className="h-3.5 w-3.5 mr-1" />
               Reset
             </Button>
           )}

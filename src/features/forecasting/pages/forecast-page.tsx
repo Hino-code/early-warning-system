@@ -29,13 +29,13 @@ import {
   Cell,
 } from "recharts";
 import {
-  TrendingUp,
-  AlertTriangle,
+  GraphUp,
+  WarningTriangle,
   Calendar,
-  Target,
+  Timer,
   Brain,
-  Zap,
-} from "lucide-react";
+  Flash,
+} from "iconoir-react";
 import {
   Alert,
   AlertDescription,
@@ -627,7 +627,7 @@ export function ForecastEarlyWarning() {
       {/* Risk Alert */}
       {riskMetrics.riskLevel === "High" && (
         <Alert variant="destructive">
-          <AlertTriangle className="h-4 w-4" />
+          <WarningTriangle className="h-4 w-4" />
           <AlertTitle>High Risk Alert</AlertTitle>
           <AlertDescription>
             Forecast indicates {riskMetrics.daysAboveThreshold} day(s) above
@@ -639,7 +639,7 @@ export function ForecastEarlyWarning() {
 
       {riskMetrics.riskLevel === "Moderate" && (
         <Alert className="border-warning bg-warning/10">
-          <AlertTriangle className="h-4 w-4 text-warning" />
+          <WarningTriangle className="h-4 w-4 text-warning" />
           <AlertTitle className="text-warning">Moderate Risk Alert</AlertTitle>
           <AlertDescription className="text-warning-foreground">
             Forecast shows elevated pest levels. Monitor closely and prepare
@@ -671,9 +671,9 @@ export function ForecastEarlyWarning() {
                 {riskMetrics.riskLevel}
               </Badge>
             </div>
-            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-              <AlertTriangle className="h-4 w-4 text-primary" />
-            </div>
+                  <div className="p-2 rounded-lg bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400">
+                    <WarningTriangle className="h-5 w-5" />
+                  </div>
           </div>
         </Card>
 
@@ -691,7 +691,7 @@ export function ForecastEarlyWarning() {
               </p>
             </div>
             <div className="h-8 w-8 rounded-full bg-destructive/10 flex items-center justify-center">
-              <Target className="h-4 w-4 text-destructive" />
+              <Timer className="h-4 w-4 text-destructive" />
             </div>
           </div>
         </Card>
@@ -708,7 +708,7 @@ export function ForecastEarlyWarning() {
               </p>
             </div>
             <div className="h-8 w-8 rounded-full bg-chart-3/10 flex items-center justify-center">
-              <Zap className="h-4 w-4 text-chart-3" />
+              <Flash className="h-4 w-4 text-chart-3" />
             </div>
           </div>
         </Card>
@@ -722,9 +722,9 @@ export function ForecastEarlyWarning() {
               </p>
               <p className="text-xs text-muted-foreground">Pest count</p>
             </div>
-            <div className="h-8 w-8 rounded-full bg-chart-2/10 flex items-center justify-center">
-              <TrendingUp className="h-4 w-4 text-chart-2" />
-            </div>
+                  <div className="p-2 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400">
+                    <GraphUp className="h-5 w-5" />
+                  </div>
           </div>
         </Card>
 
@@ -929,13 +929,6 @@ export function ForecastEarlyWarning() {
               y={referenceLines.operationalBaseline}
               stroke={chartColors.muted}
               strokeWidth={1}
-              label={{
-                value: "Baseline",
-                fill: chartColors.muted,
-                fontSize: 10,
-                position: "right",
-                offset: 10,
-              }}
             />
 
             {/* Economic Threshold (ET) - red dashed line */}
@@ -1164,10 +1157,12 @@ export function ForecastEarlyWarning() {
       {/* Recommended Actions */}
       <Card className="p-6">
         <div className="mb-4">
-          <h3 className="font-medium flex items-center gap-2">
-            <Target className="h-4 w-4" />
-            Recommended Actions & Alerts
-          </h3>
+          <div className="flex items-center gap-2">
+            <div className="p-2 rounded-full bg-indigo-100 text-indigo-600">
+              <Brain className="h-4 w-4" />
+            </div>
+            <h3 className="font-medium">Recommended Actions & Alerts</h3>
+          </div>
           <p className="text-sm text-muted-foreground">
             Proactive intervention recommendations based on forecast
           </p>

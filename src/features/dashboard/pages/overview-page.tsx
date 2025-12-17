@@ -23,7 +23,7 @@ import {
   ReferenceLine,
   ReferenceArea,
 } from "recharts";
-import { Droplets, Sprout, Trash2, AlertTriangle, Info } from "lucide-react";
+import { Droplet, Leaf, Trash, WarningTriangle, InfoCircle } from "iconoir-react";
 import type { TooltipProps, DotProps } from "recharts";
 import {
   chartAxisStyle,
@@ -979,13 +979,6 @@ export function Overview() {
                       y={operationalBaseline}
                       stroke={chartColors.muted}
                       strokeWidth={1}
-                      label={{
-                        value: "Baseline",
-                        fill: chartColors.muted,
-                        fontSize: 10,
-                        position: "right",
-                        offset: 10,
-                      }}
                     />
 
                     {/* Economic Threshold (ET) - red dashed line */}
@@ -1264,11 +1257,11 @@ export function Overview() {
                     >
                       {alert.priority === "high" ? (
                         <div className="mt-0.5 p-1.5 rounded-full bg-red-100/50 text-red-600 dark:bg-red-900/20 dark:text-red-400">
-                          <AlertTriangle className="h-4 w-4" />
+                          <WarningTriangle className="h-4 w-4" />
                         </div>
                       ) : (
                         <div className="mt-0.5 p-1.5 rounded-full bg-amber-100/50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400">
-                          <Info className="h-4 w-4" />
+                          <InfoCircle className="h-4 w-4" />
                         </div>
                       )}
                       <div>

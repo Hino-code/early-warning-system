@@ -34,7 +34,7 @@ import { Login } from "@/features/auth/pages/login-page";
 import { RegistrationPage } from "@/features/auth/pages/registration-page";
 import pestFullLogo from "@/assets/pest-logo-full.svg";
 import pestIconLogo from "@/assets/pest-logo-icon.svg";
-import { AlertTriangle, Bug, LogOut, User as UserIcon } from "lucide-react";
+import { WarningTriangle, Bug, LogOut, User as UserIcon } from "iconoir-react";
 import { useAuthStore } from "@/state/auth-store";
 import { Z_INDEX } from "@/shared/config/z-index";
 import {
@@ -465,7 +465,7 @@ function PendingApprovalNotice({ onLogout }: { onLogout: () => void }) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-muted/20 p-4">
       <Card className="max-w-md w-full p-6 space-y-4 text-center">
-        <AlertTriangle className="h-10 w-10 text-amber-500 mx-auto" />
+        <WarningTriangle className="h-10 w-10 text-amber-500 mx-auto" />
         <div className="space-y-1">
           <h2 className="text-xl font-semibold">Pending Admin Approval</h2>
           <p className="text-sm text-muted-foreground">

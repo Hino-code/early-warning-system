@@ -2,16 +2,13 @@ import type { ReactNode } from "react";
 import { Card } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
 import {
-  ArrowDownRight,
-  ArrowUpRight,
   Bug,
-  AlertTriangle,
-  Activity,
-  Target,
+  WarningTriangle,
+  GraphUp,
+  GraphDown,
+  Medal,
   Minus,
-  TrendingUp,
-  TrendingDown,
-} from "lucide-react";
+} from "iconoir-react";
 import type { KPIMetrics } from "@/shared/types/data";
 import { Area, AreaChart, ResponsiveContainer, YAxis } from "recharts";
 import { useChartColors } from "@/shared/hooks/use-chart-colors";
@@ -58,21 +55,21 @@ export function KpiCards({ kpis, insights }: KpiCardsProps) {
       <KpiCard
         title="Avg Pest Count"
         value={kpis.averagePestCount}
-        icon={Activity}
+        icon={GraphUp}
         insight={insights.avgCount}
       />
 
       <KpiCard
         title="Above Threshold"
         value={`${kpis.percentAboveThreshold}%`}
-        icon={AlertTriangle}
+        icon={WarningTriangle}
         insight={insights.aboveThreshold}
       />
 
       <KpiCard
         title="Action Rate"
         value={`${kpis.actionRate}%`}
-        icon={Target}
+        icon={Medal}
         insight={insights.actionRate}
       />
     </div>
@@ -116,9 +113,9 @@ function KpiCard({
 
   const TrendIcon =
     trend.value > 0
-      ? TrendingUp
+      ? GraphUp
       : trend.value < 0
-      ? TrendingDown
+      ? GraphDown
       : Minus;
 
   return (

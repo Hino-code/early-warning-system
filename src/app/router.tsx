@@ -2,15 +2,13 @@ import type { ReactNode } from "react";
 import { lazy, Suspense } from "react";
 import {
   Bell,
-  FileText,
-  LayoutDashboard,
-  LineChart,
-  Shield,
-  Target,
-  TrendingUp,
+  Page,
+  ViewGrid,
+  GraphUp,
+  ShieldCheck,
+  WarningTriangle,
   User,
-} from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+} from "iconoir-react";
 
 // Lazy load components for code splitting
 const Overview = lazy(() =>
@@ -71,7 +69,7 @@ export type AppSection =
 
 export interface NavigationItem {
   title: string;
-  icon: LucideIcon;
+  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
   id: AppSection;
   description: string;
   group: NavigationGroup;
@@ -81,7 +79,7 @@ export interface NavigationItem {
 export const navigationConfig: NavigationItem[] = [
   {
     title: "Overview",
-    icon: LayoutDashboard,
+    icon: ViewGrid,
     id: "overview",
     description: "High-level snapshot of pest situation",
     group: "dashboard",
@@ -89,7 +87,7 @@ export const navigationConfig: NavigationItem[] = [
   },
   {
     title: "Pest Analysis",
-    icon: LineChart,
+    icon: GraphUp,
     id: "pest-analysis",
     description: "Behavior & pattern visualization",
     group: "analysis",
@@ -97,7 +95,7 @@ export const navigationConfig: NavigationItem[] = [
   },
   {
     title: "Threshold & Actions",
-    icon: Target,
+    icon: WarningTriangle,
     id: "threshold-actions",
     description: "Operational insight & intervention efficiency",
     group: "analysis",
@@ -105,7 +103,7 @@ export const navigationConfig: NavigationItem[] = [
   },
   {
     title: "Forecast",
-    icon: TrendingUp,
+    icon: GraphUp,
     id: "forecast",
     description: "SARIMA-based predictive intelligence",
     group: "forecast",
@@ -121,7 +119,7 @@ export const navigationConfig: NavigationItem[] = [
   },
   {
     title: "Reports",
-    icon: FileText,
+    icon: Page,
     id: "reports",
     description: "Historical data and analytics",
     group: "system",
@@ -137,7 +135,7 @@ export const navigationConfig: NavigationItem[] = [
   },
   {
     title: "Admin Approvals",
-    icon: Shield,
+    icon: ShieldCheck,
     id: "admin-approvals",
     description: "Review and approve pending registrations",
     group: "system",
