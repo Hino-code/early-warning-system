@@ -21,39 +21,73 @@ import {
   RadialBar,
   PolarAngleAxis,
   ReferenceLine,
+  ReferenceArea,
 } from "recharts";
 import { Droplets, Sprout, Trash2, AlertTriangle, Info } from "lucide-react";
-import type { TooltipProps } from "recharts";
+import type { TooltipProps, DotProps } from "recharts";
+import {
+  chartAxisStyle,
+  chartGridStyle,
+  chartTooltipStyle,
+} from "@/shared/components/charting/chart-styles";
 import { KpiCards } from "../components/kpi-cards";
 import { DashboardSkeleton } from "../components/loading-skeleton";
 
 type ForecastPoint = {
+  date: string;
+  fullDate: string;
   dateLabel: string;
   dateValue: number;
   actual: number | null;
   predicted: number | null;
   lowerBound: number | null;
   upperBound: number | null;
+  confidenceLower: number | null;
+  confidenceUpper: number | null;
+  confidenceBandHeight: number | null;
   bandBase: number;
   bandSize: number;
   confidence: number | null;
+  exceedsThreshold: boolean;
+  isHistorical: boolean;
+  isForecast: boolean;
 };
 
 export function Overview() {
   const filters = useDashboardStore((state) => state.filters);
   const setFilters = useDashboardStore((state) => state.setFilters);
-  const forecastHorizon = useDashboardStore((state) => state.forecastHorizon);
-  const setForecastHorizon = useDashboardStore(
-    (state) => state.setForecastHorizon
-  );
   const initialize = useDashboardStore((state) => state.initialize);
+  // Forecast horizon is fixed at 7 days and not affected by filters
+  const forecastHorizon = 7;
   const filteredData = useDashboardStore((state) => state.filteredObservations);
+  const allObservations = useDashboardStore((state) => state.observations);
   const alerts = useDashboardStore((state) => state.alerts);
   const kpis = useDashboardStore((state) => state.kpis);
   const loading = useDashboardStore((state) => state.loading);
   const error = useDashboardStore((state) => state.error);
   const allForecasts = useDashboardStore((state) => state.forecasts);
   const chartColors = useChartColors();
+
+  // Custom dot component for threshold-aware highlighting
+  const ThresholdAwareDot = useMemo(() => {
+    return (props: DotProps & { payload?: any }) => {
+      const { cx, cy, payload } = props;
+      const exceedsThreshold = payload?.exceedsThreshold;
+
+      if (cx === undefined || cy === undefined) return null;
+
+      return (
+        <circle
+          cx={cx}
+          cy={cy}
+          r={exceedsThreshold ? 5 : 4}
+          fill={exceedsThreshold ? chartColors.destructive : "#9333ea"}
+          stroke={exceedsThreshold ? chartColors.destructive : "#9333ea"}
+          strokeWidth={exceedsThreshold ? 2 : 1}
+        />
+      );
+    };
+  }, [chartColors]);
 
   useEffect(() => {
     initialize();
@@ -63,17 +97,20 @@ export function Overview() {
     setFilters(nextFilters);
   };
 
-  // Filter forecasts based on selected horizon
+  // Filter forecasts to exactly 7 days starting from today (not affected by date filters)
   const forecasts = useMemo(() => {
     const today = new Date();
+    today.setHours(0, 0, 0, 0);
     const cutoffDate = new Date(today);
-    cutoffDate.setDate(today.getDate() + forecastHorizon);
+    cutoffDate.setDate(today.getDate() + 7); // End of 7th day (exclusive)
 
     return allForecasts.filter((f) => {
       const forecastDate = new Date(f.date);
-      return forecastDate <= cutoffDate;
+      forecastDate.setHours(0, 0, 0, 0);
+      // Include forecasts for exactly 7 days starting from today
+      return forecastDate >= today && forecastDate < cutoffDate;
     });
-  }, [allForecasts, forecastHorizon]);
+  }, [allForecasts]);
 
   // Calculate week-over-week changes and history for sparklines
   const kpiData = useMemo(() => {
@@ -331,10 +368,34 @@ export function Overview() {
       .slice(0, 3);
   }, [alerts]);
 
+  // Economic Threshold and Injury Level constants
+  const economicThreshold = 50; // ET for Black Rice Bug
+  const economicInjuryLevel = 75; // EIL = 1.5x ET
+  const operationalBaseline = 0;
+
   const forecastSeries = useMemo<ForecastPoint[]>(() => {
+    // Get the most recent 7 days of observations (not affected by date filters)
+    // This shows the last 7 days BEFORE today (7 days ago through yesterday)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+    const sevenDaysAgo = new Date(today);
+    sevenDaysAgo.setDate(today.getDate() - 7);
+
+    // Filter to last 7 days of observations, respecting pest type filter only
+    const recentObservations = allObservations.filter((obs) => {
+      const obsDate = new Date(obs.date);
+      obsDate.setHours(0, 0, 0, 0);
+      const matchesPestType =
+        filters.pestType === "All" || obs.pestType === filters.pestType;
+      // Include observations from 7 days ago up to and including yesterday
+      return obsDate >= sevenDaysAgo && obsDate <= yesterday && matchesPestType;
+    });
+
     // Group historical observations by day for averaging
     const historyByDate: Record<string, { total: number; count: number }> = {};
-    filteredData.forEach((obs) => {
+    recentObservations.forEach((obs) => {
       if (!historyByDate[obs.date]) {
         historyByDate[obs.date] = { total: 0, count: 0 };
       }
@@ -345,89 +406,179 @@ export function Overview() {
     const historicalPoints = Object.entries(historyByDate)
       .map(([date, stats]) => {
         const dateValue = new Date(date).getTime();
+        const actual = Math.round(stats.total / stats.count);
         return {
+          date: new Date(date).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+          }),
+          fullDate: date,
           dateLabel: new Date(date).toLocaleDateString("en-US", {
             month: "short",
             day: "numeric",
           }),
           dateValue,
-          actual: Math.round(stats.total / stats.count),
+          actual,
           predicted: null,
           lowerBound: null,
           upperBound: null,
+          confidenceLower: null,
+          confidenceUpper: null,
+          confidenceBandHeight: null,
           bandBase: 0,
           bandSize: 0,
           confidence: null,
+          exceedsThreshold: false,
+          isHistorical: true,
+          isForecast: false,
         } as ForecastPoint;
       })
       .sort((a, b) => a.dateValue - b.dateValue);
 
+    // Get last historical point for bridge
+    const lastHistoricalPoint =
+      historicalPoints.length > 0
+        ? historicalPoints[historicalPoints.length - 1]
+        : null;
+    const lastHistoricalValue = lastHistoricalPoint?.actual ?? 0;
+    const lastHistoricalDate = lastHistoricalPoint?.fullDate ?? null;
+
+    // Filter forecasts by pest type only (not date range)
     const filteredForecasts = forecasts.filter(
       (f) => filters.pestType === "All" || f.pestType === filters.pestType
     );
 
-    const groupedForecasts: Record<
-      string,
-      {
-        predicted: number;
-        lower: number;
-        upper: number;
-        confidence: number;
-        count: number;
-      }
-    > = {};
+    // Create bridge point for smooth transition
+    const firstForecast = filteredForecasts[0];
+    const bridgePoint =
+      lastHistoricalPoint && firstForecast
+        ? ({
+            date: lastHistoricalPoint.date,
+            fullDate: lastHistoricalPoint.fullDate,
+            dateLabel: lastHistoricalPoint.dateLabel,
+            dateValue: lastHistoricalPoint.dateValue,
+            actual: lastHistoricalValue,
+            predicted: lastHistoricalValue, // Use historical value as bridge
+            lowerBound: Math.max(
+              0,
+              lastHistoricalValue -
+                (firstForecast.upperBound - firstForecast.lowerBound) / 2
+            ),
+            upperBound:
+              lastHistoricalValue +
+              (firstForecast.upperBound - firstForecast.lowerBound) / 2,
+            confidenceLower: Math.max(
+              0,
+              lastHistoricalValue -
+                (firstForecast.upperBound - firstForecast.lowerBound) / 2
+            ),
+            confidenceUpper:
+              lastHistoricalValue +
+              (firstForecast.upperBound - firstForecast.lowerBound) / 2,
+            confidenceBandHeight:
+              firstForecast.upperBound - firstForecast.lowerBound,
+            bandBase: 0,
+            bandSize: 0,
+            confidence: null,
+            exceedsThreshold: lastHistoricalValue > economicThreshold,
+            isHistorical: false,
+            isForecast: true, // Mark as forecast so it connects to forecast line
+          } as ForecastPoint)
+        : null;
 
-    filteredForecasts.forEach((f) => {
-      if (!groupedForecasts[f.date]) {
-        groupedForecasts[f.date] = {
-          predicted: 0,
-          lower: 0,
-          upper: 0,
-          confidence: 0,
-          count: 0,
-        };
-      }
-      groupedForecasts[f.date].predicted += f.predicted;
-      groupedForecasts[f.date].lower += f.lowerBound;
-      groupedForecasts[f.date].upper += f.upperBound;
-      groupedForecasts[f.date].confidence += f.confidence;
-      groupedForecasts[f.date].count += 1;
+    const forecastPoints = filteredForecasts.map((f) => {
+      const lower = Math.max(0, f.lowerBound);
+      const upper = Math.max(lower, f.upperBound);
+      const bandHeight = upper - lower;
+      const predicted = f.predicted;
+      const exceedsThreshold = predicted > economicThreshold;
+
+      return {
+        date: new Date(f.date).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+        }),
+        fullDate: f.date,
+        dateLabel: new Date(f.date).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+        }),
+        dateValue: new Date(f.date).getTime(),
+        actual: null,
+        predicted: predicted,
+        lowerBound: lower,
+        upperBound: upper,
+        confidenceLower: lower,
+        confidenceUpper: upper,
+        confidenceBandHeight: bandHeight,
+        bandBase: 0,
+        bandSize: 0,
+        confidence: f.confidence,
+        exceedsThreshold: exceedsThreshold,
+        isHistorical: false,
+        isForecast: true,
+      } as ForecastPoint;
     });
 
-    const forecastPoints = Object.entries(groupedForecasts).map(
-      ([date, stats]) => {
-        const dateValue = new Date(date).getTime();
-        const avgPredicted = Math.round(stats.predicted / stats.count);
-        const avgLower = Math.round(stats.lower / stats.count);
-        const avgUpper = Math.round(stats.upper / stats.count);
-        const avgConfidence = Math.round(stats.confidence / stats.count);
+    // Combine: historical + bridge + forecast
+    return bridgePoint
+      ? [...historicalPoints, bridgePoint, ...forecastPoints].sort(
+          (a, b) => a.dateValue - b.dateValue
+        )
+      : [...historicalPoints, ...forecastPoints].sort(
+          (a, b) => a.dateValue - b.dateValue
+        );
+  }, [allObservations, forecasts, filters.pestType, economicThreshold]);
 
-        return {
-          dateLabel: new Date(date).toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
-          }),
-          dateValue,
-          actual: null,
-          predicted: avgPredicted,
-          lowerBound: avgLower,
-          upperBound: avgUpper,
-          bandBase: Math.max(0, avgLower),
-          bandSize: Math.max(0, avgUpper - avgLower),
-          confidence: avgConfidence,
-        } as ForecastPoint;
-      }
-    );
+  // Calculate Y-axis domain with padding, ensuring threshold is visible
+  const yAxisDomain = useMemo(() => {
+    const allValues: number[] = [];
 
-    return [...historicalPoints, ...forecastPoints].sort(
-      (a, b) => a.dateValue - b.dateValue
-    );
-  }, [filteredData, forecasts, filters.pestType]);
+    forecastSeries.forEach((d) => {
+      if (d.actual !== null) allValues.push(d.actual);
+      if (d.predicted !== null) allValues.push(d.predicted);
+      if (d.lowerBound !== null) allValues.push(d.lowerBound);
+      if (d.upperBound !== null) allValues.push(d.upperBound);
+    });
+
+    // Always include threshold values to ensure they're visible
+    allValues.push(economicThreshold, economicInjuryLevel);
+
+    if (allValues.length === 0) return [0, Math.max(100, economicInjuryLevel)];
+
+    const min = Math.min(...allValues);
+    const max = Math.max(...allValues);
+    const range = max - min;
+    const padding = range * 0.15; // 15% padding
+
+    return [Math.max(0, Math.floor(min - padding)), Math.ceil(max + padding)];
+  }, [forecastSeries, economicThreshold, economicInjuryLevel]);
+
+  // Find the index where forecast starts (for vertical divider)
+  const forecastStartIndex = useMemo(() => {
+    return forecastSeries.findIndex((d) => d.isForecast);
+  }, [forecastSeries]);
 
   const benchmarkSeries = useMemo(() => {
+    // Get the most recent 7 days of observations for benchmarks (not affected by date filters)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+    const sevenDaysAgo = new Date(today);
+    sevenDaysAgo.setDate(today.getDate() - 7);
+
+    const recentObservationsForBenchmark = allObservations.filter((obs) => {
+      const obsDate = new Date(obs.date);
+      obsDate.setHours(0, 0, 0, 0);
+      const matchesPestType =
+        filters.pestType === "All" || obs.pestType === filters.pestType;
+      return obsDate >= sevenDaysAgo && obsDate <= yesterday && matchesPestType;
+    });
+
     // Build lookup by day-of-year for last year's averages
     const groupByDay = (
-      observations: typeof filteredData,
+      observations: typeof allObservations,
       offsetYears: number
     ) => {
       const grouped: Record<number, { total: number; count: number }> = {};
@@ -451,8 +602,8 @@ export function Overview() {
       return grouped;
     };
 
-    const lastYearGrouped = groupByDay(filteredData, -1);
-    const overallGrouped = groupByDay(filteredData, 0);
+    const lastYearGrouped = groupByDay(recentObservationsForBenchmark, -1);
+    const overallGrouped = groupByDay(recentObservationsForBenchmark, 0);
 
     const mergedDates = Array.from(
       new Set(
@@ -507,61 +658,107 @@ export function Overview() {
     });
 
     return { mergedBenchmarks };
-  }, [filteredData, forecastSeries]);
+  }, [allObservations, forecastSeries, filters.pestType]);
 
+  // Custom tooltip for forecast chart with enhanced context
   const renderForecastTooltip = ({
     active,
     payload,
     label,
   }: TooltipProps<number, string>) => {
-    if (!active || !payload?.length) return null;
-    const datum = payload[0]?.payload as ForecastPoint | undefined;
-    if (!datum) return null;
+    if (!active || !payload || payload.length === 0) return null;
+
+    const data = payload[0].payload;
+    const isForecast = data?.isForecast;
+    const exceedsThreshold = data?.exceedsThreshold;
+
+    // Calculate confidence level for this point
+    const getConfidenceLevel = () => {
+      if (
+        !isForecast ||
+        data.confidenceUpper === null ||
+        data.confidenceLower === null
+      ) {
+        return null;
+      }
+      const ciWidth = data.confidenceUpper - data.confidenceLower;
+      if (ciWidth > economicThreshold * 0.3) return "Low";
+      if (ciWidth > economicThreshold * 0.15) return "Medium";
+      return "High";
+    };
+
+    const confidenceLevel = getConfidenceLevel();
 
     return (
-      <div className="rounded-xl border border-border/50 bg-background/80 backdrop-blur-xl px-4 py-3 shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
-        <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2">
+      <div className="bg-card border border-border rounded-lg shadow-lg p-3 space-y-2 min-w-[180px]">
+        <p className="font-medium text-sm border-b border-border pb-1">
           {label}
         </p>
-        {datum.actual !== null && (
-          <div className="flex items-center justify-between gap-4 mb-1">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full shadow-[0_0_8px] shadow-primary/50 bg-primary" />
-              <span className="text-sm font-medium text-foreground">
-                Observed
-              </span>
-            </div>
-            <span className="font-bold font-mono text-primary">
-              {datum.actual}
-            </span>
-          </div>
-        )}
-        {datum.predicted !== null && (
-          <div className="space-y-1">
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-indigo-500 shadow-[0_0_8px] shadow-indigo-500/50" />
-                <span className="text-sm font-medium text-foreground">
-                  Forecast
-                </span>
-              </div>
-              <span className="font-bold font-mono text-indigo-500">
-                {datum.predicted}
-              </span>
-            </div>
-            {datum.lowerBound !== null &&
-              datum.upperBound !== null &&
-              datum.confidence !== null && (
-                <div className="mt-1.5 pt-1.5 border-t border-border/50 flex flex-col gap-0.5">
-                  <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
-                    Confidence ({datum.confidence}%)
-                  </span>
-                  <span className="text-xs text-foreground font-mono">
-                    {datum.lowerBound} - {datum.upperBound}
-                  </span>
-                </div>
+        {isForecast ? (
+          <>
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground">
+                Forecasted Pest Count
+              </p>
+              <p
+                className="text-sm font-semibold"
+                style={{
+                  color: data.exceedsThreshold
+                    ? chartColors.destructive
+                    : chartColors.chart2,
+                }}
+              >
+                {data.predicted !== null && data.predicted !== undefined
+                  ? data.predicted
+                  : "N/A"}
+                {data.exceedsThreshold && (
+                  <span className="ml-1 text-xs">⚠️</span>
+                )}
+              </p>
+              {exceedsThreshold && (
+                <p className="text-xs text-destructive font-medium mt-1">
+                  Exceeds Economic Threshold (ET: {economicThreshold})
+                </p>
               )}
-          </div>
+            </div>
+            {data.confidenceLower !== null && data.confidenceUpper !== null && (
+              <>
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground">
+                    Confidence Range
+                  </p>
+                  <p className="text-xs font-mono">
+                    {data.confidenceLower} - {data.confidenceUpper}
+                  </p>
+                </div>
+                {confidenceLevel && (
+                  <div className="space-y-1">
+                    <p className="text-xs text-muted-foreground">
+                      Confidence Level
+                    </p>
+                    <p className="text-xs font-medium">{confidenceLevel}</p>
+                  </div>
+                )}
+              </>
+            )}
+            <p className="text-xs text-muted-foreground italic mt-2 pt-1 border-t border-border">
+              Forecast (uncertain)
+            </p>
+          </>
+        ) : (
+          <>
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground">Actual Pest Count</p>
+              <p className="text-sm font-semibold" style={{ color: "#3b82f6" }}>
+                {data.actual !== null && data.actual !== undefined
+                  ? data.actual
+                  : "N/A"}
+              </p>
+            </div>
+            <p className="text-xs text-muted-foreground italic mt-2 pt-1 border-t border-border">
+              Historical (observed)
+            </p>
+          </>
         )}
       </div>
     );
@@ -624,28 +821,11 @@ export function Overview() {
               <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                 <div>
                   <h3 className="text-xl font-semibold text-foreground">
-                    Forecast Horizon: {forecastHorizon} Days
+                    7-Day Forecast
                   </h3>
                   <p className="text-base text-muted-foreground mt-1 font-medium">
-                    Projected pest trends & confidence intervals
+                    Projected pest trends & confidence intervals (next 7 days)
                   </p>
-                </div>
-                <div className="flex items-center gap-2 bg-muted/10 p-1.5 rounded-lg border border-border/40">
-                  {[7, 14, 30].map((days) => (
-                    <button
-                      key={days}
-                      onClick={() => setForecastHorizon(days as 7 | 14 | 30)}
-                      className={`px-4 py-1.5 text-sm font-semibold rounded-md transition-all ${
-                        forecastHorizon === days
-                          ? "bg-background text-foreground shadow-sm border border-border/50"
-                          : "text-muted-foreground hover:text-foreground hover:bg-background/40"
-                      }`}
-                      aria-label={`Set forecast horizon to ${days} days`}
-                      aria-pressed={forecastHorizon === days}
-                    >
-                      {days}D
-                    </button>
-                  ))}
                 </div>
               </div>
 
@@ -684,177 +864,244 @@ export function Overview() {
               </p>
             ) : (
               <div className="relative mt-6">
-                <ResponsiveContainer width="100%" height={450}>
+                <ResponsiveContainer width="100%" height={380}>
                   <ComposedChart
-                    data={benchmarkSeries.mergedBenchmarks}
-                    margin={{ top: 20, right: 10, bottom: 0, left: -10 }}
+                    data={forecastSeries}
+                    margin={{ top: 3, right: 100, bottom: 3, left: 0 }}
                   >
                     <defs>
+                      {/* Subtle background tint for forecast region */}
                       <linearGradient
-                        id="gradientConfidence"
+                        id="forecastRegionTint"
                         x1="0"
+                        x2="1"
                         y1="0"
-                        x2="0"
-                        y2="1"
+                        y2="0"
                       >
                         <stop
-                          offset="5%"
-                          stopColor={chartColors.chart4}
-                          stopOpacity={0.2}
+                          offset="0%"
+                          stopColor="rgba(139, 92, 246, 0.03)"
+                          stopOpacity={1}
                         />
                         <stop
-                          offset="95%"
-                          stopColor={chartColors.chart4}
-                          stopOpacity={0.05}
+                          offset="100%"
+                          stopColor="rgba(139, 92, 246, 0.08)"
+                          stopOpacity={1}
                         />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid
-                      strokeDasharray="4 4"
-                      stroke={chartColors.border}
-                      opacity={0.1}
-                      vertical={false}
+
+                    {/* Background zones for risk regions - rendered first so they appear behind data */}
+                    {/* Green zone: below Economic Threshold (safe region) */}
+                    <ReferenceArea
+                      y1={operationalBaseline}
+                      y2={economicThreshold}
+                      fill={chartColors.success || "#10b981"}
+                      fillOpacity={0.08}
+                      stroke="none"
                     />
+
+                    {/* Yellow zone: between Economic Threshold and Economic Injury Level (warning region) */}
+                    <ReferenceArea
+                      y1={economicThreshold}
+                      y2={economicInjuryLevel}
+                      fill={chartColors.warning || "#f59e0b"}
+                      fillOpacity={0.08}
+                      stroke="none"
+                    />
+
+                    {/* Red zone: above Economic Injury Level (damage region) */}
+                    <ReferenceArea
+                      y1={economicInjuryLevel}
+                      y2={yAxisDomain[1]}
+                      fill={chartColors.destructive}
+                      fillOpacity={0.08}
+                      stroke="none"
+                    />
+                    <CartesianGrid {...chartGridStyle} />
                     <XAxis
-                      dataKey="dateLabel"
-                      tick={{
-                        fontSize: 12,
-                        fill: chartColors.muted,
-                        fontWeight: 500,
+                      dataKey="date"
+                      {...chartAxisStyle}
+                      label={{
+                        value: "Date",
+                        position: "insideBottom",
+                        offset: -3,
+                        style: { fontSize: 11, fill: chartColors.muted },
                       }}
-                      stroke="transparent"
-                      interval="preserveStartEnd"
-                      minTickGap={40}
-                      dy={10}
                     />
                     <YAxis
-                      tick={{
-                        fontSize: 12,
-                        fill: chartColors.muted,
-                        fontWeight: 500,
-                      }}
-                      stroke="transparent"
-                      tickLine={false}
-                      dx={-5}
-                    />
-                    <ReferenceLine
-                      y={70}
-                      stroke={chartColors.destructive}
-                      strokeDasharray="3 3"
+                      {...chartAxisStyle}
+                      domain={yAxisDomain}
+                      allowDecimals={false}
                       label={{
-                        position: "insideTopRight",
-                        value: "Critical (70)",
-                        fill: chartColors.destructive,
-                        fontSize: 10,
-                        fontWeight: 600,
+                        value: "Pest Count",
+                        angle: -90,
+                        position: "insideLeft",
+                        style: { fontSize: 11, fill: chartColors.muted },
                       }}
                     />
-                    <Tooltip
-                      content={renderForecastTooltip}
-                      cursor={{
-                        stroke: chartColors.primary,
-                        strokeWidth: 1.5,
-                        strokeDasharray: "4 4",
-                        opacity: 0.5,
-                      }}
-                    />
+                    <Tooltip content={renderForecastTooltip} />
                     <Legend
                       verticalAlign="top"
-                      height={50}
-                      iconType="circle"
-                      iconSize={8}
-                      wrapperStyle={{
-                        fontSize: 12,
-                        fontWeight: 600,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.05em",
-                        color: chartColors.muted,
-                        paddingBottom: "20px",
+                      height={28}
+                      iconType="line"
+                      formatter={(value, entry) => {
+                        // Custom icon for Confidence Interval
+                        if (value === "95% Confidence Interval") {
+                          return (
+                            <span
+                              style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "4px",
+                              }}
+                            >
+                              <span
+                                style={{
+                                  display: "inline-block",
+                                  width: "12px",
+                                  height: "12px",
+                                  backgroundColor:
+                                    entry.color || chartColors.chart2,
+                                  borderRadius: "2px",
+                                }}
+                              />
+                              {value}
+                            </span>
+                          );
+                        }
+                        return value;
                       }}
                     />
+
+                    {/* Operational Baseline - thin solid gray line */}
+                    <ReferenceLine
+                      y={operationalBaseline}
+                      stroke={chartColors.muted}
+                      strokeWidth={1}
+                      label={{
+                        value: "Baseline",
+                        fill: chartColors.muted,
+                        fontSize: 10,
+                        position: "right",
+                        offset: 10,
+                      }}
+                    />
+
+                    {/* Economic Threshold (ET) - red dashed line */}
+                    <ReferenceLine
+                      y={economicThreshold}
+                      stroke={chartColors.destructive}
+                      strokeDasharray="5 5"
+                      strokeWidth={2}
+                      label={{
+                        value: "Critical",
+                        fill: chartColors.destructive,
+                        fontSize: 11,
+                        position: "right",
+                        offset: 10,
+                        fontWeight: "500",
+                      }}
+                    />
+
+                    {/* Economic Injury Level (EIL) - dark red solid line */}
+                    <ReferenceLine
+                      y={economicInjuryLevel}
+                      stroke="#dc2626"
+                      strokeWidth={2}
+                      label={{
+                        value: "EIL",
+                        fill: "#dc2626",
+                        fontSize: 11,
+                        position: "right",
+                        offset: 10,
+                        fontWeight: "500",
+                      }}
+                    />
+
+                    {/* Vertical divider at forecast start - Clear Forecast Boundary */}
+                    {forecastStartIndex >= 0 && (
+                      <ReferenceLine
+                        x={forecastSeries[forecastStartIndex]?.date}
+                        stroke={chartColors.muted}
+                        strokeDasharray="4 4"
+                        strokeWidth={2}
+                        label={{
+                          value: "Forecast Starts",
+                          fill: chartColors.muted,
+                          fontSize: 11,
+                          position: "top",
+                          offset: 8,
+                          fontWeight: "500",
+                        }}
+                      />
+                    )}
+
+                    {/* Confidence interval band (shaded area) - Reduced visual dominance */}
+                    {/* Use stacked Areas: first creates base, second stacks on top to create the band */}
                     <Area
-                      dataKey="bandBase"
-                      stackId="confidence"
-                      stroke="transparent"
+                      type="monotone"
+                      dataKey="confidenceLower"
+                      stackId="confidenceBand"
+                      stroke="none"
                       fill="transparent"
                       isAnimationActive={false}
+                      connectNulls={false}
                     />
                     <Area
-                      dataKey="bandSize"
-                      stackId="confidence"
-                      stroke="transparent"
-                      fill="url(#gradientConfidence)"
+                      type="monotone"
+                      dataKey="confidenceBandHeight"
+                      stackId="confidenceBand"
+                      stroke="none"
+                      fill="#9333ea"
+                      fillOpacity={0.2}
                       isAnimationActive={false}
-                      name="Confidence Interval"
+                      name="95% Confidence Interval"
+                      legendType="rect"
+                      connectNulls={false}
                     />
+
+                    {/* Historical actual data - solid blue line */}
                     <Line
                       type="monotone"
-                      dataKey="lastYearBenchmark"
-                      name="Last Year"
-                      stroke={chartColors.muted}
-                      strokeWidth={2}
-                      dot={false}
-                      connectNulls
-                      strokeDasharray="4 4"
-                      strokeOpacity={0.7}
-                      activeDot={false}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="overallBenchmark"
-                      name="Average"
-                      stroke={chartColors.border}
-                      strokeWidth={2}
-                      dot={false}
-                      connectNulls
-                      strokeDasharray="4 4"
-                      activeDot={false}
-                    />
-                    <Line
-                      type="natural"
                       dataKey="actual"
-                      name="Observed"
-                      stroke={chartColors.primary}
-                      strokeWidth={3}
-                      dot={{
-                        r: 3,
-                        fill: chartColors.background,
-                        stroke: chartColors.primary,
-                        strokeWidth: 2,
-                      }}
-                      activeDot={{
-                        r: 7,
-                        strokeWidth: 4,
-                        stroke: chartColors.primary
-                          .replace("hsl", "hsla")
-                          .replace(")", ", 0.3)"),
-                        fill: chartColors.primary,
-                      }}
+                      stroke="#2563eb"
+                      strokeWidth={2}
+                      dot={false}
+                      name="Historical"
                       connectNulls={false}
+                      strokeOpacity={1}
                     />
+
+                    {/* Forecast prediction - dashed line with threshold-aware dot highlighting */}
                     <Line
-                      type="natural"
+                      type="monotone"
                       dataKey="predicted"
-                      name="Forecast"
-                      stroke={chartColors.chart4}
-                      strokeWidth={3}
-                      strokeDasharray="6 6"
-                      dot={{
-                        r: 3,
-                        fill: chartColors.background,
-                        stroke: chartColors.chart4,
-                        strokeWidth: 2,
-                      }}
-                      activeDot={{
-                        r: 7,
-                        strokeWidth: 4,
-                        stroke: chartColors.chart4
-                          .replace("hsl", "hsla")
-                          .replace(")", ", 0.3)"),
-                        fill: chartColors.chart4,
-                      }}
+                      stroke="#9333ea"
+                      strokeWidth={2}
+                      strokeDasharray="5 5"
+                      dot={<ThresholdAwareDot />}
+                      name="Forecast (7 days)"
                       connectNulls={false}
+                      strokeOpacity={1}
                     />
+
+                    {/* Subtle background tint for forecast region */}
+                    {forecastStartIndex >= 0 && (
+                      <Area
+                        type="monotone"
+                        dataKey={(entry: any) => {
+                          const idx = forecastSeries.indexOf(entry);
+                          if (idx >= forecastStartIndex) {
+                            return yAxisDomain[1];
+                          }
+                          return null;
+                        }}
+                        stroke="transparent"
+                        fill="url(#forecastRegionTint)"
+                        isAnimationActive={false}
+                      />
+                    )}
                   </ComposedChart>
                 </ResponsiveContainer>
               </div>

@@ -79,9 +79,11 @@ export function ForecastEarlyWarning() {
   const observations = useMemo(() => getObservations(), []);
 
   // Filter forecasts by selected pest and days
+  // Sort by date to ensure correct order (in case forecasts aren't pre-sorted)
   const filteredForecasts = useMemo(() => {
     return forecasts
       .filter((f) => f.pestType === selectedPest)
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
       .slice(0, forecastDays);
   }, [forecasts, selectedPest, forecastDays]);
 

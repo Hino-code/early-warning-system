@@ -171,6 +171,43 @@ export const generateObservations = (): PestObservation[] => {
   // Sort by date (oldest first)
   observations.sort((a, b) => a.date.localeCompare(b.date));
 
+  // Ensure the last 7 days have at least one observation per day
+  // This ensures the overview chart has sufficient historical data
+  const todayForRecent = new Date();
+  todayForRecent.setHours(0, 0, 0, 0);
+  const existingDates = new Set(observations.map(obs => obs.date));
+  
+  for (let i = 6; i >= 0; i--) {
+    const checkDate = new Date(todayForRecent);
+    checkDate.setDate(todayForRecent.getDate() - i);
+    const dateStr = formatDate(checkDate);
+    
+    if (!existingDates.has(dateStr)) {
+      // Add an observation for this missing day
+      const pestCount = generatePestCount();
+      const { threshold, aboveThreshold } = calculateThreshold(pestCount);
+      const actionTaken = shouldTakeAction(aboveThreshold);
+      
+      observations.push({
+        id: `OBS-${(observations.length + 1).toString().padStart(4, "0")}`,
+        date: dateStr,
+        pestType: "Black Rice Bug",
+        count: pestCount,
+        threshold,
+        aboveThreshold,
+        season: getSeason(checkDate),
+        fieldStage: getRandomFieldStage(),
+        location: undefined,
+        actionTaken,
+        actionType: undefined,
+        actionDate: actionTaken ? dateStr : undefined,
+      });
+    }
+  }
+  
+  // Re-sort after adding recent observations
+  observations.sort((a, b) => a.date.localeCompare(b.date));
+
   cachedObservations = observations;
   console.log(`Generated ${observations.length} mock observations matching CSV structure`);
   return observations;

@@ -131,7 +131,14 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
           });
         }
       } catch (err) {
-        console.warn("Failed to fetch forecasts, falling back to empty", err);
+        console.warn("Failed to fetch forecasts, falling back to mock data", err);
+        // Fallback to mock forecast data
+        forecasts = dataService.getForecastData();
+      }
+      
+      // If still no forecasts after API and mock fallback, use empty array
+      if (!forecasts || forecasts.length === 0) {
+        console.warn("No forecast data available from API or mocks");
         forecasts = [];
       }
 
