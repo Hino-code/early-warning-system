@@ -81,7 +81,7 @@ export function Login({
           </div>
           <div>
             <h1 className="text-2xl font-bold text-green-800 dark:text-green-400">
-              Pest.i
+              Pesti
             </h1>
             <p className="text-xs text-muted-foreground font-medium">
               Early Warning System
