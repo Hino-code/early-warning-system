@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/shared/components/ui/button";
 import { Card } from "@/shared/components/ui/card";
 import {
@@ -22,12 +22,42 @@ export function AdminApprovalsPage() {
     status,
     error,
   } = useAuthStore();
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [processingId, setProcessingId] = useState<string | null>(null);
 
   useEffect(() => {
     loadPendingUsers();
   }, [loadPendingUsers]);
 
   const isLoading = status === "loading";
+
+  const handleApprove = async (id: string) => {
+    setActionError(null);
+    setProcessingId(id);
+    try {
+      await approveUser(id);
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Failed to approve user";
+      setActionError(message);
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  const handleReject = async (id: string) => {
+    setActionError(null);
+    setProcessingId(id);
+    try {
+      await rejectUser(id);
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Failed to reject user";
+      setActionError(message);
+    } finally {
+      setProcessingId(null);
+    }
+  };
 
   return (
     <div className="p-6 space-y-6">
@@ -48,9 +78,9 @@ export function AdminApprovalsPage() {
         </Button>
       </div>
 
-      {error && (
+      {(error || actionError) && (
         <Card className="p-4 border-destructive/30 bg-destructive/5 text-destructive">
-          {error}
+          {error || actionError}
         </Card>
       )}
 
@@ -99,8 +129,8 @@ export function AdminApprovalsPage() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => approveUser(user.id)}
-                    disabled={isLoading}
+                    onClick={() => handleApprove(user.id)}
+                    disabled={isLoading || processingId === user.id}
                     aria-label={`Approve registration for ${user.name}`}
                   >
                     <Check className="h-4 w-4 text-green-600" />
@@ -108,8 +138,8 @@ export function AdminApprovalsPage() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => rejectUser(user.id)}
-                    disabled={isLoading}
+                    onClick={() => handleReject(user.id)}
+                    disabled={isLoading || processingId === user.id}
                     aria-label={`Reject registration for ${user.name}`}
                   >
                     <X className="h-4 w-4 text-destructive" />

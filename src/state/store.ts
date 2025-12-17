@@ -157,17 +157,23 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
     }
   },
   loadAlerts: async () => {
-    const storedReads =
-      typeof localStorage !== "undefined"
-        ? JSON.parse(localStorage.getItem("mock_alert_reads") || "[]")
-        : [];
-    // Alerts still mocked for now as backend implementation wasn't specified, but removing dataProvider dependency
-    const alerts = dataService.getAlerts().map((alert) => ({
-      ...alert,
-      read: storedReads.includes(alert.id) ? true : alert.read,
-    }));
-    const unread = alerts.filter((a) => !a.read).length;
-    set({ alerts, alertUnreadCount: unread });
+    try {
+      const storedReads =
+        typeof localStorage !== "undefined"
+          ? JSON.parse(localStorage.getItem("mock_alert_reads") || "[]")
+          : [];
+      // Alerts still mocked for now as backend implementation wasn't specified, but removing dataProvider dependency
+      const alerts = dataService.getAlerts().map((alert) => ({
+        ...alert,
+        read: storedReads.includes(alert.id) ? true : alert.read,
+      }));
+      const unread = alerts.filter((a) => !a.read).length;
+      set({ alerts, alertUnreadCount: unread });
+    } catch (error) {
+      console.error("Error loading alerts:", error);
+      // Fallback to empty alerts on error
+      set({ alerts: [], alertUnreadCount: 0 });
+    }
   },
   markAlertRead: (id: string) => {
     const { alerts } = get();
