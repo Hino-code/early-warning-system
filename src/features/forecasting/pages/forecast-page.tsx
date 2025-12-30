@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Card } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
@@ -10,6 +10,10 @@ import {
   SelectValue,
 } from "@/shared/components/ui/select";
 import { getForecastData, getObservations } from "@/shared/lib/data-service";
+import {
+  generateRecommendations,
+  type RecommendationItem,
+} from "@/shared/lib/recommendation-service";
 import {
   LineChart,
   Line,
@@ -54,6 +58,13 @@ export function ForecastEarlyWarning() {
   const [selectedPest, setSelectedPest] =
     useState<"Black Rice Bug">("Black Rice Bug");
   const [forecastDays, setForecastDays] = useState(7);
+  const [aiRecommendations, setAiRecommendations] = useState<
+    RecommendationItem[]
+  >([]);
+  const [loadingRecommendations, setLoadingRecommendations] = useState(false);
+  const [recommendationError, setRecommendationError] = useState<string | null>(
+    null
+  );
   const chartColors = useChartColors();
 
   // Custom dot component for threshold-aware highlighting
@@ -410,12 +421,83 @@ export function ForecastEarlyWarning() {
     };
   }, [observations, selectedPest]);
 
-  // Recommended actions
-  const recommendations = useMemo(() => {
+  // Fetch AI recommendations when data changes
+  useEffect(() => {
+    if (!selectedPest || filteredForecasts.length === 0) return;
+
+    const fetchRecommendations = async () => {
+      setLoadingRecommendations(true);
+      setRecommendationError(null);
+
+      try {
+        const response = await generateRecommendations({
+          pestType: selectedPest,
+          forecastData: {
+            forecasts: filteredForecasts.map((f) => ({
+              date: f.date,
+              predicted: f.predicted,
+              lowerBound: f.lowerBound,
+              upperBound: f.upperBound,
+              confidence: f.confidence,
+            })),
+            threshold: riskMetrics.threshold,
+          },
+          riskMetrics: {
+            riskLevel: riskMetrics.riskLevel,
+            daysAboveThreshold: riskMetrics.daysAboveThreshold,
+            highRiskDays: riskMetrics.highRiskDays,
+            avgPredicted: riskMetrics.avgPredicted,
+            threshold: riskMetrics.threshold,
+            confidenceLevel: riskMetrics.confidenceLevel,
+            peakDay: riskMetrics.peakDay,
+          },
+          historicalData: {
+            observations: observations
+              .filter((o) => o.pestType === selectedPest)
+              .slice(-30), // Last 30 observations
+            seasonalPatterns: seasonalPrediction,
+          },
+        });
+
+        if (response.recommendations && response.recommendations.length > 0) {
+          setAiRecommendations(response.recommendations);
+          setRecommendationError(null);
+        } else {
+          setAiRecommendations([]);
+        }
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : "Failed to load recommendations";
+        setRecommendationError(errorMessage);
+        // Fallback to rule-based recommendations on error
+        setAiRecommendations([]);
+      } finally {
+        setLoadingRecommendations(false);
+      }
+    };
+
+    // Debounce API calls - wait 500ms after last change
+    const timeoutId = setTimeout(fetchRecommendations, 500);
+    return () => clearTimeout(timeoutId);
+  }, [
+    selectedPest,
+    filteredForecasts,
+    riskMetrics,
+    observations,
+    seasonalPrediction,
+  ]);
+
+  // Rule-based fallback recommendations
+  const ruleBasedRecommendations = useMemo(() => {
     const actions: Array<{
       priority: "High" | "Medium" | "Low";
       action: string;
       reason: string;
+      timing?: string;
+      expectedImpact?: string;
+      costConsideration?: string;
     }> = [];
 
     if (riskMetrics.daysAboveThreshold > 0) {
@@ -471,6 +553,22 @@ export function ForecastEarlyWarning() {
 
     return actions;
   }, [riskMetrics]);
+
+  // Use AI recommendations if available, otherwise fallback to rule-based
+  const recommendations = useMemo(() => {
+    if (aiRecommendations.length > 0) {
+      // Convert AI recommendations to the format expected by UI
+      return aiRecommendations.map((rec) => ({
+        priority: rec.priority,
+        action: rec.action,
+        reason: rec.reason,
+        timing: rec.timing,
+        expectedImpact: rec.expectedImpact,
+        costConsideration: rec.costConsideration,
+      }));
+    }
+    return ruleBasedRecommendations;
+  }, [aiRecommendations, ruleBasedRecommendations]);
 
   // Confidence levels by day
   const confidenceData = useMemo(() => {
@@ -677,9 +775,9 @@ export function ForecastEarlyWarning() {
                 {riskMetrics.riskLevel}
               </Badge>
             </div>
-                  <div className="p-2 rounded-lg bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400">
-                    <WarningTriangle className="h-5 w-5" />
-                  </div>
+            <div className="p-2 rounded-lg bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400">
+              <WarningTriangle className="h-5 w-5" />
+            </div>
           </div>
         </Card>
 
@@ -728,9 +826,9 @@ export function ForecastEarlyWarning() {
               </p>
               <p className="text-xs text-muted-foreground">Pest count</p>
             </div>
-                  <div className="p-2 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400">
-                    <GraphUp className="h-5 w-5" />
-                  </div>
+            <div className="p-2 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400">
+              <GraphUp className="h-5 w-5" />
+            </div>
           </div>
         </Card>
 
@@ -964,7 +1062,7 @@ export function ForecastEarlyWarning() {
                 fill: chartColors.warning,
                 fontSize: 10,
                 fontWeight: 600,
-                dy: -10
+                dy: -10,
               }}
             />
             <ReferenceLine
@@ -978,7 +1076,7 @@ export function ForecastEarlyWarning() {
                 fill: chartColors.destructive,
                 fontSize: 10,
                 fontWeight: 600,
-                dy: -10
+                dy: -10,
               }}
             />
 
@@ -986,20 +1084,20 @@ export function ForecastEarlyWarning() {
             <Legend verticalAlign="top" height={36} />
             {forecastStartIndex !== -1 && (
               <>
-              <ReferenceArea
-                x1={combinedData[forecastStartIndex]?.date}
-                x2={combinedData[combinedData.length - 1]?.date}
-                y1={0}
-                y2={
-                  yAxisDomain && yAxisDomain.length > 1
-                    ? yAxisDomain[1]
-                    : undefined
-                }
-                stroke="transparent"
-                fill="url(#forecastRegionTint)"
-                isAnimationActive={false}
-              />
-              <ReferenceLine
+                <ReferenceArea
+                  x1={combinedData[forecastStartIndex]?.date}
+                  x2={combinedData[combinedData.length - 1]?.date}
+                  y1={0}
+                  y2={
+                    yAxisDomain && yAxisDomain.length > 1
+                      ? yAxisDomain[1]
+                      : undefined
+                  }
+                  stroke="transparent"
+                  fill="url(#forecastRegionTint)"
+                  isAnimationActive={false}
+                />
+                <ReferenceLine
                   x={combinedData[forecastStartIndex]?.date}
                   stroke={chartColors.muted}
                   strokeDasharray="3 3"
@@ -1011,7 +1109,7 @@ export function ForecastEarlyWarning() {
                     position: "insideTopLeft",
                     fontWeight: 600,
                     angle: -90,
-                    offset: 10
+                    offset: 10,
                   }}
                 />
               </>
@@ -1019,7 +1117,6 @@ export function ForecastEarlyWarning() {
           </ComposedChart>
         </ResponsiveContainer>
       </Card>
-
 
       {/* Forecast Confidence & Seasonal Insights */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -1137,46 +1234,96 @@ export function ForecastEarlyWarning() {
               <Brain className="h-4 w-4" />
             </div>
             <h3 className="font-medium">Recommended Actions & Alerts</h3>
+            {aiRecommendations.length > 0 && (
+              <Badge
+                variant="outline"
+                className="ml-2 bg-green-50 text-green-700 border-green-200"
+              >
+                AI-Powered
+              </Badge>
+            )}
+            {aiRecommendations.length === 0 &&
+              !loadingRecommendations &&
+              !recommendationError && (
+                <Badge variant="outline" className="ml-2">
+                  Rule-Based
+                </Badge>
+              )}
           </div>
           <p className="text-sm text-muted-foreground">
-            Proactive intervention recommendations based on forecast
+            {aiRecommendations.length > 0
+              ? "AI-powered recommendations based on forecast and historical patterns"
+              : "Proactive intervention recommendations based on forecast"}
           </p>
         </div>
-        <div className="space-y-3">
-          {recommendations.map((rec, idx) => (
-            <div
-              key={idx}
-              className={`p-4 rounded-lg border-l-4 ${
-                rec.priority === "High"
-                  ? "border-l-destructive bg-destructive/5"
-                  : rec.priority === "Medium"
-                  ? "border-l-warning bg-warning/5"
-                  : "border-l-muted bg-muted/5"
-              }`}
-            >
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Badge
-                      variant={
-                        rec.priority === "High" ? "destructive" : "outline"
-                      }
-                      className={
-                        rec.priority === "Medium"
-                          ? "bg-warning text-warning-foreground"
-                          : ""
-                      }
-                    >
-                      {rec.priority} Priority
-                    </Badge>
-                    <h4 className="font-medium">{rec.action}</h4>
+        {loadingRecommendations && (
+          <div className="text-sm text-muted-foreground py-4 text-center">
+            Loading AI recommendations...
+          </div>
+        )}
+        {recommendationError && !loadingRecommendations && (
+          <Alert variant="default" className="mb-4">
+            <AlertTitle>Using Rule-Based Recommendations</AlertTitle>
+            <AlertDescription>
+              AI recommendations unavailable. {recommendationError}
+            </AlertDescription>
+          </Alert>
+        )}
+        {!loadingRecommendations && (
+          <div className="space-y-3">
+            {recommendations.map((rec, idx) => (
+              <div
+                key={idx}
+                className={`p-4 rounded-lg border-l-4 ${
+                  rec.priority === "High"
+                    ? "border-l-destructive bg-destructive/5"
+                    : rec.priority === "Medium"
+                    ? "border-l-warning bg-warning/5"
+                    : "border-l-muted bg-muted/5"
+                }`}
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Badge
+                        variant={
+                          rec.priority === "High" ? "destructive" : "outline"
+                        }
+                        className={
+                          rec.priority === "Medium"
+                            ? "bg-warning text-warning-foreground"
+                            : ""
+                        }
+                      >
+                        {rec.priority} Priority
+                      </Badge>
+                      <h4 className="font-medium">{rec.action}</h4>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {rec.reason}
+                    </p>
+                    {rec.timing && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        <Timer className="inline h-3 w-3 mr-1" />
+                        {rec.timing}
+                      </p>
+                    )}
+                    {rec.expectedImpact && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Expected: {rec.expectedImpact}
+                      </p>
+                    )}
+                    {rec.costConsideration && (
+                      <p className="text-xs text-muted-foreground mt-1 italic">
+                        {rec.costConsideration}
+                      </p>
+                    )}
                   </div>
-                  <p className="text-sm text-muted-foreground">{rec.reason}</p>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </Card>
     </div>
   );

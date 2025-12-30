@@ -74,6 +74,7 @@ export default defineConfig({
       '/forecast': 'http://localhost:8001',
       '/filters': 'http://localhost:8001',
       '/threshold': 'http://localhost:8001',
+      '/api/recommendations': 'http://localhost:8001',
     }
   },
 });
