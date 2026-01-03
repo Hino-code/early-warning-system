@@ -61,13 +61,18 @@ import {
 } from "lucide-react";
 import { Input } from "@/shared/components/ui/input";
 import { EmptyState } from "@/shared/components/ui/empty-state";
+import { format } from "date-fns";
+import type { DateRange as PickerDateRange } from "react-day-picker";
 
 export function Reports() {
   const [dateRange, setDateRange] = useState("6months");
   const [reportType, setReportType] = useState("summary");
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(
-    new Date()
-  );
+  const [searchQuery, setSearchQuery] = useState("");
+  const [customDateRange, setCustomDateRange] = useState<PickerDateRange>({
+    from: undefined,
+    to: undefined,
+  });
+  const [datePopoverOpen, setDatePopoverOpen] = useState(false);
   const chartColors = useChartColors();
 
   const observations = useDashboardStore((state) => state.observations);
@@ -95,6 +100,17 @@ export function Reports() {
       case "1year":
         start.setFullYear(start.getFullYear() - 1);
         break;
+      case "custom":
+        // Use custom date range if available
+        if (customDateRange.from && customDateRange.to) {
+          return {
+            start: customDateRange.from,
+            end: customDateRange.to,
+          };
+        }
+        // Fallback to 6 months if custom not set
+        start.setMonth(start.getMonth() - 6);
+        break;
       default:
         start.setMonth(start.getMonth() - 6);
     }
@@ -102,14 +118,28 @@ export function Reports() {
     return { start, end };
   };
 
-  // Filter observations based on selected date range
+  // Filter observations based on selected date range and search query
   const filteredObservations = useMemo(() => {
     const { start, end } = getDateRange(dateRange);
-    return observations.filter((obs) => {
+    let filtered = observations.filter((obs) => {
       const obsDate = new Date(obs.date);
       return obsDate >= start && obsDate <= end;
     });
-  }, [observations, dateRange]);
+
+    // Apply search filter if query exists
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        (obs) =>
+          obs.fieldStage.toLowerCase().includes(query) ||
+          obs.pestType.toLowerCase().includes(query) ||
+          obs.location?.toLowerCase().includes(query) ||
+          obs.date.includes(query)
+      );
+    }
+
+    return filtered;
+  }, [observations, dateRange, customDateRange, searchQuery]);
 
   // Generate monthly trends from observations
   const monthlyTrends = useMemo(() => {
@@ -304,9 +334,246 @@ export function Reports() {
     }));
   }, [filteredObservations]);
 
+  // Handle custom date range selection
+  const applyCustomDateRange = () => {
+    if (customDateRange.from && customDateRange.to) {
+      setDateRange("custom");
+      setDatePopoverOpen(false);
+    }
+  };
+
+  const clearCustomDateRange = () => {
+    setCustomDateRange({ from: undefined, to: undefined });
+    if (dateRange === "custom") {
+      setDateRange("6months");
+    }
+    setDatePopoverOpen(false);
+  };
+
+  // Export to CSV
+  const handleExportCSV = () => {
+    const headers = [
+      "Date",
+      "Pest Type",
+      "Count",
+      "Threshold",
+      "Above Threshold",
+      "Season",
+      "Field Stage",
+      "Location",
+      "Action Taken",
+      "Action Type",
+      "Action Date",
+    ];
+
+    const csvRows = [
+      headers.join(","),
+      ...filteredObservations.map((obs) => {
+        return [
+          obs.date,
+          obs.pestType,
+          obs.count,
+          obs.threshold,
+          obs.aboveThreshold ? "Yes" : "No",
+          obs.season,
+          obs.fieldStage,
+          obs.location || "",
+          obs.actionTaken ? "Yes" : "No",
+          obs.actionType || "",
+          obs.actionDate || "",
+        ]
+          .map((field) => {
+            // Escape fields that contain commas or quotes
+            if (
+              typeof field === "string" &&
+              (field.includes(",") || field.includes('"'))
+            ) {
+              return `"${field.replace(/"/g, '""')}"`;
+            }
+            return field;
+          })
+          .join(",");
+      }),
+    ];
+
+    const csvContent = csvRows.join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+
+    link.setAttribute("href", url);
+    link.setAttribute(
+      "download",
+      `pest-report-${format(new Date(), "yyyy-MM-dd")}.csv`
+    );
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Export to PDF (simplified HTML-based approach)
+  const handleExportPDF = () => {
+    // Create a new window with printable content
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) {
+      alert("Please allow pop-ups to generate PDF");
+      return;
+    }
+
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Pest.i Report - ${format(new Date(), "yyyy-MM-dd")}</title>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              padding: 20px;
+              color: #333;
+            }
+            h1 {
+              color: #2563eb;
+              border-bottom: 2px solid #2563eb;
+              padding-bottom: 10px;
+            }
+            h2 {
+              color: #1e40af;
+              margin-top: 30px;
+              border-bottom: 1px solid #e5e7eb;
+              padding-bottom: 5px;
+            }
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              margin: 20px 0;
+            }
+            th, td {
+              border: 1px solid #ddd;
+              padding: 8px;
+              text-align: left;
+            }
+            th {
+              background-color: #2563eb;
+              color: white;
+              font-weight: bold;
+            }
+            tr:nth-child(even) {
+              background-color: #f9fafb;
+            }
+            .summary {
+              background-color: #f3f4f6;
+              padding: 15px;
+              border-radius: 5px;
+              margin: 20px 0;
+            }
+            .stat {
+              display: inline-block;
+              margin: 10px 20px 10px 0;
+            }
+            .stat-label {
+              font-weight: bold;
+              color: #6b7280;
+            }
+            .stat-value {
+              font-size: 24px;
+              color: #1e40af;
+            }
+          </style>
+        </head>
+        <body>
+          <h1>Pest.i Reports & Analytics</h1>
+          <p>Generated: ${format(new Date(), "MMMM dd, yyyy 'at' HH:mm")}</p>
+          <p>Date Range: ${format(
+            getDateRange(dateRange).start,
+            "MMM dd, yyyy"
+          )} - ${format(getDateRange(dateRange).end, "MMM dd, yyyy")}</p>
+          
+          <div class="summary">
+            <h2>Summary Statistics</h2>
+            <div class="stat">
+              <div class="stat-label">Total Observations</div>
+              <div class="stat-value">${filteredObservations.length}</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Average Pest Count</div>
+              <div class="stat-value">${
+                filteredObservations.length > 0
+                  ? (
+                      filteredObservations.reduce(
+                        (sum, obs) => sum + obs.count,
+                        0
+                      ) / filteredObservations.length
+                    ).toFixed(1)
+                  : 0
+              }</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Above Threshold</div>
+              <div class="stat-value">${
+                filteredObservations.filter((obs) => obs.aboveThreshold).length
+              }</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Actions Taken</div>
+              <div class="stat-value">${
+                filteredObservations.filter((obs) => obs.actionTaken).length
+              }</div>
+            </div>
+          </div>
+
+          <h2>Observation Details</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Pest Type</th>
+                <th>Count</th>
+                <th>Threshold</th>
+                <th>Above Threshold</th>
+                <th>Season</th>
+                <th>Field Stage</th>
+                <th>Action Taken</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${filteredObservations
+                .map(
+                  (obs) => `
+                <tr>
+                  <td>${obs.date}</td>
+                  <td>${obs.pestType}</td>
+                  <td>${obs.count}</td>
+                  <td>${obs.threshold}</td>
+                  <td>${obs.aboveThreshold ? "Yes" : "No"}</td>
+                  <td>${obs.season}</td>
+                  <td>${obs.fieldStage}</td>
+                  <td>${obs.actionTaken ? "Yes" : "No"}</td>
+                </tr>
+              `
+                )
+                .join("")}
+            </tbody>
+          </table>
+        </body>
+      </html>
+    `;
+
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+
+    // Wait for content to load, then trigger print
+    setTimeout(() => {
+      printWindow.print();
+    }, 250);
+  };
+
   const handleExport = (format: string) => {
-    // Mock export functionality
-    console.log(`Exporting report in ${format} format`);
+    if (format === "CSV") {
+      handleExportCSV();
+    } else if (format === "PDF") {
+      handleExportPDF();
+    }
   };
 
   return (
@@ -347,6 +614,55 @@ export function Reports() {
                 <SelectItem value="custom">Custom Range</SelectItem>
               </SelectContent>
             </Select>
+            {dateRange === "custom" && (
+              <Popover open={datePopoverOpen} onOpenChange={setDatePopoverOpen}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <CalendarIcon className="h-4 w-4 mr-2" />
+                    {customDateRange.from && customDateRange.to
+                      ? `${format(customDateRange.from, "MMM d")} - ${format(
+                          customDateRange.to,
+                          "MMM d, yyyy"
+                        )}`
+                      : "Select Range"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <div className="p-3">
+                    <Calendar
+                      mode="range"
+                      selected={customDateRange}
+                      onSelect={(range: PickerDateRange | undefined) =>
+                        setCustomDateRange(
+                          range || { from: undefined, to: undefined }
+                        )
+                      }
+                      defaultMonth={customDateRange?.from || new Date()}
+                      numberOfMonths={1}
+                      initialFocus
+                    />
+                    <div className="flex gap-2 pt-3 mt-3 border-t">
+                      <Button
+                        size="sm"
+                        onClick={applyCustomDateRange}
+                        disabled={!customDateRange.from || !customDateRange.to}
+                        className="flex-1"
+                      >
+                        Apply Range
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={clearCustomDateRange}
+                        className="flex-1"
+                      >
+                        Clear
+                      </Button>
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
+            )}
           </div>
 
           <div className="flex items-center space-x-2">
@@ -366,30 +682,38 @@ export function Reports() {
 
           <div className="flex items-center space-x-2">
             <Search className="h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Search fields..." className="w-48" />
+            <Input
+              placeholder="Search fields, pests, dates..."
+              className="w-48"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </div>
-
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline">
-                <CalendarIcon className="h-4 w-4 mr-2" />
-                Custom Date
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
-              <Calendar
-                mode="single"
-                selected={selectedDate}
-                onSelect={setSelectedDate}
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
         </div>
       </Card>
 
       {/* Report Tabs */}
-      <Tabs defaultValue="trends" className="space-y-6">
+      <Tabs
+        defaultValue="trends"
+        className="space-y-6"
+        value={
+          reportType === "summary"
+            ? "trends"
+            : reportType === "detailed"
+            ? "weekly"
+            : reportType === "field"
+            ? "performance"
+            : reportType === "pest"
+            ? "pest"
+            : "trends"
+        }
+        onValueChange={(value: string) => {
+          if (value === "trends") setReportType("summary");
+          else if (value === "performance") setReportType("field");
+          else if (value === "weekly") setReportType("detailed");
+          else if (value === "pest") setReportType("pest");
+        }}
+      >
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="trends">Trend Analysis</TabsTrigger>
           <TabsTrigger value="performance">Field Performance</TabsTrigger>
@@ -398,449 +722,635 @@ export function Reports() {
         </TabsList>
 
         <TabsContent value="trends" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card className="p-6">
-              <h3 className="mb-4 font-medium">Pest Population Trends (6 Months)</h3>
-              <defs>
-                 <linearGradient id="pestTrendGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor={chartColors.chart3} stopOpacity={0.2} />
-                    <stop offset="100%" stopColor={chartColors.chart3} stopOpacity={0} />
-                 </linearGradient>
-              </defs>
-              <ResponsiveContainer width="100%" height={300}>
-                <AreaChart data={monthlyTrends}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
-                  <XAxis
-                    dataKey="month"
-                    angle={-45}
-                    textAnchor="end"
-                    height={60}
-                    tick={{ fontSize: 11, fill: chartColors.muted }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <YAxis tick={{ fontSize: 11, fill: chartColors.muted }} axisLine={false} tickLine={false} />
-                  <Tooltip 
-                      contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="blackRiceBug"
-                    stroke={chartColors.chart3}
-                    strokeWidth={2}
-                    fill="url(#pestTrendGradient)"
-                    name="Black Rice Bug"
-                    activeDot={{ r: 4, strokeWidth: 2, stroke: chartColors.background }}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </Card>
+          {monthlyTrends.length === 0 ? (
+            <EmptyState
+              title="No Trend Data Available"
+              description="There are no observations for the selected date range. Try adjusting your filters or date range."
+            />
+          ) : (
+            <>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card className="p-6">
+                  <h3 className="mb-4 font-medium">
+                    Pest Population Trends (
+                    {dateRange === "custom" &&
+                    customDateRange.from &&
+                    customDateRange.to
+                      ? `${format(customDateRange.from, "MMM d")} - ${format(
+                          customDateRange.to,
+                          "MMM d, yyyy"
+                        )}`
+                      : dateRange === "1month"
+                      ? "Last Month"
+                      : dateRange === "3months"
+                      ? "Last 3 Months"
+                      : dateRange === "6months"
+                      ? "Last 6 Months"
+                      : dateRange === "1year"
+                      ? "Last Year"
+                      : "Selected Period"}
+                    )
+                  </h3>
+                  <defs>
+                    <linearGradient
+                      id="pestTrendGradient"
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
+                      <stop
+                        offset="0%"
+                        stopColor={chartColors.chart3}
+                        stopOpacity={0.2}
+                      />
+                      <stop
+                        offset="100%"
+                        stopColor={chartColors.chart3}
+                        stopOpacity={0}
+                      />
+                    </linearGradient>
+                  </defs>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <AreaChart data={monthlyTrends}>
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        vertical={false}
+                        opacity={0.3}
+                      />
+                      <XAxis
+                        dataKey="month"
+                        angle={-45}
+                        textAnchor="end"
+                        height={60}
+                        tick={{ fontSize: 11, fill: chartColors.muted }}
+                        axisLine={false}
+                        tickLine={false}
+                      />
+                      <YAxis
+                        tick={{ fontSize: 11, fill: chartColors.muted }}
+                        axisLine={false}
+                        tickLine={false}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          borderRadius: "8px",
+                          border: "none",
+                          boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                        }}
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="blackRiceBug"
+                        stroke={chartColors.chart3}
+                        strokeWidth={2}
+                        fill="url(#pestTrendGradient)"
+                        name="Black Rice Bug"
+                        activeDot={{
+                          r: 4,
+                          strokeWidth: 2,
+                          stroke: chartColors.background,
+                        }}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </Card>
 
-            <Card className="p-6">
-              <h3 className="mb-4 font-medium">Crop Damage Trends</h3>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={monthlyTrends}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
-                  <XAxis
-                    dataKey="month"
-                    angle={-45}
-                    textAnchor="end"
-                    height={60}
-                    tick={{ fontSize: 11, fill: chartColors.muted }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <YAxis tick={{ fontSize: 11, fill: chartColors.muted }} axisLine={false} tickLine={false} />
-                  <Tooltip 
-                      contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                  />
-                  <Bar
-                    dataKey="totalDamage"
-                    fill={chartColors.chart3}
-                    name="Total Damage %"
-                    radius={[4, 4, 0, 0]}
-                    fillOpacity={0.9}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            </Card>
-          </div>
+                <Card className="p-6">
+                  <h3 className="mb-4 font-medium">Crop Damage Trends</h3>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={monthlyTrends}>
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        vertical={false}
+                        opacity={0.3}
+                      />
+                      <XAxis
+                        dataKey="month"
+                        angle={-45}
+                        textAnchor="end"
+                        height={60}
+                        tick={{ fontSize: 11, fill: chartColors.muted }}
+                        axisLine={false}
+                        tickLine={false}
+                      />
+                      <YAxis
+                        tick={{ fontSize: 11, fill: chartColors.muted }}
+                        axisLine={false}
+                        tickLine={false}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          borderRadius: "8px",
+                          border: "none",
+                          boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                        }}
+                      />
+                      <Bar
+                        dataKey="totalDamage"
+                        fill={chartColors.chart3}
+                        name="Total Damage %"
+                        radius={[4, 4, 0, 0]}
+                        fillOpacity={0.9}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </Card>
+              </div>
 
-          <Card className="p-6">
-            <h3 className="mb-4">Monthly Summary Statistics</h3>
-            {monthlyTrends.length > 0 ? (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Month</TableHead>
-                    <TableHead>Black Rice Bug</TableHead>
-                    <TableHead>Total Damage (%)</TableHead>
-                    <TableHead>Fields Affected</TableHead>
-                    <TableHead>Trend</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {monthlyTrends.map((month, index) => (
-                    <TableRow key={month.month}>
-                      <TableCell className="font-medium">
-                        {month.month}
-                      </TableCell>
-                      <TableCell>{month.blackRiceBug}</TableCell>
-                      <TableCell>
-                        <span
-                          className={
-                            month.totalDamage > 20
-                              ? "text-red-600"
-                              : month.totalDamage > 10
-                              ? "text-yellow-600"
-                              : "text-green-600"
-                          }
-                        >
-                          {month.totalDamage}%
-                        </span>
-                      </TableCell>
-                      <TableCell>{month.fieldsAffected}</TableCell>
-                      <TableCell>
-                        {index > 0 && (
-                          <div className="flex items-center">
-                            <TrendingUp
-                              className={`h-4 w-4 ${
-                                month.totalDamage >
-                                monthlyTrends[index - 1].totalDamage
-                                  ? "text-red-500 rotate-0"
-                                  : "text-green-500 rotate-180"
-                              }`}
-                            />
-                          </div>
-                        )}
-                      </TableCell>
+              <Card className="p-6">
+                <h3 className="mb-4">Monthly Summary Statistics</h3>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Month</TableHead>
+                      <TableHead>Black Rice Bug</TableHead>
+                      <TableHead>Total Damage (%)</TableHead>
+                      <TableHead>Fields Affected</TableHead>
+                      <TableHead>Trend</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            ) : (
-              <EmptyState
-                title="No Monthly Data"
-                description="There are no trend records for the selected period."
-              />
-            )}
-          </Card>
+                  </TableHeader>
+                  <TableBody>
+                    {monthlyTrends.map((month, index) => (
+                      <TableRow key={month.month}>
+                        <TableCell className="font-medium">
+                          {month.month}
+                        </TableCell>
+                        <TableCell>{month.blackRiceBug}</TableCell>
+                        <TableCell>
+                          <span
+                            className={
+                              month.totalDamage > 20
+                                ? "text-red-600"
+                                : month.totalDamage > 10
+                                ? "text-yellow-600"
+                                : "text-green-600"
+                            }
+                          >
+                            {month.totalDamage}%
+                          </span>
+                        </TableCell>
+                        <TableCell>{month.fieldsAffected}</TableCell>
+                        <TableCell>
+                          {index > 0 && (
+                            <div className="flex items-center">
+                              <TrendingUp
+                                className={`h-4 w-4 ${
+                                  month.totalDamage >
+                                  monthlyTrends[index - 1].totalDamage
+                                    ? "text-red-500 rotate-0"
+                                    : "text-green-500 rotate-180"
+                                }`}
+                              />
+                            </div>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </Card>
+            </>
+          )}
         </TabsContent>
 
         <TabsContent value="performance" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card className="p-6">
-              <div className="flex items-center space-x-2 mb-2">
-                <Activity className="h-5 w-5 text-green-500" />
-                <h3>Average Efficiency</h3>
-              </div>
-              <div className="text-2xl font-bold">
-                {fieldPerformance.length > 0
-                  ? Math.round(
-                      fieldPerformance.reduce(
-                        (sum, f) => sum + f.efficiency,
-                        0
-                      ) / fieldPerformance.length
-                    )
-                  : 0}
-                %
-              </div>
-              <p className="text-sm text-muted-foreground">Across all fields</p>
-            </Card>
+          {fieldPerformance.length === 0 ? (
+            <EmptyState
+              title="No Field Performance Data"
+              description="There are no field performance records for the selected filters. Try adjusting your search or date range."
+            />
+          ) : (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <Card className="p-6">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <Activity className="h-5 w-5 text-green-500" />
+                    <h3>Average Efficiency</h3>
+                  </div>
+                  <div className="text-2xl font-bold">
+                    {fieldPerformance.length > 0
+                      ? Math.round(
+                          fieldPerformance.reduce(
+                            (sum, f) => sum + f.efficiency,
+                            0
+                          ) / fieldPerformance.length
+                        )
+                      : 0}
+                    %
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Across all fields
+                  </p>
+                </Card>
 
-            <Card className="p-6">
-              <div className="flex items-center space-x-2 mb-2">
-                <Bug className="h-5 w-5 text-red-500" />
-                <h3>Total Alerts</h3>
-              </div>
-              <div className="text-2xl font-bold">
-                {
-                  filteredObservations.filter((obs) => obs.aboveThreshold)
-                    .length
-                }
-              </div>
-              <p className="text-sm text-muted-foreground">
-                {dateRange === "6months" ? "Last 6 months" : `Selected period`}
-              </p>
-            </Card>
+                <Card className="p-6">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <Bug className="h-5 w-5 text-red-500" />
+                    <h3>Total Alerts</h3>
+                  </div>
+                  <div className="text-2xl font-bold">
+                    {
+                      filteredObservations.filter((obs) => obs.aboveThreshold)
+                        .length
+                    }
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {dateRange === "6months"
+                      ? "Last 6 months"
+                      : `Selected period`}
+                  </p>
+                </Card>
 
-            <Card className="p-6">
-              <div className="flex items-center space-x-2 mb-2">
-                <TrendingUp className="h-5 w-5 text-blue-500" />
-                <h3>Best Performing Field</h3>
+                <Card className="p-6">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <TrendingUp className="h-5 w-5 text-blue-500" />
+                    <h3>Best Performing Field</h3>
+                  </div>
+                  <div className="text-2xl font-bold">
+                    {fieldPerformance.length > 0
+                      ? fieldPerformance.sort(
+                          (a, b) => b.efficiency - a.efficiency
+                        )[0].field
+                      : "N/A"}
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {fieldPerformance.length > 0
+                      ? `${
+                          fieldPerformance.sort(
+                            (a, b) => b.efficiency - a.efficiency
+                          )[0].efficiency
+                        }% efficiency`
+                      : "No data"}
+                  </p>
+                </Card>
               </div>
-              <div className="text-2xl font-bold">
-                {fieldPerformance.length > 0
-                  ? fieldPerformance.sort(
-                      (a, b) => b.efficiency - a.efficiency
-                    )[0].field
-                  : "N/A"}
-              </div>
-              <p className="text-sm text-muted-foreground">
-                {fieldPerformance.length > 0
-                  ? `${
-                      fieldPerformance.sort(
-                        (a, b) => b.efficiency - a.efficiency
-                      )[0].efficiency
-                    }% efficiency`
-                  : "No data"}
-              </p>
-            </Card>
-          </div>
 
-          <Card className="p-6">
-            <h3 className="mb-4">Field Performance Analysis</h3>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Field</TableHead>
-                  <TableHead>Total Alerts</TableHead>
-                  <TableHead>Avg Damage (%)</TableHead>
-                  <TableHead>Efficiency (%)</TableHead>
-                  <TableHead>Last Treatment</TableHead>
-                  <TableHead>Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {fieldPerformance.map((field) => (
-                  <TableRow key={field.field}>
-                    <TableCell className="font-medium">{field.field}</TableCell>
-                    <TableCell>{field.totalAlerts}</TableCell>
-                    <TableCell>
-                      <span
-                        className={
-                          field.avgDamage > 15
-                            ? "text-red-600"
-                            : field.avgDamage > 8
-                            ? "text-yellow-600"
-                            : "text-green-600"
-                        }
-                      >
-                        {field.avgDamage}%
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center space-x-2">
-                        <span
-                          className={
-                            field.efficiency > 90
-                              ? "text-green-600"
+              <Card className="p-6">
+                <h3 className="mb-4">Field Performance Analysis</h3>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Field</TableHead>
+                      <TableHead>Total Alerts</TableHead>
+                      <TableHead>Avg Damage (%)</TableHead>
+                      <TableHead>Efficiency (%)</TableHead>
+                      <TableHead>Last Treatment</TableHead>
+                      <TableHead>Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {fieldPerformance.map((field) => (
+                      <TableRow key={field.field}>
+                        <TableCell className="font-medium">
+                          {field.field}
+                        </TableCell>
+                        <TableCell>{field.totalAlerts}</TableCell>
+                        <TableCell>
+                          <span
+                            className={
+                              field.avgDamage > 15
+                                ? "text-red-600"
+                                : field.avgDamage > 8
+                                ? "text-yellow-600"
+                                : "text-green-600"
+                            }
+                          >
+                            {field.avgDamage}%
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-2">
+                            <span
+                              className={
+                                field.efficiency > 90
+                                  ? "text-green-600"
+                                  : field.efficiency > 80
+                                  ? "text-yellow-600"
+                                  : "text-red-600"
+                              }
+                            >
+                              {field.efficiency}%
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell>{field.lastTreatment}</TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={
+                              field.efficiency > 90
+                                ? "default"
+                                : field.efficiency > 80
+                                ? "secondary"
+                                : "destructive"
+                            }
+                          >
+                            {field.efficiency > 90
+                              ? "Excellent"
                               : field.efficiency > 80
-                              ? "text-yellow-600"
-                              : "text-red-600"
-                          }
-                        >
-                          {field.efficiency}%
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell>{field.lastTreatment}</TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={
-                          field.efficiency > 90
-                            ? "default"
-                            : field.efficiency > 80
-                            ? "secondary"
-                            : "destructive"
-                        }
-                      >
-                        {field.efficiency > 90
-                          ? "Excellent"
-                          : field.efficiency > 80
-                          ? "Good"
-                          : "Needs Attention"}
-                      </Badge>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </Card>
+                              ? "Good"
+                              : "Needs Attention"}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </Card>
+            </>
+          )}
         </TabsContent>
 
         <TabsContent value="weekly" className="space-y-6">
-          <Card className="p-6">
-            <h3 className="mb-4">Weekly Activity Reports</h3>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Week</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Avg Temperature</TableHead>
-                  <TableHead>Avg Humidity</TableHead>
-                  <TableHead>Pest Alerts</TableHead>
-                  <TableHead>Damage Level</TableHead>
-                  <TableHead>Actions Taken</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {weeklyReports.map((week) => (
-                  <TableRow key={week.week}>
-                    <TableCell className="font-medium">{week.week}</TableCell>
-                    <TableCell>{week.date}</TableCell>
-                    <TableCell>{week.avgTemp}°C</TableCell>
-                    <TableCell>{week.avgHumidity}%</TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={
-                          week.pestAlerts > 15
-                            ? "destructive"
-                            : week.pestAlerts > 10
-                            ? "secondary"
-                            : "default"
-                        }
-                      >
-                        {week.pestAlerts}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={
-                          week.damageLevel === "High"
-                            ? "destructive"
-                            : week.damageLevel === "Medium"
-                            ? "secondary"
-                            : "default"
-                        }
-                      >
-                        {week.damageLevel}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{week.actionsTaken}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </Card>
+          {weeklyReports.length === 0 ? (
+            <EmptyState
+              title="No Weekly Reports Available"
+              description="There are no weekly reports for the selected date range. Try adjusting your filters."
+            />
+          ) : (
+            <>
+              <Card className="p-6">
+                <h3 className="mb-4">Weekly Activity Reports</h3>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Week</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Avg Temperature</TableHead>
+                      <TableHead>Avg Humidity</TableHead>
+                      <TableHead>Pest Alerts</TableHead>
+                      <TableHead>Damage Level</TableHead>
+                      <TableHead>Actions Taken</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {weeklyReports.map((week) => (
+                      <TableRow key={week.week}>
+                        <TableCell className="font-medium">
+                          {week.week}
+                        </TableCell>
+                        <TableCell>{week.date}</TableCell>
+                        <TableCell>{week.avgTemp}°C</TableCell>
+                        <TableCell>{week.avgHumidity}%</TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={
+                              week.pestAlerts > 15
+                                ? "destructive"
+                                : week.pestAlerts > 10
+                                ? "secondary"
+                                : "default"
+                            }
+                          >
+                            {week.pestAlerts}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={
+                              week.damageLevel === "High"
+                                ? "destructive"
+                                : week.damageLevel === "Medium"
+                                ? "secondary"
+                                : "default"
+                            }
+                          >
+                            {week.damageLevel}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{week.actionsTaken}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </Card>
 
-          <Card className="p-6">
-            <h3 className="mb-4 font-medium">Weekly Temperature & Humidity Trends</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <AreaChart data={weeklyReports}>
-                <defs>
-                    <linearGradient id="tempGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor={chartColors.chart4} stopOpacity={0.2} />
-                        <stop offset="100%" stopColor={chartColors.chart4} stopOpacity={0} />
-                    </linearGradient>
-                     <linearGradient id="humidGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor={chartColors.chart1} stopOpacity={0.2} />
-                        <stop offset="100%" stopColor={chartColors.chart1} stopOpacity={0} />
-                    </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
-                <XAxis dataKey="week" tick={{ fontSize: 11, fill: chartColors.muted }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 11, fill: chartColors.muted }} axisLine={false} tickLine={false} />
-                <Tooltip 
-                     contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="avgTemp"
-                  stroke={chartColors.chart4}
-                  strokeWidth={2}
-                  fill="url(#tempGradient)"
-                  name="Temperature (°C)"
-                />
-                <Area
-                  type="monotone"
-                  dataKey="avgHumidity"
-                  stroke={chartColors.chart1}
-                  strokeWidth={2}
-                  fill="url(#humidGradient)"
-                  name="Humidity (%)"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </Card>
+              <Card className="p-6">
+                <h3 className="mb-4 font-medium">
+                  Weekly Temperature & Humidity Trends
+                </h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <AreaChart data={weeklyReports}>
+                    <defs>
+                      <linearGradient
+                        id="tempGradient"
+                        x1="0"
+                        y1="0"
+                        x2="0"
+                        y2="1"
+                      >
+                        <stop
+                          offset="0%"
+                          stopColor={chartColors.chart4}
+                          stopOpacity={0.2}
+                        />
+                        <stop
+                          offset="100%"
+                          stopColor={chartColors.chart4}
+                          stopOpacity={0}
+                        />
+                      </linearGradient>
+                      <linearGradient
+                        id="humidGradient"
+                        x1="0"
+                        y1="0"
+                        x2="0"
+                        y2="1"
+                      >
+                        <stop
+                          offset="0%"
+                          stopColor={chartColors.chart1}
+                          stopOpacity={0.2}
+                        />
+                        <stop
+                          offset="100%"
+                          stopColor={chartColors.chart1}
+                          stopOpacity={0}
+                        />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      vertical={false}
+                      opacity={0.3}
+                    />
+                    <XAxis
+                      dataKey="week"
+                      tick={{ fontSize: 11, fill: chartColors.muted }}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <YAxis
+                      tick={{ fontSize: 11, fill: chartColors.muted }}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        borderRadius: "8px",
+                        border: "none",
+                        boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                      }}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="avgTemp"
+                      stroke={chartColors.chart4}
+                      strokeWidth={2}
+                      fill="url(#tempGradient)"
+                      name="Temperature (°C)"
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="avgHumidity"
+                      stroke={chartColors.chart1}
+                      strokeWidth={2}
+                      fill="url(#humidGradient)"
+                      name="Humidity (%)"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </Card>
+            </>
+          )}
         </TabsContent>
 
         <TabsContent value="pest" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card className="p-6">
-              <h3 className="mb-4 font-medium">Pest Distribution (6 Months)</h3>
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={pestDistribution}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={90}
-                    paddingAngle={3}
-                    dataKey="value"
-                    strokeWidth={0}
-                    cornerRadius={4}
-                  >
-                    {pestDistribution.map((entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={
-                          index === 0 ? chartColors.chart3 : chartColors.chart1
-                        }
+          {pestDistribution.length === 0 ? (
+            <EmptyState
+              title="No Pest Distribution Data"
+              description="There are no pest observations for the selected filters. Try adjusting your search or date range."
+            />
+          ) : (
+            <>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card className="p-6">
+                  <h3 className="mb-4 font-medium">
+                    Pest Distribution (
+                    {dateRange === "custom" &&
+                    customDateRange.from &&
+                    customDateRange.to
+                      ? `${format(customDateRange.from, "MMM d")} - ${format(
+                          customDateRange.to,
+                          "MMM d, yyyy"
+                        )}`
+                      : dateRange === "1month"
+                      ? "Last Month"
+                      : dateRange === "3months"
+                      ? "Last 3 Months"
+                      : dateRange === "6months"
+                      ? "Last 6 Months"
+                      : dateRange === "1year"
+                      ? "Last Year"
+                      : "Selected Period"}
+                    )
+                  </h3>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie
+                        data={pestDistribution}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={90}
+                        paddingAngle={3}
+                        dataKey="value"
+                        strokeWidth={0}
+                        cornerRadius={4}
+                      >
+                        {pestDistribution.map((entry, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={
+                              index === 0
+                                ? chartColors.chart3
+                                : chartColors.chart1
+                            }
+                          />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        contentStyle={{
+                          borderRadius: "8px",
+                          border: "none",
+                          boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                        }}
                       />
-                    ))}
-                  </Pie>
-                  <Tooltip 
-                       contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                  />
-                  <Legend verticalAlign="bottom" height={36} iconType="circle" />
-                </PieChart>
-              </ResponsiveContainer>
-            </Card>
+                      <Legend
+                        verticalAlign="bottom"
+                        height={36}
+                        iconType="circle"
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </Card>
 
-            <Card className="p-6">
-              <h3 className="mb-4 font-medium">Pest Activity by Month</h3>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={monthlyTrends}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
-                  <XAxis
-                    dataKey="month"
-                    angle={-45}
-                    textAnchor="end"
-                    height={60}
-                    tick={{ fontSize: 11, fill: chartColors.muted }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <YAxis tick={{ fontSize: 11, fill: chartColors.muted }} axisLine={false} tickLine={false} />
-                  <Tooltip 
-                       contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                  />
-                  <Bar
-                    dataKey="blackRiceBug"
-                    fill={chartColors.chart3}
-                    name="Black Rice Bug"
-                    radius={[4, 4, 0, 0]}
-                    fillOpacity={0.9}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            </Card>
-          </div>
+                <Card className="p-6">
+                  <h3 className="mb-4 font-medium">Pest Activity by Month</h3>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={monthlyTrends}>
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        vertical={false}
+                        opacity={0.3}
+                      />
+                      <XAxis
+                        dataKey="month"
+                        angle={-45}
+                        textAnchor="end"
+                        height={60}
+                        tick={{ fontSize: 11, fill: chartColors.muted }}
+                        axisLine={false}
+                        tickLine={false}
+                      />
+                      <YAxis
+                        tick={{ fontSize: 11, fill: chartColors.muted }}
+                        axisLine={false}
+                        tickLine={false}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          borderRadius: "8px",
+                          border: "none",
+                          boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                        }}
+                      />
+                      <Bar
+                        dataKey="blackRiceBug"
+                        fill={chartColors.chart3}
+                        name="Black Rice Bug"
+                        radius={[4, 4, 0, 0]}
+                        fillOpacity={0.9}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </Card>
+              </div>
 
-          <Card className="p-6">
-            <h3 className="mb-4">Pest Control Effectiveness</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <h4 className="font-medium mb-3">Black Rice Bug Control</h4>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm">Early Detection Rate</span>
-                    <span className="font-medium">89%</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm">Treatment Success Rate</span>
-                    <span className="font-medium">76%</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm">Population Reduction</span>
-                    <span className="font-medium text-green-600">-23%</span>
+              <Card className="p-6">
+                <h3 className="mb-4">Pest Control Effectiveness</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <h4 className="font-medium mb-3">Black Rice Bug Control</h4>
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm">Early Detection Rate</span>
+                        <span className="font-medium">89%</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm">Treatment Success Rate</span>
+                        <span className="font-medium">76%</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm">Population Reduction</span>
+                        <span className="font-medium text-green-600">-23%</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
-          </Card>
+              </Card>
+            </>
+          )}
         </TabsContent>
       </Tabs>
     </div>
