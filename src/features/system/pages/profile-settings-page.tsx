@@ -63,6 +63,8 @@ import {
   AlertCircle,
   Eye,
   EyeOff,
+  RotateCw,
+  RotateCcw,
 } from "lucide-react";
 
 interface ProfileSettingsProps {
@@ -87,6 +89,9 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
   );
   const [photoScale, setPhotoScale] = useState(1.1);
   const [photoOffset, setPhotoOffset] = useState({ x: 0, y: 0 });
+  const [photoRotation, setPhotoRotation] = useState(0); // 0, 90, 180, 270 degrees
+  const [photoStraighten, setPhotoStraighten] = useState(0); // -45 to 45 degrees
+  const [activeTab, setActiveTab] = useState<"crop" | "filter" | "adjust">("crop");
   const [photoMeta, setPhotoMeta] = useState<{
     width: number;
     height: number;
@@ -99,6 +104,9 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
   // Debug: Log when isCropperOpen changes
   useEffect(() => {
     console.log("isCropperOpen state changed to:", isCropperOpen);
+    if (isCropperOpen) {
+      console.log("Modal should be open now");
+    }
   }, [isCropperOpen]);
 
   // Profile data state
@@ -308,11 +316,18 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
     }
     console.log("File selected:", file.name, file.type, file.size);
 
-    console.log("Setting isCropperOpen to true");
+    console.log("Setting isCropperOpen to true, current value:", isCropperOpen);
     setIsCropperOpen(true);
+    // Force a re-render check
+    setTimeout(() => {
+      console.log("After setting isCropperOpen, value should be true");
+    }, 0);
     setPendingPhoto(file);
     setPhotoScale(1.1);
     setPhotoOffset({ x: 0, y: 0 });
+    setPhotoRotation(0);
+    setPhotoStraighten(0);
+    setActiveTab("crop");
     setPhotoMeta(null);
     const previewUrl = URL.createObjectURL(file);
     console.log("Preview URL created:", previewUrl);
@@ -348,6 +363,8 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
         scale: photoScale,
         offsetX: photoOffset.x,
         offsetY: photoOffset.y,
+        rotation: photoRotation,
+        straighten: photoStraighten,
       });
       const uploadFile = cropped ?? pendingPhoto;
       const { user: updated } = await userService.uploadPhoto(uploadFile);
@@ -409,8 +426,19 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
     setPendingPhoto(null);
     setPendingPhotoPreview(null);
     setPhotoOffset({ x: 0, y: 0 });
+    setPhotoRotation(0);
+    setPhotoStraighten(0);
+    setActiveTab("crop");
     setPhotoMeta(null);
     setIsCropperOpen(false);
+  };
+
+  const handleRotate = (direction: "cw" | "ccw") => {
+    if (direction === "cw") {
+      setPhotoRotation((prev) => (prev + 90) % 360);
+    } else {
+      setPhotoRotation((prev) => (prev - 90 + 360) % 360);
+    }
   };
 
   const handleInputChange = (section: string, field: string, value: any) => {
@@ -685,24 +713,114 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
               }
             }}
           >
-            <DialogContent className="max-w-[520px]">
-              <DialogHeader>
-                <DialogTitle className="text-center">Profile photo</DialogTitle>
-                <DialogDescription className="sr-only">
-                  Crop and adjust your profile picture
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4">
+            <DialogContent 
+              className="max-w-[600px] sm:max-w-[600px] !flex !flex-col !p-0 !gap-0 !grid-rows-none"
+              style={{ 
+                width: '600px',
+                maxWidth: '600px',
+                padding: 0,
+                gap: 0,
+                minHeight: 'auto',
+                maxHeight: '90vh',
+                overflow: 'hidden',
+                display: 'flex',
+                flexDirection: 'column',
+                position: 'fixed',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                zIndex: 1050,
+                backgroundColor: 'hsl(var(--card))',
+                border: '1px solid hsl(var(--border))',
+                boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+              } as React.CSSProperties}
+              onOpenAutoFocus={(e) => e.preventDefault()}
+              onEscapeKeyDown={(e) => {
+                if (!isPhotoUploading) {
+                  setIsCropperOpen(false);
+                  resetPendingPhoto();
+                } else {
+                  e.preventDefault();
+                }
+              }}
+              onPointerDownOutside={(e) => {
+                // Prevent closing on outside click during crop
+                if (activeTab === "crop" && isDragging) {
+                  e.preventDefault();
+                }
+              }}
+            >
+              {/* Header */}
+              <DialogHeader className="px-6 pt-5 pb-0 flex-shrink-0 bg-card border-b">
+                  <DialogTitle className="text-lg font-semibold text-foreground">Edit photo</DialogTitle>
+                  <DialogDescription className="sr-only">
+                    Crop, filter, and adjust your profile picture
+                  </DialogDescription>
+                </DialogHeader>
+                
+                {/* Tabs */}
+                <div className="px-6 pt-4 pb-0 flex-shrink-0 bg-card border-b">
+                <div className="flex gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("crop")}
+                    className={`px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-[1px] relative rounded-t-sm ${
+                      activeTab === "crop"
+                        ? "border-primary text-primary"
+                        : "border-transparent text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    Crop
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("filter")}
+                    className={`px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-[1px] relative rounded-t-sm ${
+                      activeTab === "filter"
+                        ? "border-primary text-primary"
+                        : "border-transparent text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    Filter
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("adjust")}
+                    className={`px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-[1px] relative rounded-t-sm ${
+                      activeTab === "adjust"
+                        ? "border-primary text-primary"
+                        : "border-transparent text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    Adjust
+                  </button>
+                </div>
+              </div>
+
+              {/* Content - scrollable area */}
+              <div className="px-6 py-5 space-y-5 overflow-y-auto flex-1 min-h-0 bg-card">
+                {error && (
+                  <Alert variant="destructive" className="mb-0">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription className="text-sm">{error}</AlertDescription>
+                  </Alert>
+                )}
+                {/* Photo Preview */}
                 <div
-                  className="relative mx-auto border-2 border-border rounded-full overflow-hidden bg-slate-900"
+                  className="relative mx-auto border-2 border-border rounded-full overflow-hidden bg-secondary select-none"
                   style={{
                     width: 320,
                     height: 320,
-                    cursor: isDragging ? "grabbing" : "grab",
+                    cursor: activeTab === "crop" ? (isDragging ? "grabbing" : "grab") : "default",
+                    touchAction: activeTab === "crop" ? "none" : "auto",
                   }}
                   onMouseDown={(e) => {
-                    setIsDragging(true);
-                    dragStart.current = { x: e.clientX, y: e.clientY };
+                    if (activeTab === "crop") {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setIsDragging(true);
+                      dragStart.current = { x: e.clientX, y: e.clientY };
+                    }
                   }}
                   onMouseUp={() => {
                     setIsDragging(false);
@@ -713,23 +831,34 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
                     dragStart.current = null;
                   }}
                   onMouseMove={(e) => {
-                    if (!isDragging || !dragStart.current || !photoMeta) return;
+                    if (activeTab !== "crop" || !isDragging || !dragStart.current || !photoMeta) return;
+                    e.preventDefault();
                     const dx = e.clientX - dragStart.current.x;
                     const dy = e.clientY - dragStart.current.y;
                     dragStart.current = { x: e.clientX, y: e.clientY };
-                    const displayScale = (320 / photoMeta.minSide) * photoScale;
-                    const deltaSourceX = dx / displayScale;
-                    const deltaSourceY = dy / displayScale;
-                    const maxOffset =
-                      (photoMeta.minSide * (1 - 1 / photoScale)) / 2;
+                    
+                    // Convert screen pixel movement to source image pixel movement
+                    const previewSize = 320;
+                    // Pixel ratio: how many preview pixels per source pixel
+                    const pixelRatio = previewSize / photoMeta.minSide;
+                    // When zoomed, movement is divided by the scale
+                    const sourceDx = dx / (pixelRatio * photoScale);
+                    const sourceDy = dy / (pixelRatio * photoScale);
+                    
+                    // Calculate max offset: when zoomed in, we can move by (zoomFactor - 1) * minSide / 2
+                    // This represents how much extra image we're showing beyond the crop area
+                    const maxOffset = photoScale > 1 
+                      ? photoMeta.minSide * (photoScale - 1) / 2
+                      : 0;
+                    
                     setPhotoOffset((prev) => {
                       const nextX = clamp(
-                        prev.x + deltaSourceX,
+                        prev.x + sourceDx,
                         -maxOffset,
                         maxOffset
                       );
                       const nextY = clamp(
-                        prev.y + deltaSourceY,
+                        prev.y + sourceDy,
                         -maxOffset,
                         maxOffset
                       );
@@ -737,33 +866,41 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
                     });
                   }}
                   onTouchStart={(e) => {
-                    const touch = e.touches[0];
-                    setIsDragging(true);
-                    dragStart.current = { x: touch.clientX, y: touch.clientY };
+                    if (activeTab === "crop") {
+                      const touch = e.touches[0];
+                      setIsDragging(true);
+                      dragStart.current = { x: touch.clientX, y: touch.clientY };
+                    }
                   }}
                   onTouchEnd={() => {
                     setIsDragging(false);
                     dragStart.current = null;
                   }}
                   onTouchMove={(e) => {
-                    if (!isDragging || !dragStart.current || !photoMeta) return;
+                    if (activeTab !== "crop" || !isDragging || !dragStart.current || !photoMeta) return;
+                    e.preventDefault();
                     const touch = e.touches[0];
                     const dx = touch.clientX - dragStart.current.x;
                     const dy = touch.clientY - dragStart.current.y;
                     dragStart.current = { x: touch.clientX, y: touch.clientY };
-                    const displayScale = (320 / photoMeta.minSide) * photoScale;
-                    const deltaSourceX = dx / displayScale;
-                    const deltaSourceY = dy / displayScale;
-                    const maxOffset =
-                      (photoMeta.minSide * (1 - 1 / photoScale)) / 2;
+                    
+                    const previewSize = 320;
+                    const pixelRatio = previewSize / photoMeta.minSide;
+                    const sourceDx = dx / (pixelRatio * photoScale);
+                    const sourceDy = dy / (pixelRatio * photoScale);
+                    
+                    const maxOffset = photoScale > 1 
+                      ? photoMeta.minSide * (photoScale - 1) / 2
+                      : 0;
+                    
                     setPhotoOffset((prev) => {
                       const nextX = clamp(
-                        prev.x + deltaSourceX,
+                        prev.x + sourceDx,
                         -maxOffset,
                         maxOffset
                       );
                       const nextY = clamp(
-                        prev.y + deltaSourceY,
+                        prev.y + sourceDy,
                         -maxOffset,
                         maxOffset
                       );
@@ -781,16 +918,33 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
                         left: "50%",
                         top: "50%",
                         transform: (() => {
-                          const minSide = photoMeta?.minSide ?? 320;
-                          const scale = (320 / minSide) * photoScale;
-                          const tx =
-                            photoOffset.x * (320 / minSide) * photoScale;
-                          const ty =
-                            photoOffset.y * (320 / minSide) * photoScale;
-                          return `translate(-50%, -50%) translate(${tx}px, ${ty}px) scale(${scale})`;
+                          if (!photoMeta) return "translate(-50%, -50%)";
+                          const previewSize = 320;
+                          
+                          // Calculate base scale to fit image in preview (showing minSide fits in previewSize)
+                          const baseScale = previewSize / photoMeta.minSide;
+                          
+                          // Apply user zoom (photoScale)
+                          const totalScale = baseScale * photoScale;
+                          
+                          // Convert source image offset to preview pixel offset
+                          // When scale = 1, we show minSide pixels in previewSize pixels
+                          // So 1 source pixel = previewSize/minSide preview pixels
+                          const pixelRatio = previewSize / photoMeta.minSide;
+                          const tx = photoOffset.x * pixelRatio * photoScale;
+                          const ty = photoOffset.y * pixelRatio * photoScale;
+                          
+                          const rotation = photoRotation + photoStraighten;
+                          
+                          // Apply transforms in order: translate center, apply offset, scale, rotate
+                          return `translate(-50%, -50%) translate(${tx}px, ${ty}px) scale(${totalScale}) rotate(${rotation}deg)`;
                         })(),
                         transformOrigin: "center center",
                         userSelect: "none",
+                        width: photoMeta?.width,
+                        height: photoMeta?.height,
+                        maxWidth: "none",
+                        maxHeight: "none",
                       }}
                       onLoad={() => setError(null)}
                       onError={() => {
@@ -799,61 +953,150 @@ export function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
                       }}
                     />
                   )}
-                  <div className="absolute inset-0 pointer-events-none rounded-full border-2 border-white/80 ring-1 ring-black/20" />
+                  <div className="absolute inset-0 pointer-events-none rounded-full border-2 border-white" />
                 </div>
-                <p className="text-sm text-center text-muted-foreground">
-                  Drag to reposition photo
-                </p>
-                <div className="flex flex-col space-y-4 items-center">
-                  <div className="flex items-center w-full max-w-[320px] space-x-4">
-                    <Label className="text-sm text-foreground min-w-[40px]">
-                      Zoom
-                    </Label>
-                    <input
-                      type="range"
-                      min="1"
-                      max="2"
-                      step="0.05"
-                      value={photoScale}
-                      onChange={(e) => {
-                        const next = parseFloat(e.target.value);
-                        setPhotoScale(next);
-                        setPhotoOffset({ x: 0, y: 0 });
-                      }}
-                      className="flex-1 h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
-                    />
-                    <span className="text-sm font-medium text-foreground min-w-[32px] text-right">
-                      {photoScale.toFixed(1)}
-                    </span>
+
+                {/* Controls based on active tab */}
+                {activeTab === "crop" && (
+                  <div className="space-y-4">
+                    <p className="text-xs text-center text-muted-foreground">
+                      Drag to reposition
+                    </p>
+                    <div className="flex flex-col space-y-4 items-center">
+                      {/* Rotation Controls */}
+                      <div className="flex items-center gap-3">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          onClick={() => handleRotate("ccw")}
+                          className="h-9 w-9 rounded-full"
+                          aria-label="Rotate counter-clockwise"
+                        >
+                          <RotateCcw className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          onClick={() => handleRotate("cw")}
+                          className="h-9 w-9 rounded-full"
+                          aria-label="Rotate clockwise"
+                        >
+                          <RotateCw className="h-4 w-4" />
+                        </Button>
+                      </div>
+
+                      {/* Zoom Slider */}
+                      <div className="flex items-center w-full max-w-[360px] space-x-3">
+                        <Label className="text-xs text-muted-foreground min-w-[50px]">
+                          Zoom
+                        </Label>
+                        <input
+                          type="range"
+                          min="1"
+                          max="3"
+                          step="0.05"
+                          value={photoScale}
+                          onChange={(e) => {
+                            const next = parseFloat(e.target.value);
+                            setPhotoScale(next);
+                            // Recalculate offset bounds when zoom changes
+                            if (photoMeta) {
+                              const maxOffset = next > 1 
+                                ? photoMeta.minSide * (next - 1) / 2
+                                : 0;
+                              setPhotoOffset((prev) => ({
+                                x: clamp(prev.x, -maxOffset, maxOffset),
+                                y: clamp(prev.y, -maxOffset, maxOffset),
+                              }));
+                            }
+                          }}
+                          onMouseDown={(e) => e.stopPropagation()}
+                          className="flex-1 h-1.5 bg-muted rounded-full appearance-none cursor-pointer accent-primary"
+                          style={{
+                            background: `linear-gradient(to right, hsl(var(--primary)) 0%, hsl(var(--primary)) ${((photoScale - 1) / 2) * 100}%, hsl(var(--muted)) ${((photoScale - 1) / 2) * 100}%, hsl(var(--muted)) 100%)`,
+                          }}
+                        />
+                        <span className="text-xs font-medium text-foreground min-w-[35px] text-right">
+                          {photoScale.toFixed(1)}x
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                </div>
+                )}
+
+                {activeTab === "filter" && (
+                  <div className="text-center py-8">
+                    <p className="text-sm text-muted-foreground">
+                      Filter options coming soon
+                    </p>
+                  </div>
+                )}
+
+                {activeTab === "adjust" && (
+                  <div className="flex flex-col space-y-4 items-center">
+                    {/* Straighten Slider */}
+                    <div className="flex items-center w-full max-w-[360px] space-x-3">
+                      <Label className="text-xs text-muted-foreground min-w-[70px]">
+                        Straighten
+                      </Label>
+                      <input
+                        type="range"
+                        min="-45"
+                        max="45"
+                        step="1"
+                        value={photoStraighten}
+                        onChange={(e) => {
+                          setPhotoStraighten(parseFloat(e.target.value));
+                        }}
+                        className="flex-1 h-1.5 bg-muted rounded-full appearance-none cursor-pointer accent-primary"
+                        style={{
+                          background: `linear-gradient(to right, hsl(var(--muted)) 0%, hsl(var(--muted)) 50%, hsl(var(--primary)) 50%, hsl(var(--primary)) ${50 + (photoStraighten / 45) * 50}%, hsl(var(--muted)) ${50 + (photoStraighten / 45) * 50}%, hsl(var(--muted)) 100%)`,
+                        }}
+                      />
+                      <span className="text-xs font-medium text-foreground min-w-[40px] text-right">
+                        {photoStraighten > 0 ? "+" : ""}
+                        {photoStraighten.toFixed(0)}°
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
-              <DialogFooter className="flex justify-between items-center gap-2 sm:justify-between">
+
+              {/* Footer */}
+              <DialogFooter className="px-6 pb-5 pt-4 flex justify-between items-center gap-2 border-t flex-shrink-0 bg-card">
                 <div className="flex gap-2">
-                  {profileData.photoUrl && (
-                    <Button
-                      variant="ghost"
-                      onClick={handleRemovePhoto}
-                      disabled={isPhotoUploading}
-                      className="text-destructive hover:text-destructive"
-                    >
-                      Delete photo
-                    </Button>
-                  )}
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setActiveTab("crop");
+                    }}
+                    className="gap-1.5 text-xs"
+                  >
+                    <Eye className="h-3.5 w-3.5" />
+                    Anyone
+                  </Button>
                 </div>
                 <div className="flex gap-2">
                   <Button
+                    type="button"
                     variant="outline"
+                    size="sm"
                     onClick={handlePhotoSelect}
                     disabled={isPhotoUploading}
                   >
-                    Change photo
+                    Change
                   </Button>
                   <Button
+                    type="button"
+                    size="sm"
                     onClick={handleApplyPhoto}
                     disabled={isPhotoUploading || !pendingPhoto}
                   >
-                    {isPhotoUploading ? "Saving..." : "Apply"}
+                    {isPhotoUploading ? "Saving..." : "Save"}
                   </Button>
                 </div>
               </DialogFooter>

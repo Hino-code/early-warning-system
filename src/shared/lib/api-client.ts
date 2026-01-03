@@ -65,7 +65,9 @@ async function request<T>(
     : `${activeConfig.baseUrl.replace(/\/$/, "")}/${path.replace(/^\//, "")}`;
 
   const headers = new Headers(options.headers);
-  if (!headers.has("Content-Type") && options.body) {
+  
+  // Don't set Content-Type for FormData - let browser set it with boundary
+  if (!headers.has("Content-Type") && options.body && !(options.body instanceof FormData)) {
     headers.set("Content-Type", "application/json");
   }
 
@@ -91,8 +93,12 @@ async function request<T>(
   return text ? (JSON.parse(text) as T) : (undefined as T);
 }
 
-const withBody = (body?: unknown) =>
-  body !== undefined ? JSON.stringify(body) : undefined;
+const withBody = (body?: unknown) => {
+  if (body === undefined) return undefined;
+  // Don't stringify FormData - pass it as-is
+  if (body instanceof FormData) return body;
+  return JSON.stringify(body);
+};
 
 export const apiClient = {
   get<T>(path: string, options?: ApiRequestOptions) {

@@ -54,11 +54,6 @@ export const userService = {
     const response = await apiClient.post<{ photoUrl: string; user: AppUser }>(
       "/user/me/photo",
       formData,
-      {
-        headers: {
-          // Let browser set boundary
-        },
-      },
     );
     return response;
   },
