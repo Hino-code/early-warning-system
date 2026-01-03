@@ -16,6 +16,7 @@ import {
   Info,
   CheckCircle,
   Clock,
+  Check,
 } from "lucide-react";
 
 interface NotificationBellProps {
@@ -27,6 +28,7 @@ export function NotificationBell({ onViewAll }: NotificationBellProps) {
   const unreadCount = useDashboardStore((state) => state.alertUnreadCount);
   const loadAlerts = useDashboardStore((state) => state.loadAlerts);
   const markAlertRead = useDashboardStore((state) => state.markAlertRead);
+  const markAllAlertsRead = useDashboardStore((state) => state.markAllAlertsRead);
   const loading = useDashboardStore((state) => state.loading);
   const [isOpen, setIsOpen] = useState(false);
 
@@ -36,8 +38,15 @@ export function NotificationBell({ onViewAll }: NotificationBellProps) {
 
   const notifications = useMemo(() => alerts.slice(0, 5), [alerts]);
 
-  const handleMarkAsRead = (notificationId: string) => {
+  const handleMarkAsRead = (notificationId: string, e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+    }
     markAlertRead(notificationId);
+  };
+
+  const handleMarkAllAsRead = () => {
+    markAllAlertsRead();
   };
 
   const handleKeyActivate = (
@@ -109,14 +118,27 @@ export function NotificationBell({ onViewAll }: NotificationBellProps) {
               </Badge>
             )}
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleViewAll}
-            className="text-xs h-7"
-          >
-            View all
-          </Button>
+          <div className="flex items-center gap-2">
+            {unreadCount > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleMarkAllAsRead}
+                className="text-xs h-7"
+                title="Mark all as read"
+              >
+                <Check className="h-3.5 w-3.5" />
+              </Button>
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleViewAll}
+              className="text-xs h-7"
+            >
+              View all
+            </Button>
+          </div>
         </div>
 
         <div className="max-h-[400px] overflow-y-auto">
@@ -151,7 +173,7 @@ export function NotificationBell({ onViewAll }: NotificationBellProps) {
                   aria-label={`${notification.title}${
                     notification.read ? "" : " (unread)"
                   }`}
-                  className={`p-3 hover:bg-muted/50 focus:bg-muted/50 cursor-pointer transition-colors outline-none ${
+                  className={`p-3 hover:bg-muted/50 focus:bg-muted/50 cursor-pointer transition-colors outline-none group ${
                     !notification.read ? "bg-blue-50 dark:bg-blue-950/20" : ""
                   }`}
                   onClick={() => {
@@ -180,12 +202,14 @@ export function NotificationBell({ onViewAll }: NotificationBellProps) {
                         >
                           {notification.title}
                         </p>
-                        {!notification.read && (
-                          <div
-                            className="h-2 w-2 rounded-full bg-primary shrink-0 mt-1"
-                            aria-label="Unread notification"
-                          />
-                        )}
+                        <div className="flex items-center gap-1 shrink-0">
+                          {!notification.read && (
+                            <div
+                              className="h-2 w-2 rounded-full bg-primary shrink-0 mt-1"
+                              aria-label="Unread notification"
+                            />
+                          )}
+                        </div>
                       </div>
                       <p className="text-xs text-muted-foreground line-clamp-2">
                         {notification.message}
