@@ -178,10 +178,37 @@ function UserMenu({ user, onLogout, onProfileClick }: UserMenuProps) {
   );
 }
 
+const ACTIVE_SECTION_KEY = "pest-i-active-section";
+
 export function AppLayout() {
-  const [activeSection, setActiveSection] = useState<AppSection>("overview");
+  // Restore active section from localStorage or URL hash, default to "overview"
+  const getInitialSection = (): AppSection => {
+    // Try URL hash first (for shareable links)
+    if (typeof window !== "undefined") {
+      const hash = window.location.hash.slice(1);
+      if (hash && ["overview", "pest-analysis", "threshold-actions", "forecast", "notifications", "reports", "profile", "admin-approvals"].includes(hash)) {
+        return hash as AppSection;
+      }
+      // Fallback to localStorage
+      const saved = localStorage.getItem(ACTIVE_SECTION_KEY);
+      if (saved && ["overview", "pest-analysis", "threshold-actions", "forecast", "notifications", "reports", "profile", "admin-approvals"].includes(saved)) {
+        return saved as AppSection;
+      }
+    }
+    return "overview";
+  };
+
+  const [activeSection, setActiveSection] = useState<AppSection>(getInitialSection());
   const [showWelcome, setShowWelcome] = useState(false);
   const [showRegistration, setShowRegistration] = useState(false);
+
+  // Persist active section to localStorage and URL hash
+  useEffect(() => {
+    localStorage.setItem(ACTIVE_SECTION_KEY, activeSection);
+    if (typeof window !== "undefined") {
+      window.location.hash = activeSection;
+    }
+  }, [activeSection]);
 
   const {
     user,
@@ -204,8 +231,9 @@ export function AppLayout() {
   }) => {
     await login(credentials);
     setShowRegistration(false);
-    setShowWelcome(true);
-    setTimeout(() => setShowWelcome(false), 10000);
+    // Don't show welcome notification - it's not a good practice to show alerts on every login
+    // setShowWelcome(true);
+    // setTimeout(() => setShowWelcome(false), 10000);
   };
 
   const handleRegister = async (payload: RegistrationPayload) => {
@@ -215,8 +243,14 @@ export function AppLayout() {
 
   const handleLogout = () => {
     logout();
+    // Clear saved section on logout
+    localStorage.removeItem(ACTIVE_SECTION_KEY);
     setActiveSection("overview");
     setShowRegistration(false);
+    // Clear URL hash
+    if (typeof window !== "undefined") {
+      window.location.hash = "";
+    }
   };
 
   const allowedNavigation = useMemo(() => {

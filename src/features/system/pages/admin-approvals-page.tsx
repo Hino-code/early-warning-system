@@ -150,11 +150,6 @@ export function AdminApprovalsPage() {
           </TableBody>
         </Table>
       </Card>
-
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <AlertTriangle className="h-4 w-4" />
-        Approved users receive credentials via the upcoming FastAPI service.
-      </div>
     </div>
   );
 }
