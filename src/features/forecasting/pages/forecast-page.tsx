@@ -410,12 +410,91 @@ export function ForecastEarlyWarning() {
     };
   }, [observations, selectedPest]);
 
+  // RESEARCH-BASED CONTROL MEASURES for Black Rice Bug (Scotinophara coarctata)
+  // Based on IPM strategies from rice pest management literature
+  const getControlMeasures = (pestType: string, riskLevel: "Low" | "Moderate" | "High", predictedCount: number, threshold: number): string[] => {
+    const measures: string[] = [];
+    
+    if (pestType === "Black Rice Bug") {
+      if (riskLevel === "High" || predictedCount > threshold * 1.2 || predictedCount > 75) {
+        // CRITICAL/HIGH RISK - Economic Injury Level exceeded
+        measures.push("🔴 CHEMICAL CONTROL (Immediate): Apply Fipronil 5% SC at 50-100 ml/ha or Chlorpyrifos 50% EC at 1.0-1.5 L/ha. Apply during early morning (6-8 AM) when bugs are active.");
+        measures.push("Biological Control: Release parasitoids (Anastatus japonicus) at 10,000-20,000/ha within 2-3 days after chemical spray");
+        measures.push("Cultural Control: Implement synchronized planting across farms to break pest cycle. Maintain proper water level (5-10 cm)");
+        measures.push("Mechanical Control: Install light traps (1 per 0.5 ha) during early evening hours (6-8 PM) for 5-7 consecutive nights");
+        measures.push("Field Monitoring: Increase scouting to daily for next 7 days. Check upper and lower leaves for egg masses");
+      } else if (riskLevel === "Moderate" || predictedCount > threshold * 0.8 || predictedCount > 40) {
+        // MODERATE RISK - Approaching Economic Threshold
+        measures.push("🟡 BIOLOGICAL CONTROL (Preferred): Apply Beauveria bassiana or Metarhizium anisopliae at 2-3 kg/ha. Best applied during humid conditions");
+        measures.push("Botanical Pesticides: Apply neem-based products (Azadirachtin 0.03% EC) at 2.5-3.0 L/ha or neem seed kernel extract");
+        measures.push("Increase Scouting: Monitor fields every 2-3 days. Focus on field borders and areas with high pest activity");
+        measures.push("Field Sanitation: Remove alternative hosts and weeds around field borders. Clear rice stubbles after harvest");
+        measures.push("Water Management: Maintain shallow flooding (5-7 cm) to disrupt pest breeding. Drain and re-flood if necessary");
+      } else {
+        // LOW RISK - Preventive measures
+        measures.push("✅ Maintain regular monitoring schedule (weekly scouting recommended)");
+        measures.push("Good Agricultural Practices: Balanced fertilization (avoid excessive N), proper water management, timely weeding");
+        measures.push("Conservation Biological Control: Preserve field borders with beneficial habitats. Avoid broad-spectrum insecticides");
+        measures.push("Early Warning: Continue monitoring. If count exceeds 30, prepare intervention materials");
+      }
+    }
+    
+    return measures;
+  };
+
+  // Critical alerts based on forecast exceeding thresholds
+  const criticalAlerts = useMemo(() => {
+    const alerts: Array<{
+      type: "critical" | "warning";
+      title: string;
+      message: string;
+      date: string;
+      predictedCount: number;
+      threshold: number;
+      controlMeasures: string[];
+    }> = [];
+
+    filteredForecasts.forEach((forecast) => {
+      const predicted = forecast.predicted;
+      const threshold = referenceLines.economicThreshold;
+      const economicInjuryLevel = referenceLines.economicInjuryLevel;
+      
+      // Critical alert if exceeds Economic Injury Level
+      if (predicted > economicInjuryLevel) {
+        alerts.push({
+          type: "critical",
+          title: `CRITICAL ALERT: Economic Injury Level Exceeded on ${new Date(forecast.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}`,
+          message: `Black Rice Bug count predicted to reach ${Math.round(predicted)} (Economic Injury Level: ${economicInjuryLevel}). Immediate intervention required to prevent significant yield loss.`,
+          date: forecast.date,
+          predictedCount: predicted,
+          threshold: economicInjuryLevel,
+          controlMeasures: getControlMeasures(selectedPest, "High", predicted, threshold),
+        });
+      }
+      // Warning alert if exceeds Economic Threshold but not EIL
+      else if (predicted > threshold && alerts.length < 5) { // Limit to 5 alerts to avoid clutter
+        alerts.push({
+          type: "warning",
+          title: `Warning: Threshold Exceeded on ${new Date(forecast.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}`,
+          message: `Black Rice Bug count predicted to reach ${Math.round(predicted)} (Economic Threshold: ${threshold}). Action recommended within 48-72 hours.`,
+          date: forecast.date,
+          predictedCount: predicted,
+          threshold: threshold,
+          controlMeasures: getControlMeasures(selectedPest, riskMetrics.riskLevel, predicted, threshold),
+        });
+      }
+    });
+
+    return alerts.slice(0, 5); // Limit to top 5 most critical
+  }, [filteredForecasts, referenceLines, selectedPest, riskMetrics.riskLevel]);
+
   // Recommended actions
   const recommendations = useMemo(() => {
     const actions: Array<{
       priority: "High" | "Medium" | "Low";
       action: string;
       reason: string;
+      controlMeasures?: string[];
     }> = [];
 
     if (riskMetrics.daysAboveThreshold > 0) {
@@ -423,6 +502,7 @@ export function ForecastEarlyWarning() {
         priority: "High",
         action: "Prepare intervention resources",
         reason: `${riskMetrics.daysAboveThreshold} day(s) forecasted above threshold`,
+        controlMeasures: getControlMeasures(selectedPest, riskMetrics.riskLevel, riskMetrics.avgPredicted, riskMetrics.threshold),
       });
     }
 
@@ -431,6 +511,7 @@ export function ForecastEarlyWarning() {
         priority: "High",
         action: "Schedule immediate field inspection",
         reason: `${riskMetrics.highRiskDays} day(s) with critically high pest count predicted`,
+        controlMeasures: getControlMeasures(selectedPest, "High", riskMetrics.avgPredicted, riskMetrics.threshold),
       });
     }
 
@@ -439,6 +520,7 @@ export function ForecastEarlyWarning() {
         priority: "High",
         action: "Activate emergency response protocol",
         reason: "Overall risk level is HIGH based on forecast",
+        controlMeasures: getControlMeasures(selectedPest, "High", riskMetrics.avgPredicted, riskMetrics.threshold),
       });
     }
 
@@ -450,6 +532,7 @@ export function ForecastEarlyWarning() {
         priority: "Medium",
         action: `Target intervention on ${riskMetrics.peakDay.date}`,
         reason: `Peak pest activity predicted (${riskMetrics.peakDay.count} count)`,
+        controlMeasures: getControlMeasures(selectedPest, "Moderate", riskMetrics.peakDay.count, riskMetrics.threshold),
       });
     }
 
@@ -458,6 +541,7 @@ export function ForecastEarlyWarning() {
         priority: "Medium",
         action: "Increase monitoring frequency",
         reason: "Average predicted count approaching threshold",
+        controlMeasures: getControlMeasures(selectedPest, "Moderate", riskMetrics.avgPredicted, riskMetrics.threshold),
       });
     }
 
@@ -466,11 +550,12 @@ export function ForecastEarlyWarning() {
         priority: "Low",
         action: "Maintain regular monitoring",
         reason: "Forecast indicates normal pest levels",
+        controlMeasures: getControlMeasures(selectedPest, "Low", riskMetrics.avgPredicted, riskMetrics.threshold),
       });
     }
 
     return actions;
-  }, [riskMetrics]);
+  }, [riskMetrics, selectedPest]);
 
   // Confidence levels by day
   const confidenceData = useMemo(() => {
@@ -1129,6 +1214,50 @@ export function ForecastEarlyWarning() {
         </Card>
       </div>
 
+      {/* Critical Alerts */}
+      {criticalAlerts.length > 0 && (
+        <Card className="p-6 border-2 border-destructive/20">
+          <div className="mb-4">
+            <div className="flex items-center gap-2">
+              <div className="p-2 rounded-full bg-destructive/10 text-destructive">
+                <WarningTriangle className="h-5 w-5" />
+              </div>
+              <h3 className="font-semibold text-destructive">Critical Forecast Alerts</h3>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Immediate action required based on forecast predictions
+            </p>
+          </div>
+          <div className="space-y-4">
+            {criticalAlerts.map((alert, idx) => (
+              <Alert
+                key={idx}
+                variant={alert.type === "critical" ? "destructive" : "default"}
+                className={alert.type === "critical" ? "border-destructive border-2" : "border-warning border-2"}
+              >
+                <WarningTriangle className="h-5 w-5" />
+                <AlertTitle className="font-semibold">{alert.title}</AlertTitle>
+                <AlertDescription className="mt-2">
+                  <p className="mb-3">{alert.message}</p>
+                  {alert.controlMeasures && alert.controlMeasures.length > 0 && (
+                    <div className="mt-3 pt-3 border-t border-border">
+                      <p className="font-medium text-sm mb-2 text-foreground">
+                        Suggested Control Measures:
+                      </p>
+                      <ul className="list-disc list-inside space-y-1.5 text-sm text-muted-foreground">
+                        {alert.controlMeasures.map((measure, measureIdx) => (
+                          <li key={measureIdx} className="pl-2">{measure}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </AlertDescription>
+              </Alert>
+            ))}
+          </div>
+        </Card>
+      )}
+
       {/* Recommended Actions */}
       <Card className="p-6">
         <div className="mb-4">
@@ -1171,7 +1300,17 @@ export function ForecastEarlyWarning() {
                     </Badge>
                     <h4 className="font-medium">{rec.action}</h4>
                   </div>
-                  <p className="text-sm text-muted-foreground">{rec.reason}</p>
+                  <p className="text-sm text-muted-foreground mb-2">{rec.reason}</p>
+                  {rec.controlMeasures && rec.controlMeasures.length > 0 && (
+                    <div className="mt-2 pt-2 border-t border-border/50">
+                      <p className="text-xs font-medium text-foreground mb-1.5">Control Measures:</p>
+                      <ul className="list-disc list-inside space-y-1 text-xs text-muted-foreground">
+                        {rec.controlMeasures.slice(0, 3).map((measure, measureIdx) => (
+                          <li key={measureIdx} className="pl-1">{measure}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

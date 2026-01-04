@@ -18,6 +18,34 @@ import type {
 
 const SESSION_KEY = "pest-i-session";
 
+// EVALUATION MODE: Enable auto-login with dummy user for client testing
+const EVALUATION_MODE = true; // Set to true for evaluation branch
+
+// Dummy user for evaluation/testing
+const DUMMY_USER: AppUser = {
+  id: "eval-user-001",
+  username: "Evaluation User",
+  email: "evaluation@pesti.demo",
+  role: "Administrator",
+  status: "approved",
+  phone: "+1 (555) 123-4567",
+  jobTitle: "System Administrator",
+  department: "Agricultural Research",
+  location: "Demo Location",
+  bio: "Evaluation account for UI testing",
+  theme: "system",
+  language: "en",
+  dateFormat: "MM/DD/YYYY",
+  timeFormat: "12h",
+  density: "comfortable",
+};
+
+const DUMMY_TOKEN = "eval-token-dummy-12345";
+const DUMMY_SESSION: AuthSession = {
+  token: DUMMY_TOKEN,
+  user: DUMMY_USER,
+};
+
 type AuthStatus = "idle" | "loading" | "pending-review" | "authenticated" | "error";
 
 interface AuthState {
@@ -63,6 +91,17 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   pendingUsers: [],
   error: undefined,
   initialize: async () => {
+    // EVALUATION MODE: Auto-login with dummy user
+    if (EVALUATION_MODE) {
+      persistSession(DUMMY_SESSION);
+      set({
+        user: DUMMY_USER,
+        token: DUMMY_TOKEN,
+        status: "authenticated",
+      });
+      return;
+    }
+
     const session = readSession();
     if (!session) {
       set({ user: null, token: null, status: "idle" });
@@ -136,6 +175,17 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
   logout: () => {
+    // EVALUATION MODE: Prevent logout, re-initialize with dummy user
+    if (EVALUATION_MODE) {
+      persistSession(DUMMY_SESSION);
+      set({
+        user: DUMMY_USER,
+        token: DUMMY_TOKEN,
+        status: "authenticated",
+        error: undefined,
+      });
+      return;
+    }
     persistSession(null);
     set({ user: null, token: null, status: "idle", error: undefined });
   },
@@ -157,6 +207,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   loadPendingUsers: async () => {
     set({ error: undefined });
     try {
+      // EVALUATION MODE: Use mock data for admin actions
+      if (EVALUATION_MODE) {
+        const pending = await mockListPendingUsers();
+        set({ pendingUsers: pending });
+        return;
+      }
       const pending = await apiClient.get<PendingUser[]>("/admin/pending-users");
       set({ pendingUsers: pending });
     } catch (error) {
@@ -167,10 +223,22 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
   approveUser: async (id: string) => {
+    // EVALUATION MODE: Use mock data for admin actions
+    if (EVALUATION_MODE) {
+      await mockApproveUser(id);
+      await get().loadPendingUsers();
+      return;
+    }
     await apiClient.post(`/admin/pending-users/${id}/approve`);
     await get().loadPendingUsers();
   },
   rejectUser: async (id: string) => {
+    // EVALUATION MODE: Use mock data for admin actions
+    if (EVALUATION_MODE) {
+      await mockRejectUser(id);
+      await get().loadPendingUsers();
+      return;
+    }
     await apiClient.post(`/admin/pending-users/${id}/reject`);
     await get().loadPendingUsers();
   },

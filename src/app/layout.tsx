@@ -180,6 +180,9 @@ function UserMenu({ user, onLogout, onProfileClick }: UserMenuProps) {
 
 const ACTIVE_SECTION_KEY = "pest-i-active-section";
 
+// EVALUATION MODE: Set to true for evaluation branch (bypasses login)
+const EVALUATION_MODE = true;
+
 export function AppLayout() {
   // Restore active section from localStorage or URL hash, default to "overview"
   const getInitialSection = (): AppSection => {
@@ -276,7 +279,10 @@ export function AppLayout() {
     return renderSection(activeSection, { user, onUpdateUser: updateUser });
   }, [activeSection, updateUser, user]);
 
-  if (authStatus === "loading" && !user) {
+  // EVALUATION MODE: Skip login screen, go straight to dashboard
+  if (EVALUATION_MODE && user) {
+    // Continue to dashboard - skip all auth checks
+  } else if (authStatus === "loading" && !user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center space-y-4">
@@ -292,7 +298,7 @@ export function AppLayout() {
     );
   }
 
-  if (!user && authStatus !== "pending-review") {
+  if (!EVALUATION_MODE && !user && authStatus !== "pending-review") {
     if (showRegistration) {
       return (
         <RegistrationPage
@@ -313,7 +319,8 @@ export function AppLayout() {
     );
   }
 
-  if (authStatus === "pending-review") {
+  // EVALUATION MODE: Skip pending review screen
+  if (!EVALUATION_MODE && authStatus === "pending-review") {
     return <PendingApprovalNotice onLogout={logout} />;
   }
 

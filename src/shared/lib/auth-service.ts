@@ -34,16 +34,59 @@ const defaultUsers: Array<AppUser & { password: string }> = [
 ];
 
 let approvedUsers = [...defaultUsers];
-let pendingUsers: PendingUser[] = [
-  {
-    id: "pending-1",
-    name: "Jane Researcher",
-    email: "jane@agency.gov",
-    agency: "DA Region XII",
-    role: "Researcher",
-    submittedAt: new Date().toISOString(),
-  },
-];
+
+// Generate comprehensive pending users list for evaluation
+const generatePendingUsers = (): PendingUser[] => {
+  const agencies = [
+    "DA Region XII - Research Division",
+    "PhilRice - Mindoro Branch",
+    "Cagayan Valley Agricultural Office",
+    "International Rice Research Institute",
+    "Central Luzon Farmers Cooperative",
+    "Bureau of Agricultural Research",
+    "DA Region III - Extension Services",
+    "DA Region V - Research and Development",
+    "Central Visayas Agricultural Office",
+    "Northern Mindanao Agricultural Center",
+    "Western Visayas Agricultural Research",
+    "Eastern Visayas Regional Office",
+    "Zamboanga Peninsula Agricultural Station",
+    "SOCCSKSARGEN Agricultural Division",
+    "Caraga Regional Agricultural Center",
+  ];
+  
+  const firstNames = ["Maria", "John", "Anna", "Carlos", "Sofia", "Michael", "Liza", "Robert", "Carmen", "David", "Patricia", "James", "Rosa", "Mark", "Grace"];
+  const lastNames = ["Santos", "Dela Cruz", "Rodriguez", "Mendoza", "Garcia", "Tan", "Ramos", "Lopez", "Villanueva", "Fernandez", "Cruz", "Reyes", "Bautista", "Gonzales", "Torres"];
+  const roles: Array<"Researcher" | "Field Manager"> = ["Researcher", "Field Manager"];
+  
+  const pendingUsers: PendingUser[] = [];
+  const now = Date.now();
+  
+  // Generate 20 pending users with varied submission times
+  for (let i = 0; i < 20; i++) {
+    const firstName = firstNames[i % firstNames.length];
+    const lastName = lastNames[Math.floor(i / firstNames.length) % lastNames.length];
+    const name = `${firstName} ${lastName}${i >= firstNames.length ? ` ${i + 1}` : ''}`;
+    const email = `${firstName.toLowerCase()}.${lastName.toLowerCase().replace(' ', '')}${i}@${agencies[i % agencies.length].toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9]/g, '')}.ph`;
+    
+    // Varied submission times: from 30 minutes to 5 days ago
+    const hoursAgo = i < 5 ? (i * 2 + 1) : (i < 10 ? (i * 6 + 12) : (i * 12 + 24));
+    const submittedAt = new Date(now - hoursAgo * 60 * 60 * 1000).toISOString();
+    
+    pendingUsers.push({
+      id: `pending-${i + 1}`,
+      name,
+      email,
+      agency: agencies[i % agencies.length],
+      role: roles[i % 2],
+      submittedAt,
+    });
+  }
+  
+  return pendingUsers.sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
+};
+
+let pendingUsers: PendingUser[] = generatePendingUsers();
 
 const delay = (ms = 300) => new Promise((resolve) => setTimeout(resolve, ms));
 

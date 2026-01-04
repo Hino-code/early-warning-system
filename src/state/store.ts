@@ -107,33 +107,38 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
       
       console.log(`Loaded ${observations.length} observations from mock data generator`);
 
-      // Forecasts: Fetch from real backend and map to frontend format
-      try {
-        const forecastResponse = await apiClient.get<BackendForecastResponse>("/dashboard/forecast");
-        if (forecastResponse?.success && forecastResponse?.data?.forecasted?.future_dates) {
-          const { future_dates, forecast, ci_lower, ci_upper } = forecastResponse.data.forecasted;
+      // Forecasts: Use mock data directly in evaluation mode, otherwise try API
+      // EVALUATION MODE: Always use mock data for consistent testing
+      forecasts = dataService.getForecastData();
+      
+      // Only try API if not in evaluation mode (but still fallback to mock on error)
+      if (!true) { // Set to false in evaluation mode - always use mocks
+        try {
+          const forecastResponse = await apiClient.get<BackendForecastResponse>("/dashboard/forecast");
+          if (forecastResponse?.success && forecastResponse?.data?.forecasted?.future_dates) {
+            const { future_dates, forecast, ci_lower, ci_upper } = forecastResponse.data.forecasted;
 
-          // Map indexed objects to array
-          forecasts = Object.keys(future_dates).map((key) => {
-            const date = future_dates[key];
-            const predicted = forecast[key] || 0;
-            const lower = ci_lower ? ci_lower[key] : Math.max(0, predicted - 5);
-            const upper = ci_upper ? ci_upper[key] : predicted + 5;
+            // Map indexed objects to array
+            forecasts = Object.keys(future_dates).map((key) => {
+              const date = future_dates[key];
+              const predicted = forecast[key] || 0;
+              const lower = ci_lower ? ci_lower[key] : Math.max(0, predicted - 5);
+              const upper = ci_upper ? ci_upper[key] : predicted + 5;
 
-            return {
-              date,
-              pestType: "Black Rice Bug",
-              predicted,
-              lowerBound: lower,
-              upperBound: upper,
-              confidence: 0.85
-            };
-          });
+              return {
+                date,
+                pestType: "Black Rice Bug",
+                predicted,
+                lowerBound: lower,
+                upperBound: upper,
+                confidence: 0.85
+              };
+            });
+          }
+        } catch (err) {
+          console.debug("Failed to fetch forecasts, using mock data", err);
+          // Already set to mock data above
         }
-      } catch (err) {
-        console.warn("Failed to fetch forecasts, falling back to mock data", err);
-        // Fallback to mock forecast data
-        forecasts = dataService.getForecastData();
       }
       
       // If still no forecasts after API and mock fallback, use empty array

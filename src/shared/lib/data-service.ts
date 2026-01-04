@@ -40,58 +40,124 @@ export const getForecastData = (): ForecastData[] => {
   return cachedForecasts;
 };
 
-const baseAlerts: AlertRecord[] = [
-  {
-    id: "alert-1",
-    title: "Critical pest threshold exceeded",
-    message: "Black Rice Bug count surpassed 50 in Field A-12. Immediate action recommended.",
-    type: "alert",
-    timestamp: new Date(Date.now() - 15 * 60 * 1000),
-    read: false,
-    priority: "high",
-    category: "threshold",
-    metadata: {
-      pestType: "Black Rice Bug",
-      location: "Field A-12",
-      count: 67,
-      threshold: 50,
-    },
-  },
-  {
-    id: "alert-2",
-    title: "Forecast: elevated Black Rice Bug risk",
-    message: "Model projects rising counts over the next 7 days. Prepare interventions.",
-    type: "warning",
-    timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
-    read: false,
-    priority: "high",
-    category: "forecast",
-    metadata: {
-      pestType: "Black Rice Bug",
-      location: "Southern sector",
-    },
-  },
-  {
-    id: "alert-3",
-    title: "Inspection required",
-    message: "3 fields need follow-up after threshold breaches.",
-    type: "warning",
-    timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000),
-    read: false,
-    priority: "medium",
-    category: "action-required",
-  },
-  {
-    id: "alert-4",
-    title: "System sync complete",
-    message: "Latest observations synchronized from field devices.",
-    type: "info",
-    timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000),
-    read: true,
-    priority: "low",
-    category: "system",
-  },
-];
+// Generate comprehensive alerts - expanded for evaluation
+const generateAlerts = (): AlertRecord[] => {
+  const alerts: AlertRecord[] = [];
+  const now = Date.now();
+  
+  // Critical threshold alerts (recent)
+  for (let i = 0; i < 8; i++) {
+    alerts.push({
+      id: `alert-threshold-${i + 1}`,
+      title: i === 0 ? "Critical pest threshold exceeded" : `Threshold exceeded in Field ${String.fromCharCode(65 + (i % 8))}-${String(i + 1).padStart(2, '0')}`,
+      message: `Black Rice Bug count reached ${45 + Math.floor(Math.random() * 30)} in Field ${String.fromCharCode(65 + (i % 8))}-${String(i + 1).padStart(2, '0')}. Economic threshold exceeded. Immediate action recommended.`,
+      type: "alert" as const,
+      timestamp: new Date(now - (i * 2 + 1) * 60 * 60 * 1000),
+      read: i >= 3,
+      priority: "high" as const,
+      category: "threshold" as const,
+      metadata: {
+        pestType: "Black Rice Bug",
+        location: `Field ${String.fromCharCode(65 + (i % 8))}-${String(i + 1).padStart(2, '0')}`,
+        count: 45 + Math.floor(Math.random() * 30),
+        threshold: 50,
+      },
+    });
+  }
+  
+  // Forecast alerts
+  for (let i = 0; i < 6; i++) {
+    alerts.push({
+      id: `alert-forecast-${i + 1}`,
+      title: i === 0 ? "Forecast: Elevated pest risk in next 7 days" : `Forecast alert: Risk period ${i + 1}`,
+      message: `Forecast model predicts increasing Black Rice Bug counts (${15 + i * 2}-${22 + i * 2} expected). Prepare intervention strategies.`,
+      type: "warning" as const,
+      timestamp: new Date(now - (i * 3 + 2) * 60 * 60 * 1000),
+      read: i >= 3,
+      priority: i < 2 ? "high" as const : "medium" as const,
+      category: "forecast" as const,
+      metadata: {
+        pestType: "Black Rice Bug",
+        location: "Multiple fields",
+      },
+    });
+  }
+  
+  // Action required alerts
+  for (let i = 0; i < 5; i++) {
+    alerts.push({
+      id: `alert-action-${i + 1}`,
+      title: i === 0 ? "Multiple threshold breaches detected" : `Action required: Field inspection ${i + 1}`,
+      message: `${3 + i} fields exceeded economic threshold. Field inspection and coordinated action required.`,
+      type: "warning" as const,
+      timestamp: new Date(now - (i * 4 + 4) * 60 * 60 * 1000),
+      read: i >= 2,
+      priority: "medium" as const,
+      category: "action-required" as const,
+      metadata: {
+        pestType: "Black Rice Bug",
+        location: "Multiple fields",
+      },
+    });
+  }
+  
+  // System/info alerts
+  for (let i = 0; i < 10; i++) {
+    const alertTypes = [
+      { title: "Field stage transition detected", message: "Vegetative to Reproductive stage transition detected. Pest monitoring frequency increased." },
+      { title: "Weekly report generated", message: "Weekly pest monitoring summary available. Average count: 12.3 (↓ 2.1 from last week)." },
+      { title: "Action taken: Biological control applied", message: `Field Manager applied biological control measures in Field ${String.fromCharCode(65 + (i % 8))}-${String(i + 1)} after threshold breach.` },
+      { title: "Data sync complete", message: `Latest observations synchronized from ${10 + i} field monitoring devices. ${40 + i * 5} new records added.` },
+      { title: "Threshold warning: Field approaching limit", message: `Black Rice Bug count at ${38 + i} in Field ${String.fromCharCode(65 + (i % 8))}-${String(i + 15)} (threshold: 50). Monitor closely.` },
+    ];
+    
+    const alertType = alertTypes[i % alertTypes.length];
+    alerts.push({
+      id: `alert-system-${i + 1}`,
+      title: alertType.title,
+      message: alertType.message,
+      type: "info" as const,
+      timestamp: new Date(now - (i * 6 + 6) * 60 * 60 * 1000),
+      read: i >= 5,
+      priority: i < 3 ? "medium" as const : "low" as const,
+      category: i < 2 ? "system" as const : (i < 4 ? "threshold" as const : "system" as const),
+      metadata: {
+        pestType: "Black Rice Bug",
+        location: `Field ${String.fromCharCode(65 + (i % 8))}-${String(i + 1)}`,
+      },
+    });
+  }
+  
+  // Additional historical alerts (older)
+  for (let i = 0; i < 15; i++) {
+    const daysAgo = 2 + Math.floor(i / 3);
+    const alertVariations = [
+      { title: "Economic damage threshold reached", message: `Black Rice Bug count reached ${65 + Math.floor(Math.random() * 20)}. Economic injury level exceeded.` },
+      { title: "Pest activity spike detected", message: `Unusual increase in Black Rice Bug activity across multiple fields in sector ${String.fromCharCode(65 + (i % 4))}.` },
+      { title: "Weather alert: Wet season conditions", message: "Heavy rainfall expected. Monitor for increased pest activity in low-lying fields." },
+    ];
+    
+    const variation = alertVariations[i % alertVariations.length];
+    alerts.push({
+      id: `alert-historical-${i + 1}`,
+      title: variation.title,
+      message: variation.message,
+      type: (i % 3 === 0 ? "alert" : i % 3 === 1 ? "warning" : "info") as const,
+      timestamp: new Date(now - daysAgo * 24 * 60 * 60 * 1000 - (i % 24) * 60 * 60 * 1000),
+      read: i >= 8,
+      priority: i < 5 ? "high" as const : (i < 10 ? "medium" as const : "low" as const),
+      category: (i % 3 === 0 ? "threshold" : i % 3 === 1 ? "forecast" : "system") as const,
+      metadata: {
+        pestType: "Black Rice Bug",
+        location: `Field ${String.fromCharCode(65 + (i % 8))}-${String(i + 20)}`,
+      },
+    });
+  }
+  
+  return alerts.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+};
+
+const baseAlerts: AlertRecord[] = generateAlerts();
 
 export const getAlerts = (): AlertRecord[] => {
   if (!cachedAlerts) {
