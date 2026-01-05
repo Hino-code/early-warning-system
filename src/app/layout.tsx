@@ -58,46 +58,33 @@ function SidebarLogo() {
   return (
     <div
       className="border-b flex items-center justify-center transition-all duration-200 w-full"
+      className="h-[62px] flex items-center justify-center transition-all duration-200"
       style={{
-        padding: isCollapsed ? "16px 8px" : "0px 29px",
-        height: "62px",
-        minHeight: "62px",
+        padding: isCollapsed 
+          ? "clamp(0.75rem, 2vw, 1rem) clamp(0.5rem, 1.5vw, 0.75rem)" 
+          : "0 clamp(1rem, 3vw, 1.8125rem)",
       }}
     >
       {isCollapsed ? (
         <img
           src={pestIconLogo}
           alt="Pest.i"
-          style={{
-            height: "32px",
-            width: "32px",
-            objectFit: "contain",
-            display: "block",
-            margin: "0 auto",
-          }}
-          className="transition-all duration-200"
+          className="h-7 w-7 sm:h-8 sm:w-8 object-contain block mx-auto transition-all duration-200"
         />
       ) : (
-        <div
-          className="flex items-center justify-center transition-all duration-200 w-full"
+        <div 
+          className="flex items-center justify-center transition-all duration-200 w-full h-[61px] px-4 sm:px-6"
           style={{
-            height: "61px",
-            paddingLeft: "24px",
-            paddingRight: "68px",
-            marginLeft: "14px",
-            marginRight: "14px",
+            paddingLeft: "clamp(1rem, 3vw, 1.5rem)",
+            paddingRight: "clamp(1rem, 3vw, 4.25rem)",
+            marginLeft: "clamp(0.5rem, 2vw, 0.875rem)",
+            marginRight: "clamp(0.5rem, 2vw, 0.875rem)",
           }}
         >
           <img
             src={pestFullLogo}
             alt="Pest.i - Monitoring & Forecasting"
-            style={{
-              height: "51px",
-              width: "167px",
-              objectFit: "contain",
-              display: "block",
-            }}
-            className="transition-all duration-200"
+            className="h-[51px] w-auto max-w-[140px] sm:max-w-[167px] object-contain block transition-all duration-200"
           />
         </div>
       )}
@@ -436,30 +423,18 @@ export function AppLayout() {
             className="sticky top-0 border-b bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60"
             style={{ zIndex: Z_INDEX.STICKY }}
           >
-            <div
-              className="flex items-center justify-between"
-              style={{
-                height: "61px",
-                paddingLeft: "24px",
-                paddingRight: "24px",
-              }}
-            >
-              <div className="flex items-center gap-3">
-                <SidebarTrigger aria-label="Toggle sidebar (⌘B or Ctrl+B)" />
-                <h2 className="text-lg font-semibold">
+            <div className="flex items-center justify-between h-[61px] px-3 sm:px-4 md:px-6 gap-2 sm:gap-3 md:gap-4">
+              <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                <SidebarTrigger 
+                  aria-label="Toggle sidebar (⌘B or Ctrl+B)" 
+                  className="shrink-0"
+                />
+                <h2 className="text-base sm:text-lg font-semibold truncate">
                   {getSectionTitle(activeSection)}
                 </h2>
               </div>
 
-              <div
-                className="flex items-center space-x-4"
-                style={{
-                  paddingLeft: "24px",
-                  paddingRight: "24px",
-                  marginLeft: "14px",
-                  marginRight: "14px",
-                }}
-              >
+              <div className="flex items-center gap-2 sm:gap-3 md:gap-4 flex-shrink-0">
                 <ThemeToggle />
                 <div className="flex items-center">
                   <NotificationBell
@@ -488,7 +463,7 @@ export function AppLayout() {
               </div>
             </div>
           </div>
-          <div className="px-4 pb-6">{content}</div>
+          <div className="px-3 sm:px-4 md:px-6 pb-4 sm:pb-5 md:pb-6">{content}</div>
         </main>
 
         {showWelcome && user && (

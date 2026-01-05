@@ -786,7 +786,7 @@ export function Overview() {
   }, [forecasts, filters.pestType]);
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-5 md:space-y-6 max-w-full overflow-x-hidden">
       <SharedFilters
         filters={filters}
         onFilterChange={handleFilterChange}
@@ -816,8 +816,8 @@ export function Overview() {
             <KpiCards kpis={kpis} insights={kpiData} />
           </div>
 
-          <Card className="p-6 relative overflow-hidden border border-border bg-white shadow-sm rounded-xl">
-            <div className="flex flex-col space-y-6 pt-2">
+          <Card className="p-4 sm:p-5 md:p-6 relative overflow-hidden border border-border bg-white shadow-sm rounded-xl">
+            <div className="flex flex-col space-y-4 sm:space-y-5 md:space-y-6 pt-2">
               <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                 <div>
                   <h3 className="text-xl font-semibold text-foreground">
@@ -863,7 +863,7 @@ export function Overview() {
                 No forecast data available for the current filters.
               </p>
             ) : (
-              <div className="relative mt-6">
+              <div className="relative mt-4 sm:mt-5 md:mt-6">
                 <ResponsiveContainer width="100%" height={380}>
                   <ComposedChart
                     data={forecastSeries}
@@ -1059,9 +1059,9 @@ export function Overview() {
           </Card>
 
           {/* Mini-Visuals Row */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6">
             {/* Threshold Status Breakdown */}
-            <Card className="p-6 relative overflow-hidden border border-border bg-white shadow-sm rounded-xl">
+            <Card className="p-4 sm:p-5 md:p-6 relative overflow-hidden border border-border bg-white shadow-sm rounded-xl">
               <div className="mb-4">
                 <h3 className="text-lg font-semibold text-foreground">
                   Threshold Status
@@ -1128,7 +1128,7 @@ export function Overview() {
             </Card>
 
             {/* Action Tracker */}
-            <Card className="p-6 relative overflow-hidden border border-border bg-white shadow-sm rounded-xl">
+            <Card className="p-4 sm:p-5 md:p-6 relative overflow-hidden border border-border bg-white shadow-sm rounded-xl">
               <div className="mb-4">
                 <h3 className="text-lg font-semibold text-foreground">
                   Action Tracker
@@ -1206,7 +1206,7 @@ export function Overview() {
             </Card>
 
             {/* Recent Alerts - Now Premium Styled */}
-            <Card className="p-6 relative overflow-hidden border border-border bg-white shadow-sm rounded-xl">
+            <Card className="p-4 sm:p-5 md:p-6 relative overflow-hidden border border-border bg-white shadow-sm rounded-xl">
               <div className="mb-4">
                 <h3 className="text-lg font-semibold text-foreground">
                   Recent Alerts

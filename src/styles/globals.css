@@ -257,10 +257,85 @@
     @apply border-border outline-ring/50;
   }
 
+  html {
+    /* Prevent horizontal scroll on all devices */
+    overflow-x: hidden;
+    width: 100%;
+    /* Smooth scrolling for better UX */
+    scroll-behavior: smooth;
+  }
+
   body {
     @apply bg-background text-foreground tracking-tightantialiased selection:bg-primary/20 selection:text-primary;
     font-feature-settings: "ss01", "ss02", "cv01", "cv02", "cv03";
     /* Clean modern font features if supported */
+    /* Prevent horizontal scroll on mobile */
+    overflow-x: hidden;
+    width: 100%;
+    /* Improve text rendering on all devices */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Improve touch interactions on mobile */
+  @media (hover: none) and (pointer: coarse) {
+    * {
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    button, a, [role="button"] {
+      min-height: 44px; /* iOS recommended touch target */
+      min-width: 44px;
+    }
+  }
+
+  /* Responsive image handling */
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Prevent text overflow issues */
+  p, h1, h2, h3, h4, h5, h6 {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+
+  /* Smooth transitions for responsive changes */
+  * {
+    transition-property: width, height, padding, margin, font-size;
+    transition-duration: 0.2s;
+    transition-timing-function: ease-in-out;
+  }
+
+  /* Exclude certain elements from transitions */
+  *, *::before, *::after {
+    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
+  }
+
+  /* Fluid typography and spacing using CSS clamp */
+  :root {
+    /* Fluid spacing scale - adapts to viewport width */
+    --spacing-fluid-xs: clamp(0.25rem, 0.5vw, 0.5rem);
+    --spacing-fluid-sm: clamp(0.5rem, 1vw, 0.75rem);
+    --spacing-fluid-md: clamp(0.75rem, 1.5vw, 1.5rem);
+    --spacing-fluid-lg: clamp(1rem, 2vw, 2rem);
+    --spacing-fluid-xl: clamp(1.5rem, 3vw, 3rem);
+    --spacing-fluid-2xl: clamp(2rem, 4vw, 4rem);
+    
+    /* Fluid font sizes */
+    --font-fluid-xs: clamp(0.75rem, 1.5vw, 0.875rem);
+    --font-fluid-sm: clamp(0.875rem, 2vw, 1rem);
+    --font-fluid-base: clamp(1rem, 2.5vw, 1.125rem);
+    --font-fluid-lg: clamp(1.125rem, 3vw, 1.5rem);
+    --font-fluid-xl: clamp(1.5rem, 4vw, 2rem);
+    --font-fluid-2xl: clamp(2rem, 5vw, 3rem);
+    
+    /* Container max-widths that adapt */
+    --container-sm: min(100%, 640px);
+    --container-md: min(100%, 768px);
+    --container-lg: min(100%, 1024px);
+    --container-xl: min(100%, 1280px);
   }
 }
 

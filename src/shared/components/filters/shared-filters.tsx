@@ -19,7 +19,12 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/shared/components/ui/collapsible";
-import { Calendar as CalendarIcon, NavArrowDown, FilterList, Xmark } from "iconoir-react";
+import {
+  Calendar as CalendarIcon,
+  NavArrowDown,
+  FilterList,
+  Xmark,
+} from "iconoir-react";
 import { format } from "date-fns";
 import type { DateRange as PickerDateRange } from "react-day-picker";
 import type { FilterValues } from "@/shared/types/filters";
@@ -192,7 +197,7 @@ export function SharedFilters({
               <Calendar
                 mode="range"
                 selected={tempDateRange}
-                onSelect={(range) =>
+                onSelect={(range: PickerDateRange | undefined) =>
                   setTempDateRange(range || { from: undefined, to: undefined })
                 }
                 defaultMonth={tempDateRange?.from || new Date()}
