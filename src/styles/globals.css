@@ -261,22 +261,6 @@
     @apply bg-background text-foreground tracking-tightantialiased selection:bg-primary/20 selection:text-primary;
     font-feature-settings: "ss01", "ss02", "cv01", "cv02", "cv03";
     /* Clean modern font features if supported */
-    /* Prevent horizontal scroll on mobile */
-    overflow-x: hidden;
-    width: 100%;
-  }
-
-  /* Ensure proper overflow handling on mobile */
-  html {
-    overflow-x: hidden;
-    width: 100%;
-  }
-
-  /* Improve touch scrolling on mobile */
-  @media (max-width: 768px) {
-    * {
-      -webkit-tap-highlight-color: transparent;
-    }
   }
 }
 

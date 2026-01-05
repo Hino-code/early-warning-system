@@ -786,7 +786,7 @@ export function Overview() {
   }, [forecasts, filters.pestType]);
 
   return (
-    <div className="p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6">
+    <div className="p-6 space-y-6">
       <SharedFilters
         filters={filters}
         onFilterChange={handleFilterChange}
@@ -816,8 +816,8 @@ export function Overview() {
             <KpiCards kpis={kpis} insights={kpiData} />
           </div>
 
-          <Card className="p-4 sm:p-6 relative overflow-hidden border border-border bg-white shadow-sm rounded-xl">
-            <div className="flex flex-col space-y-4 sm:space-y-6 pt-2">
+          <Card className="p-6 relative overflow-hidden border border-border bg-white shadow-sm rounded-xl">
+            <div className="flex flex-col space-y-6 pt-2">
               <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                 <div>
                   <h3 className="text-xl font-semibold text-foreground">
@@ -863,13 +863,11 @@ export function Overview() {
                 No forecast data available for the current filters.
               </p>
             ) : (
-              <div className="relative mt-4 sm:mt-6">
-                <div className="w-full h-[300px] sm:h-[380px]">
-                  <ResponsiveContainer width="100%" height="100%">
+              <div className="relative mt-6">
+                <ResponsiveContainer width="100%" height={380}>
                   <ComposedChart
                     data={forecastSeries}
-                    margin={{ top: 10, right: 10, bottom: 0, left: -10 }}
-                    className="sm:mx-4"
+                    margin={{ top: 10, right: 30, bottom: 0, left: -20 }}
                   >
                     <defs>
                       <linearGradient id="forecastGradient" x1="0" y1="0" x2="0" y2="1">
@@ -1055,16 +1053,15 @@ export function Overview() {
                       connectNulls={false}
                     />
                   </ComposedChart>
-                  </ResponsiveContainer>
-                </div>
+                </ResponsiveContainer>
               </div>
             )}
           </Card>
 
           {/* Mini-Visuals Row */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Threshold Status Breakdown */}
-            <Card className="p-4 sm:p-6 relative overflow-hidden border border-border bg-white shadow-sm rounded-xl">
+            <Card className="p-6 relative overflow-hidden border border-border bg-white shadow-sm rounded-xl">
               <div className="mb-4">
                 <h3 className="text-lg font-semibold text-foreground">
                   Threshold Status
@@ -1094,8 +1091,7 @@ export function Overview() {
                     </span>
                   </div>
                   
-                  <div className="w-full h-[200px] sm:h-[250px]">
-                    <ResponsiveContainer width="100%" height="100%">
+                  <ResponsiveContainer width="100%" height={250}>
                     <RadialBarChart
                       innerRadius="65%"
                       outerRadius="100%"
@@ -1128,12 +1124,11 @@ export function Overview() {
                     </RadialBarChart>
                   </ResponsiveContainer>
                 </div>
-                </div>
               )}
             </Card>
 
             {/* Action Tracker */}
-            <Card className="p-4 sm:p-6 relative overflow-hidden border border-border bg-white shadow-sm rounded-xl">
+            <Card className="p-6 relative overflow-hidden border border-border bg-white shadow-sm rounded-xl">
               <div className="mb-4">
                 <h3 className="text-lg font-semibold text-foreground">
                   Action Tracker
@@ -1147,14 +1142,13 @@ export function Overview() {
                   No actions recorded in this period.
                 </p>
               ) : (
-                <div className="w-full h-[200px] sm:h-[250px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart
-                      data={actionTrackerData}
-                      layout="vertical"
-                      margin={{ top: 0, right: 10, left: 10, bottom: 0 }}
-                      barSize={20}
-                    >
+                <ResponsiveContainer width="100%" height={250}>
+                  <BarChart
+                    data={actionTrackerData}
+                    layout="vertical"
+                    margin={{ top: 0, right: 30, left: 10, bottom: 0 }}
+                    barSize={20}
+                  >
                     <defs>
                       <linearGradient id="actionGradient" x1="0" y1="0" x2="1" y2="0">
                         <stop offset="0%" stopColor="#7c3aed" stopOpacity={0.8} />
@@ -1206,14 +1200,13 @@ export function Overview() {
                         radius: [0, 6, 6, 0],
                       }}
                     />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
+                  </BarChart>
+                </ResponsiveContainer>
               )}
             </Card>
 
             {/* Recent Alerts - Now Premium Styled */}
-            <Card className="p-4 sm:p-6 relative overflow-hidden border border-border bg-white shadow-sm rounded-xl">
+            <Card className="p-6 relative overflow-hidden border border-border bg-white shadow-sm rounded-xl">
               <div className="mb-4">
                 <h3 className="text-lg font-semibold text-foreground">
                   Recent Alerts
