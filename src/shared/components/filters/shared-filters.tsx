@@ -107,14 +107,14 @@ export function SharedFilters({
   return (
     <div className={compact ? "mb-4" : "mb-6"}>
       {/* Primary Filter Row - compact, closer to mock */}
-      <div className="flex items-center gap-3 flex-wrap rounded-md border border-border bg-white px-3 py-2 shadow-sm text-foreground">
+      <div className="flex items-center gap-2 sm:gap-3 flex-wrap rounded-md border border-border bg-white px-2 sm:px-3 py-2 shadow-sm text-foreground">
         {/* Group 1: Primary Filters */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <Select
             value={filters.year.toString()}
             onValueChange={(val: string) => updateFilter("year", parseInt(val))}
           >
-            <SelectTrigger className="h-9 w-[110px]">
+            <SelectTrigger className="h-9 w-[100px] sm:w-[110px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -129,7 +129,7 @@ export function SharedFilters({
               updateFilter("pestType", val as any)
             }
           >
-            <SelectTrigger className="h-9 w-[170px]">
+            <SelectTrigger className="h-9 w-[140px] sm:w-[170px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -143,7 +143,7 @@ export function SharedFilters({
               value={filters.fieldStage}
               onValueChange={(val: string) => updateFilter("fieldStage", val)}
             >
-              <SelectTrigger className="h-9 w-[140px]">
+              <SelectTrigger className="h-9 w-[120px] sm:w-[140px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -162,16 +162,16 @@ export function SharedFilters({
         </div>
 
         {/* Divider */}
-        <div className="h-6 w-px bg-border" />
+        <div className="h-6 w-px bg-border hidden sm:block" />
 
         {/* Group 2: Date Range */}
         <Popover open={datePopoverOpen} onOpenChange={setDatePopoverOpen}>
           <PopoverTrigger asChild>
             <Button
               variant="outline"
-              className="h-9 w-[220px] justify-start text-left font-normal"
+              className="h-9 w-full sm:w-[200px] md:w-[220px] justify-start text-left font-normal"
             >
-              <CalendarIcon className="mr-2 h-4 w-4 opacity-50" />
+              <CalendarIcon className="mr-2 h-4 w-4 opacity-50 shrink-0" />
               {filters.dateRange ? (
                 <span className="truncate">
                   {format(filters.dateRange.start, "MMM d")} -{" "}
@@ -224,23 +224,23 @@ export function SharedFilters({
         </Popover>
 
         {/* Spacer */}
-        <div className="flex-1" />
+        <div className="flex-1 hidden sm:block" />
 
         {/* Group 3: Advanced Filters & Reset */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
           {showAdvanced && (
             <Button
               variant="outline"
               size="sm"
               onClick={() => setAdvancedOpen(!advancedOpen)}
-              className="h-9 gap-1"
+              className="h-9 gap-1 flex-1 sm:flex-initial"
               aria-label={
                 advancedOpen ? "Hide advanced filters" : "Show advanced filters"
               }
               aria-expanded={advancedOpen}
             >
               <FilterList className="h-3.5 w-3.5" />
-              Advanced
+              <span className="hidden sm:inline">Advanced</span>
               <NavArrowDown
                 className={`h-3.5 w-3.5 transition-transform ${
                   advancedOpen ? "rotate-180" : ""
@@ -257,8 +257,8 @@ export function SharedFilters({
               className="h-9"
               aria-label="Reset all filters to default values"
             >
-              <Xmark className="h-3.5 w-3.5 mr-1" />
-              Reset
+              <Xmark className="h-3.5 w-3.5 sm:mr-1" />
+              <span className="hidden sm:inline">Reset</span>
             </Button>
           )}
         </div>

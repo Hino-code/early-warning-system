@@ -59,7 +59,7 @@ function SidebarLogo() {
     <div
       className="border-b flex items-center justify-center transition-all duration-200 w-full"
       style={{
-        padding: isCollapsed ? "16px 8px" : "0px 29px",
+        padding: isCollapsed ? "16px 8px" : "0px 16px",
         height: "62px",
         minHeight: "62px",
       }}
@@ -68,36 +68,14 @@ function SidebarLogo() {
         <img
           src={pestIconLogo}
           alt="Pest.i"
-          style={{
-            height: "32px",
-            width: "32px",
-            objectFit: "contain",
-            display: "block",
-            margin: "0 auto",
-          }}
-          className="transition-all duration-200"
+          className="h-8 w-8 object-contain block mx-auto transition-all duration-200"
         />
       ) : (
-        <div
-          className="flex items-center justify-center transition-all duration-200 w-full"
-          style={{
-            height: "61px",
-            paddingLeft: "24px",
-            paddingRight: "68px",
-            marginLeft: "14px",
-            marginRight: "14px",
-          }}
-        >
+        <div className="flex items-center justify-center transition-all duration-200 w-full h-[61px] px-4 sm:px-6">
           <img
             src={pestFullLogo}
             alt="Pest.i - Monitoring & Forecasting"
-            style={{
-              height: "51px",
-              width: "167px",
-              objectFit: "contain",
-              display: "block",
-            }}
-            className="transition-all duration-200"
+            className="h-[51px] w-auto max-w-[167px] object-contain block transition-all duration-200"
           />
         </div>
       )}
@@ -436,30 +414,15 @@ export function AppLayout() {
             className="sticky top-0 border-b bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60"
             style={{ zIndex: Z_INDEX.STICKY }}
           >
-            <div
-              className="flex items-center justify-between"
-              style={{
-                height: "61px",
-                paddingLeft: "24px",
-                paddingRight: "24px",
-              }}
-            >
-              <div className="flex items-center gap-3">
+            <div className="flex items-center justify-between px-3 sm:px-4 md:px-6 h-14 sm:h-16">
+              <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
                 <SidebarTrigger aria-label="Toggle sidebar (⌘B or Ctrl+B)" />
-                <h2 className="text-lg font-semibold">
+                <h2 className="text-base sm:text-lg font-semibold truncate">
                   {getSectionTitle(activeSection)}
                 </h2>
               </div>
 
-              <div
-                className="flex items-center space-x-4"
-                style={{
-                  paddingLeft: "24px",
-                  paddingRight: "24px",
-                  marginLeft: "14px",
-                  marginRight: "14px",
-                }}
-              >
+              <div className="flex items-center gap-2 sm:gap-3 md:gap-4 flex-shrink-0">
                 <ThemeToggle />
                 <div className="flex items-center">
                   <NotificationBell
@@ -488,7 +451,7 @@ export function AppLayout() {
               </div>
             </div>
           </div>
-          <div className="px-4 pb-6">{content}</div>
+          <div className="px-3 sm:px-4 md:px-6 pb-4 sm:pb-6">{content}</div>
         </main>
 
         {showWelcome && user && (

@@ -44,7 +44,7 @@ interface KpiCardsProps {
 
 export function KpiCards({ kpis, insights }: KpiCardsProps) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
       <KpiCard
         title="Total Observations"
         value={kpis.totalObservations.toLocaleString()}
@@ -120,7 +120,7 @@ function KpiCard({
 
   return (
     <Card className="relative overflow-hidden border border-border/60 bg-gradient-to-br from-card to-muted/10 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group rounded-xl">
-      <div className="flex flex-col h-full p-6 space-y-5">
+      <div className="flex flex-col h-full p-4 sm:p-6 space-y-4 sm:space-y-5">
         
         {/* Top Row: Label + Icon */}
         <div className="flex items-start justify-between">
@@ -136,13 +136,13 @@ function KpiCard({
         {/* Middle Row: Value + Sparkline */}
         <div className="flex items-end justify-between gap-2">
             <div className="flex flex-col">
-                <div className="text-3xl lg:text-4xl font-semibold tracking-tight text-foreground tabular-nums transition-all duration-300">
+                <div className="text-2xl sm:text-3xl lg:text-4xl font-semibold tracking-tight text-foreground tabular-nums transition-all duration-300">
                     {value}
                 </div>
             </div>
             
             {/* Micro-Trend Sparkline */}
-            <div className="h-[40px] w-[80px] pb-1 opacity-80 group-hover:opacity-100 transition-opacity">
+            <div className="h-[40px] w-[70px] sm:w-[80px] pb-1 opacity-80 group-hover:opacity-100 transition-opacity shrink-0">
                 <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={chartData}>
                     <defs>
